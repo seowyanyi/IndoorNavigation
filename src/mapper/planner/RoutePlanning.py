@@ -25,6 +25,7 @@ data_COM2_3 = json.load(urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMap
 i=0
 m=0
 n=0
+p=0
 coords_src_x=0
 coords_dest_x=0
 coords_src_y=0
@@ -76,7 +77,7 @@ while True:
         break
     checkpoint = make_checkpoint(data_COM1_2["map"][i]["nodeId"], data_COM1_2["map"][i]["x"], data_COM1_2["map"][i]["y"], data_COM1_2["map"][i]["nodeName"], data_COM1_2["map"][i]["linkTo"])
     checkpoint.nodeId = "COM1-2-%s" %checkpoint.nodeId
-    print checkpoint.nodeId
+#    print checkpoint.nodeId
     arrayObj.append(checkpoint)
     G.add_node(checkpoint.nodeId)
 
@@ -99,7 +100,7 @@ while True:
         break
     checkpoint = make_checkpoint(data_COM2_2["map"][i]["nodeId"], data_COM2_2["map"][i]["x"], data_COM2_2["map"][i]["y"], data_COM2_2["map"][i]["nodeName"], data_COM2_2["map"][i]["linkTo"])
     checkpoint.nodeId = "COM2-2-%s" %checkpoint.nodeId
-    print checkpoint.nodeId
+#    print checkpoint.nodeId
     arrayObj.append(checkpoint)
     G.add_node(checkpoint.nodeId)
 
@@ -108,7 +109,7 @@ while True:
     while True:
         if j == length_linkTo:
             break
-        checkpoint.linkTo[j] = "COM1-2-%s" %checkpoint.linkTo[j]
+        checkpoint.linkTo[j] = "COM2-2-%s" %checkpoint.linkTo[j]
         G.add_edge(checkpoint.nodeId, checkpoint.linkTo[j])
         j = j+1
 
@@ -121,7 +122,7 @@ while True:
         break
     checkpoint = make_checkpoint(data_COM2_3["map"][i]["nodeId"], data_COM2_3["map"][i]["x"], data_COM2_3["map"][i]["y"], data_COM2_3["map"][i]["nodeName"], data_COM2_3["map"][i]["linkTo"])
     checkpoint.nodeId = "COM2-3-%s" %checkpoint.nodeId
-    print checkpoint.nodeId
+#    print checkpoint.nodeId
     arrayObj.append(checkpoint)
     G.add_node(checkpoint.nodeId)
 
@@ -130,30 +131,43 @@ while True:
     while True:
         if j == length_linkTo:
             break
-        checkpoint.linkTo[j] = "COM1-2-%s" %checkpoint.linkTo[j]
+        checkpoint.linkTo[j] = "COM2-3-%s" %checkpoint.linkTo[j]
         G.add_edge(checkpoint.nodeId, checkpoint.linkTo[j])
         j = j+1
 
     i = i+1
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Iterates through the data to find nodes which have nodeNames like "TO COM1-2-11" and create and edge between this and the next one using weight of 1
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+length = len(arrayObj)
+print length
+while True:
+    if p == length:
+        break
+    if "TO" in arrayObj[p].nodeName:
+        nextLevelNode = (arrayObj[p].nodeName).split(' ')
+        nextLevelNode = nextLevelNode[1]
+        print str(nextLevelNode) in G
+    p = p+1
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Iterates through all the existing edges and calculates the weight using the coordinates given in the JSON file.
 # Then adds this edge weight to the edge
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-length = len(arrayObj)
-
 while True:
     if m == length:
         break
-    edge_src = arrayObj[m].nodeId
-    edge_dest = arrayObj[n].nodeId
-    if G.has_edge(edge_src, edge_dest):
+    nodeEdge_src = arrayObj[m].nodeId
+    nodeEdge_dest = arrayObj[n].nodeId
+    if G.has_edge(nodeEdge_src, nodeEdge_dest):
         coords_src_x = int(arrayObj[m].x_coord)
         coords_src_y = int(arrayObj[m].y_coord)
         coords_dest_x = int(arrayObj[n].x_coord)
         coords_dest_y = int(arrayObj[n].y_coord)
         edge_weight = math.sqrt(math.pow((coords_dest_x-coords_src_x), 2)+math.pow((coords_dest_y-coords_src_y),2))
-        G[edge_src][edge_dest]['weight']=edge_weight
+        G[nodeEdge_src][nodeEdge_dest]['weight']=edge_weight
     if n == length-1:
         m=m+1
         n=0
@@ -164,15 +178,16 @@ while True:
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 path = nx.dijkstra_path(G, arrayObj[src-1].nodeId, arrayObj[dest-1].nodeId, 'weight')
+print path
 print nx.dijkstra_path_length(G, arrayObj[src-1].nodeId, arrayObj[dest-1].nodeId, 'weight')
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Draws out the graph using the MatPlotLib
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
-pos = nx.spring_layout(G)
-nx.draw_networkx(G, pos, node_color='y')
-path_edges = zip(path,path[1:])
-nx.draw_networkx_nodes(G,pos,nodelist=path,node_color='r')
-nx.draw_networkx_edges(G,pos,edgelist=path_edges,edge_color='r',width=5)
-plt.show()
+#pos = nx.spring_layout(G)
+#nx.draw_networkx(G, pos, node_color='y')
+#path_edges = zip(path,path[1:])
+#nx.draw_networkx_nodes(G,pos,nodelist=path,node_color='r')
+#nx.draw_networkx_edges(G,pos,edgelist=path_edges,edge_color='r',width=5)
+#plt.show()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
