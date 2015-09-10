@@ -6,9 +6,9 @@ import math
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Write the source nodeID in the format (buildingName-levelNum-nodeID)
-src= 2
+src= 14
 # Write the destination nodeId in the format (buildingName-levelNum-nodeID)
-dest= 25
+dest= 44
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Download and parse all available maps
@@ -77,7 +77,6 @@ while True:
         break
     checkpoint = make_checkpoint(data_COM1_2["map"][i]["nodeId"], data_COM1_2["map"][i]["x"], data_COM1_2["map"][i]["y"], data_COM1_2["map"][i]["nodeName"], data_COM1_2["map"][i]["linkTo"])
     checkpoint.nodeId = "COM1-2-%s" %checkpoint.nodeId
-#    print checkpoint.nodeId
     arrayObj.append(checkpoint)
     G.add_node(checkpoint.nodeId)
 
@@ -100,7 +99,6 @@ while True:
         break
     checkpoint = make_checkpoint(data_COM2_2["map"][i]["nodeId"], data_COM2_2["map"][i]["x"], data_COM2_2["map"][i]["y"], data_COM2_2["map"][i]["nodeName"], data_COM2_2["map"][i]["linkTo"])
     checkpoint.nodeId = "COM2-2-%s" %checkpoint.nodeId
-#    print checkpoint.nodeId
     arrayObj.append(checkpoint)
     G.add_node(checkpoint.nodeId)
 
@@ -122,7 +120,6 @@ while True:
         break
     checkpoint = make_checkpoint(data_COM2_3["map"][i]["nodeId"], data_COM2_3["map"][i]["x"], data_COM2_3["map"][i]["y"], data_COM2_3["map"][i]["nodeName"], data_COM2_3["map"][i]["linkTo"])
     checkpoint.nodeId = "COM2-3-%s" %checkpoint.nodeId
-#    print checkpoint.nodeId
     arrayObj.append(checkpoint)
     G.add_node(checkpoint.nodeId)
 
@@ -147,8 +144,8 @@ while True:
         break
     if "TO" in arrayObj[p].nodeName:
         nextLevelNode = (arrayObj[p].nodeName).split(' ')
-        nextLevelNode = nextLevelNode[1]
-        print str(nextLevelNode) in G
+        nextLevelNode = str(nextLevelNode[1])
+        G.add_edge(arrayObj[p].nodeId, nextLevelNode, weight=1)
     p = p+1
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -184,10 +181,10 @@ print nx.dijkstra_path_length(G, arrayObj[src-1].nodeId, arrayObj[dest-1].nodeId
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Draws out the graph using the MatPlotLib
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
-#pos = nx.spring_layout(G)
-#nx.draw_networkx(G, pos, node_color='y')
-#path_edges = zip(path,path[1:])
-#nx.draw_networkx_nodes(G,pos,nodelist=path,node_color='r')
-#nx.draw_networkx_edges(G,pos,edgelist=path_edges,edge_color='r',width=5)
-#plt.show()
+pos = nx.spring_layout(G)
+nx.draw_networkx(G, pos, node_color='y')
+path_edges = zip(path,path[1:])
+nx.draw_networkx_nodes(G,pos,nodelist=path,node_color='r')
+nx.draw_networkx_edges(G,pos,edgelist=path_edges,edge_color='r',width=5)
+plt.show()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
