@@ -198,14 +198,22 @@ def download_map(buildingName, levelNum):
     Returns a python dictionary of the downloaded map
     :param buildingName: string
     :param levelNum: integer
+    >> what's the behaviour of this function when map is not found?
     """
     print 'do your stuff here'
+    fakeMap = {}
+    fakeMap["info"] = {"northAt": "180"}
+    fakeMap["map"] = [{"nodeId":"7","x":"800","y":"300","nodeName":"TO level 2","linkTo":"6"},
+                      {"nodeId":"5","x":"600","y":"500","nodeName":"Female Toilet","linkTo":"8, 6"}]
+    return fakeMap
+
 
 
 def find_shortest_path(sourceBuilding, sourceLevel, sourceNodeId,
                        destBuilding, destLevel, destNodeId):
     """
     Returns the shortest path. Format given in documentation
+    >> what's the behaviour when no path is found / no relevant map found?
     """
     print 'do your stuff here'
 
