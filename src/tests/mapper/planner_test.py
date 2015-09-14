@@ -11,6 +11,7 @@ class DownloadMap(unittest.TestCase):
 
         # Ensure we have nodes
         nodes = map["map"]
+        self.assertTrue(len(nodes) > 0)
         for node in nodes:
             nodeId = int(node["nodeId"])
             x = int(node["x"])
