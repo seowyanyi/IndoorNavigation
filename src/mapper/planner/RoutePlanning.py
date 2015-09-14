@@ -188,3 +188,24 @@ nx.draw_networkx_nodes(G,pos,nodelist=path,node_color='r')
 nx.draw_networkx_edges(G,pos,edgelist=path_edges,edge_color='r',width=5)
 plt.show()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Public APIs
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def download_map(buildingName, levelNum):
+    """
+    Returns a python dictionary of the downloaded map
+    :param buildingName: string
+    :param levelNum: integer
+    """
+    print 'do your stuff here'
+
+
+def find_shortest_path(sourceBuilding, sourceLevel, sourceNodeId,
+                       destBuilding, destLevel, destNodeId):
+    """
+    Returns the shortest path. Format given in documentation
+    """
+    print 'do your stuff here'
+
