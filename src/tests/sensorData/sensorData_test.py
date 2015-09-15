@@ -1,5 +1,5 @@
 import unittest
-import sensorData.sensorData as sensorData
+import src.sensorData.sensorData as sensorData
 
 
 class QueueAPI(unittest.TestCase):

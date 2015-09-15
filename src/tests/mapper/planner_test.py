@@ -1,5 +1,5 @@
 import unittest
-import mapper.planner.RoutePlanning as planner
+import src.mapper.planner.RoutePlanning as planner
 
 class DownloadMap(unittest.TestCase):
     def test_download_map_positive(self):
