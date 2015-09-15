@@ -6,9 +6,14 @@ import math
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Write the source nodeID in the format (buildingName-levelNum-nodeID)
-src= 14
+src= 2
 # Write the destination nodeId in the format (buildingName-levelNum-nodeID)
-dest= 44
+dest= 33
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------
+# ERROR DECLARATIONS
+
+
+
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Download and parse all available maps
@@ -181,12 +186,12 @@ print nx.dijkstra_path_length(G, arrayObj[src-1].nodeId, arrayObj[dest-1].nodeId
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Draws out the graph using the MatPlotLib
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
-pos = nx.spring_layout(G)
-nx.draw_networkx(G, pos, node_color='y')
-path_edges = zip(path,path[1:])
-nx.draw_networkx_nodes(G,pos,nodelist=path,node_color='r')
-nx.draw_networkx_edges(G,pos,edgelist=path_edges,edge_color='r',width=5)
-plt.show()
+#pos = nx.spring_layout(G)
+#nx.draw_networkx(G, pos, node_color='y')
+#path_edges = zip(path,path[1:])
+#nx.draw_networkx_nodes(G,pos,nodelist=path,node_color='r')
+#nx.draw_networkx_edges(G,pos,edgelist=path_edges,edge_color='r',width=5)
+#plt.show()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -194,26 +199,57 @@ plt.show()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 def download_map(buildingName, levelNum):
-    """
-    Returns a python dictionary of the downloaded map
-    :param buildingName: string
-    :param levelNum: integer
-    >> what's the behaviour of this function when map is not found?
-    """
-    print 'do your stuff here'
-    fakeMap = {}
-    fakeMap["info"] = {"northAt": "180"}
-    fakeMap["map"] = [{"nodeId":"7","x":"800","y":"300","nodeName":"TO level 2","linkTo":"6"},
-                      {"nodeId":"5","x":"600","y":"500","nodeName":"Female Toilet","linkTo":"8, 6"}]
-    return fakeMap
+    
+#    Returns a python dictionary of the downloaded map
+#    :param buildingName: string
+#    :param levelNum: string
+#    >> what's the behaviour of this function when map is not found?
+#       Returns NO_MAP_FOUND_ERROR if the map does not exist.
 
+    data = json.load(urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=%s&Level=%s'%(buildingName,levelNum)))
+    if (data["info"] == None):
+        raise ValueError('NO_MAP_FOUND_ERROR')
+    return data
 
-
-def find_shortest_path(sourceBuilding, sourceLevel, sourceNodeId,
+def find_shortest_path(arrayObj, sourceBuilding, sourceLevel, sourceNodeId,
                        destBuilding, destLevel, destNodeId):
-    """
-    Returns the shortest path. Format given in documentation
-    >> what's the behaviour when no path is found / no relevant map found?
-    """
-    print 'do your stuff here'
+    b=0
+    src=-1
+    dest=-1
+#    Returns the shortest path. Format given in documentation
+#    >> what's the behaviour when no path is found / no relevant map found?
+#       Returns a NO_VALID_PATH_ERROR if such a path does not exist
+    nodeIdSrc_temp = '%s-%d-%d' %(sourceBuilding, sourceLevel, sourceNodeId)
+    nodeIdDest_temp = '%s-%d-%d' %(destBuilding, destLevel, destNodeId)
+    while True:
+        if b == len(arrayObj):
+            if src== -1:
+                raise ValueError ('NO_START_NODE_FOUND_ERROR')
+            if dest==-1:
+                raise ValueError('NO_END_NODE_FOUND_ERROR')
+            break
+        if arrayObj[b].nodeId == nodeIdSrc_temp:
+            src = b
+        if arrayObj[b].nodeId == nodeIdDest_temp:
+            dest = b
+
+# how to search for an element and return its array position?
+    path = nx.dijkstra_path(G, arrayObj[src].nodeId, arrayObj[dest].nodeId, 'weight')
+
+    if (path == None):
+        raise IndexError('NO_VALID_PATH_ERROR')
+    return path
+
+
+print str(find_shortest_path(arrayObj, "COM1", 2, 3, "COM2", 2, 7))
+
+
+
+
+
+
+
+
+
+
 
