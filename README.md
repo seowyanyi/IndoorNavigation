@@ -1,8 +1,6 @@
 # IndoorNavigation
 
 Project ShowMyWay, CG3002
-=========================
-
 
 Documentation folder:
 ---------------------
@@ -15,4 +13,5 @@ Installation
 
 Running
 -------
+In the IndoorNavigation directory (top most level), run
 `python -m src.main`
