@@ -4,6 +4,8 @@ LEFT_SONAR_QUEUE = Queue.Queue()
 RIGHT_SONAR_QUEUE = Queue.Queue()
 MIDDLE_SONAR_QUEUE = Queue.Queue()
 IMU_QUEUE = Queue.Queue()
+AUDIO_QUEUE = Queue.Queue()
+HAPTIC_QUEUE = Queue.Queue()
 
 class Sonar:
     Left, Right, Front, UpperShin, LowerShin, IMU = range(6)
