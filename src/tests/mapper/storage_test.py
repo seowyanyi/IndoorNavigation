@@ -54,10 +54,10 @@ class CurrentLocationGetSetUpdate(unittest.TestCase):
         distToNext = 236
         distOffCenter = 30
 
-        currentLoc = path.convert_to_current_location_obj(building='test building', level=level,
+        currentLoc = storage.convert_to_current_location_obj(building='test building', level=level,
                                                           edgeStart=edgeStart, edgeEnd=edgeEnd,
                                                           distToNext=distToNext, distOffCenter=distOffCenter)
-        path.set_current_location(currentLoc)
+        storage.set_current_location(currentLoc)
 
         with open(CURRENT_LOC_FILE_PATH) as infile:
             data = json.load(infile)
