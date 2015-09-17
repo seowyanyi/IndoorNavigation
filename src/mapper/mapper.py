@@ -1,4 +1,4 @@
-import planner.RoutePlanning as planner
+import src.mapper.planner as planner
 import src.peripherals.audio as audio
 import src.peripherals.keypad as keypad
 

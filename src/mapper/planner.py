@@ -1,7 +1,6 @@
 import json
 import urllib2
 import networkx as nx
-import matplotlib.pyplot as plt
 import math
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -181,12 +180,12 @@ print nx.dijkstra_path_length(G, arrayObj[src-1].nodeId, arrayObj[dest-1].nodeId
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Draws out the graph using the MatPlotLib
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
-pos = nx.spring_layout(G)
-nx.draw_networkx(G, pos, node_color='y')
-path_edges = zip(path,path[1:])
-nx.draw_networkx_nodes(G,pos,nodelist=path,node_color='r')
-nx.draw_networkx_edges(G,pos,edgelist=path_edges,edge_color='r',width=5)
-plt.show()
+# pos = nx.spring_layout(G)
+# nx.draw_networkx(G, pos, node_color='y')
+# path_edges = zip(path,path[1:])
+# nx.draw_networkx_nodes(G,pos,nodelist=path,node_color='r')
+# nx.draw_networkx_edges(G,pos,edgelist=path_edges,edge_color='r',width=5)
+# plt.show()
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -200,12 +199,12 @@ def download_map(buildingName, levelNum):
     :param levelNum: integer
     >> what's the behaviour of this function when map is not found?
     """
-    print 'do your stuff here'
-    fakeMap = {}
-    fakeMap["info"] = {"northAt": "180"}
-    fakeMap["map"] = [{"nodeId":"7","x":"800","y":"300","nodeName":"TO level 2","linkTo":"6"},
-                      {"nodeId":"5","x":"600","y":"500","nodeName":"Female Toilet","linkTo":"8, 6"}]
-    return fakeMap
+    if type(levelNum) is int:
+        levelNum = str(levelNum)
+
+    url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName, levelNum)
+    return json.load(urllib2.urlopen(url))
+
 
 
 
