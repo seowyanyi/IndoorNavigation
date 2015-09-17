@@ -65,73 +65,9 @@ def make_checkpoint(nodeId, x_coord, y_coord, nodeName, linkTo):
     checkpoint = Checkpoint(nodeId, x_coord, y_coord, nodeName, linkTo)
     return checkpoint
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Iterates through the JSON files, creates the 'checkpoint' object and adds them to an array.
-# This also adds the nodeID of the node into a Graph
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-i=0
-while True:
-    if i == length_map_COM1_2:
-        break
-    checkpoint = make_checkpoint(data_COM1_2["map"][i]["nodeId"], data_COM1_2["map"][i]["x"], data_COM1_2["map"][i]["y"], data_COM1_2["map"][i]["nodeName"], data_COM1_2["map"][i]["linkTo"])
-    checkpoint.nodeId = "COM1-2-%s" %checkpoint.nodeId
-    arrayObj.append(checkpoint)
-    G.add_node(checkpoint.nodeId)
 
-    #Iterates through the nodeIds given in the linkTo and creates edges between the 2 points
-    length_linkTo = len(checkpoint.linkTo)
-    j=0
-    while True:
-        if j == length_linkTo:
-            break
-        checkpoint.linkTo[j] = "COM1-2-%s" %checkpoint.linkTo[j]
-        G.add_edge(checkpoint.nodeId, checkpoint.linkTo[j])
-        j = j+1
 
-    i = i+1
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-i=0
-while True:
-    if i == length_map_COM2_2:
-        break
-    checkpoint = make_checkpoint(data_COM2_2["map"][i]["nodeId"], data_COM2_2["map"][i]["x"], data_COM2_2["map"][i]["y"], data_COM2_2["map"][i]["nodeName"], data_COM2_2["map"][i]["linkTo"])
-    checkpoint.nodeId = "COM2-2-%s" %checkpoint.nodeId
-    arrayObj.append(checkpoint)
-    G.add_node(checkpoint.nodeId)
-
-    length_linkTo = len(checkpoint.linkTo)
-    j=0
-    while True:
-        if j == length_linkTo:
-            break
-        checkpoint.linkTo[j] = "COM2-2-%s" %checkpoint.linkTo[j]
-        G.add_edge(checkpoint.nodeId, checkpoint.linkTo[j])
-        j = j+1
-
-    i = i+1
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-i=0
-while True:
-    if i == length_map_COM2_3:
-        break
-    checkpoint = make_checkpoint(data_COM2_3["map"][i]["nodeId"], data_COM2_3["map"][i]["x"], data_COM2_3["map"][i]["y"], data_COM2_3["map"][i]["nodeName"], data_COM2_3["map"][i]["linkTo"])
-    checkpoint.nodeId = "COM2-3-%s" %checkpoint.nodeId
-    arrayObj.append(checkpoint)
-    G.add_node(checkpoint.nodeId)
-
-    length_linkTo = len(checkpoint.linkTo)
-    j=0
-    while True:
-        if j == length_linkTo:
-            break
-        checkpoint.linkTo[j] = "COM2-3-%s" %checkpoint.linkTo[j]
-        G.add_edge(checkpoint.nodeId, checkpoint.linkTo[j])
-        j = j+1
-
-    i = i+1
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Iterates through the data to find nodes which have nodeNames like "TO COM1-2-11" and create and edge between this and the next one using weight of 1
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -147,35 +83,8 @@ while True:
         G.add_edge(arrayObj[p].nodeId, nextLevelNode, weight=1)
     p = p+1
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Iterates through all the existing edges and calculates the weight using the coordinates given in the JSON file.
-# Then adds this edge weight to the edge
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-while True:
-    if m == length:
-        break
-    nodeEdge_src = arrayObj[m].nodeId
-    nodeEdge_dest = arrayObj[n].nodeId
-    if G.has_edge(nodeEdge_src, nodeEdge_dest):
-        coords_src_x = int(arrayObj[m].x_coord)
-        coords_src_y = int(arrayObj[m].y_coord)
-        coords_dest_x = int(arrayObj[n].x_coord)
-        coords_dest_y = int(arrayObj[n].y_coord)
-        edge_weight = math.sqrt(math.pow((coords_dest_x-coords_src_x), 2)+math.pow((coords_dest_y-coords_src_y),2))
-        G[nodeEdge_src][nodeEdge_dest]['weight']=edge_weight
-    if n == length-1:
-        m=m+1
-        n=0
-    n=n+1
 
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Given the source and destination NodeId, the shortest route and the shortest route is calculated
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-path = nx.dijkstra_path(G, arrayObj[src-1].nodeId, arrayObj[dest-1].nodeId, 'weight')
-print path
-print nx.dijkstra_path_length(G, arrayObj[src-1].nodeId, arrayObj[dest-1].nodeId, 'weight')
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Draws out the graph using the MatPlotLib
@@ -214,5 +123,60 @@ def find_shortest_path(sourceBuilding, sourceLevel, sourceNodeId,
     Returns the shortest path. Format given in documentation
     >> what's the behaviour when no path is found / no relevant map found?
     """
-    print 'do your stuff here'
 
+    #--------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # Iterates through the JSON files, creates the 'checkpoint' object and adds them to an array.
+    # This also adds the nodeID of the node into a Graph
+    #--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    mapObj = download_map(sourceBuilding, sourceLevel)
+    checkpointPrefix = sourceBuilding + '-' + sourceLevel + '-'
+    i=0
+    while True:
+        if i == length_map_COM2_3:
+            break
+        checkpoint = make_checkpoint(mapObj["map"][i]["nodeId"], mapObj["map"][i]["x"], mapObj["map"][i]["y"], mapObj["map"][i]["nodeName"], mapObj["map"][i]["linkTo"])
+        checkpoint.nodeId = checkpointPrefix + checkpoint.nodeId
+        arrayObj.append(checkpoint)
+        G.add_node(checkpoint.nodeId)
+
+        length_linkTo = len(checkpoint.linkTo)
+        j=0
+        while True:
+            if j == length_linkTo:
+                break
+            checkpoint.linkTo[j] = "COM2-3-%s" %checkpoint.linkTo[j]
+            G.add_edge(checkpoint.nodeId, checkpoint.linkTo[j])
+            j = j+1
+
+        i = i+1
+
+    #--------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # Iterates through all the existing edges and calculates the weight using the coordinates given in the JSON file.
+    # Then adds this edge weight to the edge
+    #--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    while True:
+        if m == length:
+            break
+        nodeEdge_src = arrayObj[m].nodeId
+        nodeEdge_dest = arrayObj[n].nodeId
+        if G.has_edge(nodeEdge_src, nodeEdge_dest):
+            coords_src_x = int(arrayObj[m].x_coord)
+            coords_src_y = int(arrayObj[m].y_coord)
+            coords_dest_x = int(arrayObj[n].x_coord)
+            coords_dest_y = int(arrayObj[n].y_coord)
+            edge_weight = math.sqrt(math.pow((coords_dest_x-coords_src_x), 2)+math.pow((coords_dest_y-coords_src_y),2))
+            G[nodeEdge_src][nodeEdge_dest]['weight']=edge_weight
+        if n == length-1:
+            m=m+1
+            n=0
+        n=n+1
+
+    path = nx.dijkstra_path(G, arrayObj[src-1].nodeId, arrayObj[dest-1].nodeId, 'weight')
+    print path
+    #--------------------------------------------------------------------------------------------------------------------------------------------------------------
+    # Given the source and destination NodeId, the shortest route and the shortest route is calculated
+    #--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    print nx.dijkstra_path_length(G, arrayObj[src-1].nodeId, arrayObj[dest-1].nodeId, 'weight')
