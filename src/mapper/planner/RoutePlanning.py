@@ -77,7 +77,7 @@ def update_graph(mapDetails, G, checkpointList):
             break
         checkpoint = create_checkpoint(mapJsonData["map"][i]["nodeId"], mapJsonData["map"][i]["x"], mapJsonData["map"][i]["y"], mapJsonData["map"][i]["nodeName"], mapJsonData["map"][i]["linkTo"])
         checkpoint.nodeId = "%s-%d-%s" %(mapDetails.buildingName, mapDetails.levelNum, checkpoint.nodeId)
-        arrayObj.append(checkpoint)
+        checkpointList.append(checkpoint)
         G.add_node(checkpoint.nodeId)
     
     # Create edges between the nodes using nodeId and LinkTo values
@@ -86,7 +86,7 @@ def update_graph(mapDetails, G, checkpointList):
         while True:
             if j == length_linkTo:
                 break
-            checkpoint.linkTo[j] = "%s-%d-%s" %(mapDetails.buildingName, mapDetails.levelNum, checkpoint.linkTo[j])
+            checkpoint.linkTo[j] = '%s-%d-%s' %(mapDetails.buildingName, mapDetails.levelNum, checkpoint.linkTo[j])
             G.add_edge(checkpoint.nodeId, checkpoint.linkTo[j])
             j = j+1
         
@@ -97,7 +97,7 @@ def combine_graph(G, checkpointList):
     while True:
         if p == length_array:
             break
-        if "TO" in arrayObj[p].nodeName:
+        if "TO" in checkpointList[p].nodeName:
             nextLevelNode = (checkpointList[p].nodeName).split(' ')
             nextLevelNode = str(nextLevelNode[1])
             G.add_edge(checkpointList[p].nodeId, nextLevelNode, weight=1)
