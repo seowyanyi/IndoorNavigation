@@ -1,14 +1,15 @@
 import unittest
-import mapper.path.path as path
 import os
 import json
+
+import src.mapper.storage as storage
 
 CURRENT_LOC_FILE_PATH = 'current_location.json'
 TEMP_CURRENT_LOC_FILE_PATH = 'temp_current_location.json'
 
 class CurrentLocationObjectConversion(unittest.TestCase):
     def test_positive(self):
-        obj = path.convert_to_current_location_obj(building='COM3', level='2',
+        obj = storage.convert_to_current_location_obj(building='COM3', level='2',
                                                    edgeStart=5, edgeEnd='1', distToNext='0', distOffCenter=30)
         self.assertEquals('COM3', obj['building'])
         self.assertEquals(2, obj['level'])
@@ -19,12 +20,12 @@ class CurrentLocationObjectConversion(unittest.TestCase):
 
     def test_negative_distance(self):
         with self.assertRaises(ValueError):
-            path.convert_to_current_location_obj(building='COM3', level='2',
+            storage.convert_to_current_location_obj(building='COM3', level='2',
                                                  edgeStart=5, edgeEnd='1', distToNext='-1', distOffCenter=30)
 
     def test_non_string_building_name(self):
         with self.assertRaises(ValueError):
-            path.convert_to_current_location_obj(building=999, level='2',
+            storage.convert_to_current_location_obj(building=999, level='2',
                                                  edgeStart=5, edgeEnd='1', distToNext='-1', distOffCenter=30)
 
 
@@ -53,10 +54,10 @@ class CurrentLocationGetSetUpdate(unittest.TestCase):
         distToNext = 236
         distOffCenter = 30
 
-        currentLoc = path.convert_to_current_location_obj(building='test building', level=level,
+        currentLoc = storage.convert_to_current_location_obj(building='test building', level=level,
                                                           edgeStart=edgeStart, edgeEnd=edgeEnd,
                                                           distToNext=distToNext, distOffCenter=distOffCenter)
-        path.set_current_location(currentLoc)
+        storage.set_current_location(currentLoc)
 
         with open(CURRENT_LOC_FILE_PATH) as infile:
             data = json.load(infile)
@@ -68,15 +69,15 @@ class CurrentLocationGetSetUpdate(unittest.TestCase):
         self.assertEquals(distOffCenter, data['dist_off_center'])
 
     def test_update_location(self):
-        currentLoc = path.convert_to_current_location_obj(building='COM4', level=2,
+        currentLoc = storage.convert_to_current_location_obj(building='COM4', level=2,
                                                           edgeStart=5, edgeEnd=1, distToNext=0, distOffCenter=30)
-        path.set_current_location(currentLoc)
+        storage.set_current_location(currentLoc)
         edgeStart = 33
         edgeEnd = 0
         distToNext = 875
         distOffCenter = -29
 
-        path.update_current_location(edgeStart=edgeStart, edgeEnd=edgeEnd,
+        storage.update_current_location(edgeStart=edgeStart, edgeEnd=edgeEnd,
                                      distToNext=distToNext, distOffCenter=distOffCenter)
 
         with open(CURRENT_LOC_FILE_PATH) as infile:
@@ -97,11 +98,11 @@ class CurrentLocationGetSetUpdate(unittest.TestCase):
         distToNext = 100
         distOffCenter = 0
 
-        currentLoc = path.convert_to_current_location_obj(building=building, level=level,
+        currentLoc = storage.convert_to_current_location_obj(building=building, level=level,
                                                           edgeStart=edgeStart, edgeEnd=edgeEnd,
                                                           distToNext=distToNext, distOffCenter=distOffCenter)
-        path.set_current_location(currentLoc)
-        data = path.get_current_location()
+        storage.set_current_location(currentLoc)
+        data = storage.get_current_location()
         self.assertEquals(level, data['level'])
         self.assertEquals(building, data['building'])
         self.assertEquals(edgeStart, data['edge_start'])

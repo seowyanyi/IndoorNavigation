@@ -1,16 +1,18 @@
 import unittest
-import mapper.planner.RoutePlanning as planner
+
+import src.mapper.planner as planner
+
 
 class DownloadMap(unittest.TestCase):
     def test_download_map_positive(self):
-        map = planner.download_map("COM1", 2)
-
+        mapObj = planner.download_map("COM1", 2)
         # Ensure we have direction of north
-        northAt = abs(int(map["info"]["northAt"]))
+        northAt = abs(int(mapObj["info"]["northAt"]))
         self.assertTrue(0 <= northAt <= 360)
 
         # Ensure we have nodes
-        nodes = map["map"]
+        nodes = mapObj["map"]
+        self.assertTrue(len(nodes) > 0)
         for node in nodes:
             nodeId = int(node["nodeId"])
             x = int(node["x"])

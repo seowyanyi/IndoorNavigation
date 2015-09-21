@@ -8,6 +8,18 @@ KEY_BUILDING = 'building'
 KEY_DIST_OFF_CENTER = 'dist_off_center'
 KEY_DIST_TO_NEXT = 'dist_to_next'
 
+def save_map(map):
+    pass
+
+def get_maps():
+    pass
+
+def save_path(path):
+    pass
+
+def get_path():
+    pass
+
 def get_current_location():
     with open(CURRENT_LOCATION_FILE_NAME) as infile:
         data = json.load(infile)
