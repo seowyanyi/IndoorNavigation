@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import math
 
 # -------------------------------------------------------------------------------------------------------------------
-
 MapError = 'NO_MAP_FOUND_ERROR'
 StartNodeError = 'NO_START_NODE_FOUND_ERROR'
 EndNodeError = 'NO_END_NODE_FOUND_ERROR'
@@ -148,6 +147,48 @@ def find_shortest_path(graph, sourceBuilding, sourceLevel, sourceNodeId, destBui
     return path
 
 # -------------------------------------------------------------------------------------------------------------------
+def convert_to_API(path):
+    p=0
+    r=0
+    stage=1
+    path_nodes = len(path)
+    arrayNodes = []
+    arrayStages = []
+    level=0
+    startingBuild = path[p].split('-')[0]
+    startingLevel = path[p].split('-')[1]
+    p=p+1
+    while True:
+        if p == path_nodes:
+            break
+        else:
+            while True:
+                if r == path_nodes:
+                    break
+                elif (path[r].split('-')[0] == startingBuild) and (path[r].split('-')[1] == startingLevel):
+                    arrayNodes.append(path[r].split('-')[2])
+                    r=r+1
+                else:
+                    stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
+                    building = startingBuild
+                    level = startingLevel
+                    apiNode = '{"stage":%d,"building":"%s","level":%s,"path":%s}' %(stage, building, level, stringNodes)
+                    arrayStages.append(apiNode)
+                    arrayNodes = []
+                    stage = stage+1
+                    startingBuild = path[r].split('-')[0]
+                    startingLevel = path[r].split('-')[1]
+                    
+        p=p+1
+
+    stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
+    building = startingBuild
+    level = startingLevel
+    apiNode = '{"stage":%d,"building":"%s","level":%s,"path":%s}' %(stage, building, level, stringNodes)
+    arrayStages.append(apiNode)
+
+    return "[{0}]".format(", ".join(str(i) for i in arrayStages))
+
 
 def path_to_follow(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId, bearing):
     k=0
@@ -156,9 +197,11 @@ def path_to_follow(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuildin
     while True:
         if k == path_length:
             break
-        
-        p=p+1
-    print path
+
+        k=k+1
+
+    API_MAP = convert_to_API(path)
+    return API_MAP
 # -------------------------------------------------------------------------------------------------------------------
 
 G = nx.Graph()
@@ -178,31 +221,5 @@ G = update_graph(map, G, checkpointList)
 G = update_edges_with_weight(checkpointList, G)
 G = combine_graph(G, checkpointList)
 
-path = path_to_follow(G, "COM1", 2, 3, "COM2", 2, 2, 0)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+API = path_to_follow(G, "COM1", 2, 3, "COM2", 2, 2, 0)
+print API
