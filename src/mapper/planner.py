@@ -9,6 +9,7 @@ MapError = 'NO_MAP_FOUND_ERROR'
 StartNodeError = 'NO_START_NODE_FOUND_ERROR'
 EndNodeError = 'NO_END_NODE_FOUND_ERROR'
 PathError = 'NO_VALID_PATH_ERROR'
+InvalidReqError = 'INVALID_REQUEST_ERROR'
 # -------------------------------------------------------------------------------------------------------------------
 class MapInfoObj(object):
     buildingName = ""
@@ -49,11 +50,32 @@ def create_checkpoint(nodeId, xCoord, yCoord, nodeName, linkTo):
     
     return checkpoint
 
+class DirectionObj(object):
+    distance = ""
+    turningAngle = 0
+    
+    # The class "constructor" - It's actually an initializer
+    def __init__(self, distance, turningAngle):
+        self.distance = distance
+        self.turningAngle = turningAngle
+
+def getDirection(distance, turningAngle):
+    direction = DirectionObj(distance, turningAngle)
+    
+    return direction
 # -------------------------------------------------------------------------------------------------------------------
-def calculate_edge_weight(coordSrcX, coordSrcY, coordDestX, coordDestY):
+def calculate_distance(coordSrcX, coordSrcY, coordDestX, coordDestY):
     edge_weight = math.sqrt(math.pow((coordDestX - coordSrcX), 2)+math.pow((coordDestY - coordSrcY),2))
     
     return edge_weight
+
+def calculate_bearing(coordSrcX, coordSrcY, coordDestX, coordDestY):
+    bearing = math.atan2(coordDestY-coordSrcY, coordDestX-coordSrcX)
+    bearing = math.degrees(bearing) + 90
+    if bearing > 180:
+        bearing = 180 - bearing
+
+    return bearing
 
 # -------------------------------------------------------------------------------------------------------------------
 
@@ -123,7 +145,7 @@ def update_edges_with_weight(array, graph):
             coordSrcY = int(array[m].yCoord)
             coordDestX = int(array[n].xCoord)
             coordDestY = int(array[n].yCoord)
-            edge_weight = calculate_edge_weight(coordSrcX, coordSrcY, coordDestX, coordDestY)
+            edge_weight = calculate_distance(coordSrcX, coordSrcY, coordDestX, coordDestY)
             graph[nodeEdgeSrc][nodeEdgeDest]['weight'] = edge_weight
         if n == length_array-1:
             m=m+1
@@ -143,7 +165,7 @@ def find_shortest_path(graph, sourceBuilding, sourceLevel, sourceNodeId, destBui
     if (pathLength == 0):
         raise IndexError(PathError)
     
-    print pathLength
+#    print pathLength
     return path
 
 # -------------------------------------------------------------------------------------------------------------------
@@ -194,14 +216,54 @@ def path_to_follow(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuildin
     k=0
     path = find_shortest_path(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId)
     path_length = len(path)
-    while True:
-        if k == path_length:
-            break
-
-        k=k+1
+#    while True:
+#        if k == path_length:
+#            break
+#
+#        k=k+1
 
     API_MAP = convert_to_API(path)
     return API_MAP
+
+def find_nearest_node(array, coord_X, coord_Y, dataReq):
+    s=0
+    array_length = len(array)
+    pointX = int(array[s].xCoord)
+    pointY = int(array[s].yCoord)
+    distance_smallest = calculate_distance(coord_X, coord_Y, pointX, pointY)
+    s=s+1
+    while True:
+        if s == array_length:
+            break
+        pointX = int(array[s].xCoord)
+        pointY = int(array[s].yCoord)
+        distance = calculate_distance(coord_X, coord_Y, pointX, pointY)
+        if distance < distance_smallest:
+            distance_smallest = distance
+            point = s
+        s=s+1
+    
+    if dataReq == 0:
+        return array[point]
+    elif dataReq == 1:
+        return distance_smallest
+    else:
+        raise ValueError(InvalidReqError)
+
+def orientate_user(graph, array, coord_X, coord_Y, bearing):
+    nearestNode = find_nearest_node(array, coord_X, coord_Y, 0)
+    nodeCoordX = int(nearestNode.xCoord)
+    nodecoordY = int(nearestNode.yCoord)
+    distanceToNode = find_nearest_node(array, coord_X, coord_Y, 1)
+    intialBearing = bearing
+    bearingToNode = calculate_bearing(coord_X, coord_Y, nodeCoordX, nodecoordY)
+    
+    turningAngle = bearingToNode - intialBearing
+    direction = getDirection(distanceToNode,turningAngle)
+    
+    print nearestNode.nodeId
+    return direction
+
 # -------------------------------------------------------------------------------------------------------------------
 
 G = nx.Graph()
@@ -221,5 +283,8 @@ G = update_graph(map, G, checkpointList)
 G = update_edges_with_weight(checkpointList, G)
 G = combine_graph(G, checkpointList)
 
-API = path_to_follow(G, "COM1", 2, 3, "COM2", 2, 2, 0)
+API = path_to_follow(G, "COM1", 2, 3, "COM2", 3, 12, 0)
 print API
+userMovement = orientate_user(G, checkpointList, 50, 100, 120)
+print 'Turn %f degrees and walk straight for %f cm' %(userMovement.turningAngle, userMovement.distance)
+
