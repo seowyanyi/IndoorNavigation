@@ -1,5 +1,6 @@
 import json
 import urllib2
+import requests
 import networkx as nx
 import math
 
@@ -47,30 +48,24 @@ class Checkpoint:
         return "{}-{}-{}".format(self.buildingName, self.levelNum, self.localNodeId)
 
 
-class DirectionObj(object):
-    distance = ""
-    turningAngle = 0
-    
-    # The class "constructor" - It's actually an initializer
+class Direction:
     def __init__(self, distance, turningAngle):
         self.distance = distance
         self.turningAngle = turningAngle
 
-def getDirection(distance, turningAngle):
-    direction = DirectionObj(distance, turningAngle)
-    
-    return direction
 # -------------------------------------------------------------------------------------------------------------------
 def calculate_distance(coordSrcX, coordSrcY, coordDestX, coordDestY):
     return math.sqrt(math.pow((coordDestX - coordSrcX), 2)+math.pow((coordDestY - coordSrcY),2))
 
-def calculate_bearing(coordSrcX, coordSrcY, coordDestX, coordDestY):
-    bearing = math.atan2(coordDestY-coordSrcY, coordDestX-coordSrcX)
-    bearing = math.degrees(bearing) + 90
-    if bearing > 180:
-        bearing = 180 - bearing
-    
-    return bearing
+def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY):
+    """
+    Clockwise from vertical of source
+    """
+    bearing = -math.atan2(coordDestY-coordSrcY, coordDestX-coordSrcX)
+    bearingDeg = math.degrees(bearing) + 90
+    if bearingDeg < 0:
+        return 360 + bearingDeg
+    return  bearingDeg
 
 # -------------------------------------------------------------------------------------------------------------------
 
@@ -159,7 +154,7 @@ def explore_unexplored_maps(destBuilding, destLevel, graph, unexplored, explored
                    get_linkage_global_id(unexploredNode.nodeName),
                    weight=1)
 
-    print 'going to explore {}-{} next'.format(unexploredBuilding, unexploredLevel)
+    # print 'going to explore {}-{} next'.format(unexploredBuilding, unexploredLevel)
     explore_and_build(unexploredBuilding, unexploredLevel,
                       destBuilding, destLevel, graph, unexplored, explored)
 
@@ -181,8 +176,8 @@ def explore_and_build(nextBuilding, nextLevel, destBuilding, destLevel, graph, u
         currMapCheckpoints = get_checkpoints(currMap)
         update_graph(currMapCheckpoints, graph)
         explored.append(currMap)
-        print '------------------downloaded and updated: {}-{}'.format(currMap.buildingName,
-                                                    currMap.levelNum)
+        # print '------------------downloaded and updated: {}-{}'.format(currMap.buildingName,
+        #                                             currMap.levelNum)
     except ValueError:
         if nextBuilding == destBuilding and nextLevel == destLevel:
             raise DestinationNotFound(DESTINATION_MAP_MISSING)
@@ -192,7 +187,7 @@ def explore_and_build(nextBuilding, nextLevel, destBuilding, destLevel, graph, u
 
     if nextBuilding == destBuilding and nextLevel == destLevel:
         # we have found our destination map
-        print 'destination map found. returning...'
+        # print 'destination map found. returning...'
         return
 
     # continue searching and augment graph with new nodes and edges
@@ -205,12 +200,12 @@ def explore_and_build(nextBuilding, nextLevel, destBuilding, destLevel, graph, u
 
         subsequentBuilding = get_linkage_building(nextStage['node'].nodeName)
         subsequentLevel = get_linkage_level(nextStage['node'].nodeName)
-        print 'going to explore {}-{} next'.format(subsequentBuilding, subsequentLevel)
+        # print 'going to explore {}-{} next'.format(subsequentBuilding, subsequentLevel)
         unexplored = nextStage['others'] + unexplored
         explore_and_build(subsequentBuilding, subsequentLevel,
                           destBuilding, destLevel, graph, unexplored, explored)
     elif len(unexplored) > 0:
-        print 'dead end !!'
+        # print 'dead end !!'
         # dead end because no links exists from current map to other unexplored maps
         # try unexplored maps marked earlier
         explore_unexplored_maps(destBuilding, destLevel, graph, unexplored, explored)
@@ -243,8 +238,6 @@ def find_next_stage(checkpointArr, destBuilding, destLevel, explored):
         if not is_link_to_other_maps(node.nodeName):
             continue
         if is_explored(node, explored):
-            toBuilding = get_linkage_building(node.nodeName)
-            toLevel = get_linkage_level(node.nodeName)
             continue
 
         toBuilding = get_linkage_building(node.nodeName)
@@ -289,56 +282,10 @@ def update_graph(checkpointsArr, graph):
             edgeWeight = calculate_distance(checkpoint.xCoord, checkpoint.yCoord, linkNode.xCoord, linkNode.yCoord)
             graph.add_edge(checkpoint.get_global_id(), linkNode.get_global_id(), weight=edgeWeight)
 
-def combine_graph(graph, array):
-    p = 0
-    length_array = len(array)
-    while True:
-        if p == length_array:
-            break
-        if "TO" in array[p].nodeName:
-            nextLevelNode = (array[p].nodeName).split(' ')
-            nextLevelNode = str(nextLevelNode[1])
-            graph.add_edge(array[p].nodeId, nextLevelNode, weight=1)
-        p = p+1
-    
-    return graph
-
-def update_edges_with_weight(array, graph):
-    m=0
-    n=0
-    length_array = len(array)
-    while True:
-        if m == length_array:
-            break
-        nodeEdgeSrc = array[m].nodeId
-        nodeEdgeDest = array[n].nodeId
-        if graph.has_edge(nodeEdgeSrc, nodeEdgeDest):
-            coordSrcX = int(array[m].xCoord)
-            coordSrcY = int(array[m].yCoord)
-            coordDestX = int(array[n].xCoord)
-            coordDestY = int(array[n].yCoord)
-            edge_weight = calculate_distance(coordSrcX, coordSrcY, coordDestX, coordDestY)
-            graph[nodeEdgeSrc][nodeEdgeDest]['weight'] = edge_weight
-        if n == length_array-1:
-            m=m+1
-            n=0
-        n=n+1
-    
-    return graph
-
-def find_shortest_path(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId):
-    
+def find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId):
     nodeIdSrc = '{}-{}-{}'.format(sourceBuilding, sourceLevel, sourceNodeId)
     nodeIdDest = '{}-{}-{}'.format(destBuilding, destLevel, destNodeId)
-    
-    path = nx.dijkstra_path(graph, nodeIdSrc, nodeIdDest, 'weight')
-    pathLength = nx.dijkstra_path_length(graph, nodeIdSrc, nodeIdDest, 'weight')
-    
-    if (pathLength == 0):
-        raise IndexError(PathError)
-    
-    #    print pathLength
-    return path
+    return nx.dijkstra_path(graph, nodeIdSrc, nodeIdDest, 'weight')
 
 # -------------------------------------------------------------------------------------------------------------------
 def convert_to_API(path):
@@ -348,10 +295,9 @@ def convert_to_API(path):
     path_nodes = len(path)
     arrayNodes = []
     arrayStages = []
-    level=0
     startingBuild = path[p].split('-')[0]
     startingLevel = path[p].split('-')[1]
-    p=p+1
+    p += 1
     while True:
         if p == path_nodes:
             break
@@ -369,11 +315,11 @@ def convert_to_API(path):
                     apiNode = '{"stage":%d,"building":"%s","level":%s,"path":%s}' %(stage, building, level, stringNodes)
                     arrayStages.append(apiNode)
                     arrayNodes = []
-                    stage = stage+1
+                    stage += 1
                     startingBuild = path[r].split('-')[0]
                     startingLevel = path[r].split('-')[1]
 
-        p=p+1
+        p += 1
 
     stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
     building = startingBuild
@@ -383,74 +329,94 @@ def convert_to_API(path):
     
     return "[{0}]".format(", ".join(str(i) for i in arrayStages))
 
+def find_nearest_node_in_path(checkpointList, coord_X, coord_Y):
+    """
+    Finds nearest node in the path from the current location
+    This only works for a single map
+    :param checkpointList: list of checkpoints along the path
+    """
+    currShortestDist = None
+    currNearestNode = None
+    for node in checkpointList:
+        x = node.xCoord
+        y = node.yCoord
+        if x == coord_X and y == coord_Y:
+            # same node
+            return node
+        distance = calculate_distance(coord_X, coord_Y, x, y)
+        if currShortestDist is None or distance < currShortestDist:
+            currShortestDist = distance
+            currNearestNode = node
+    return currNearestNode
 
-def path_to_follow(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId, bearing):
-    k=0
-    path = find_shortest_path(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId)
-    path_length = len(path)
-    #    while True:
-    #        if k == path_length:
-    #            break
-    #
-    #        k=k+1
-    
-    API_MAP = convert_to_API(path)
-    return API_MAP
+def find_nearest_node_in_graph(graph, coord_X, coord_Y):
+    """
+    Finds nearest node in the graph from the current location
+    This only works for a single map
+    :param graph: the network x graph
+    """
+    currShortestDist = None
+    currNearestNode = None
+    for nxNode,data in graph.nodes_iter(data=True):
+        node = data['checkpoint']
+        x = node.xCoord
+        y = node.yCoord
+        if x == coord_X and y == coord_Y:
+            # same node
+            return {'nearest_node_on_path': node, 'distance_to_node': 0}
+        distance = calculate_distance(coord_X, coord_Y, x, y)
+        if currShortestDist is None or distance < currShortestDist:
+            currShortestDist = distance
+            currNearestNode = node
+    return {'nearest_node_on_path': currNearestNode, 'distance_to_node': currShortestDist}
 
-def find_nearest_node(array, coord_X, coord_Y):
-    s=0
-    array_length = len(array)
-    pointX = int(array[s].xCoord)
-    pointY = int(array[s].yCoord)
-    distance_smallest = calculate_distance(coord_X, coord_Y, pointX, pointY)
-    s=s+1
-    while True:
-        if s == array_length:
-            break
-        pointX = int(array[s].xCoord)
-        pointY = int(array[s].yCoord)
-        distance = calculate_distance(coord_X, coord_Y, pointX, pointY)
-        if distance < distance_smallest:
-            distance_smallest = distance
-            point = s
-        s=s+1
-    
-    return {'nearest_node': array[point], 'distance_to_node': distance_smallest}
+def convert_path_to_checkpoints(path, graph, buildingName, levelNum):
+    """
+    :param path: list of local node ids along the path (int)
+    :param graph: the networkx graph
+    :param buildingName: building the path belongs to
+    :param levelName: level the path belongs to
+    :return: list of Checkpoint objects
+    """
+    listOfCheckpoints = []
+    for point in path:
+        for nxNode,data in graph.nodes_iter(data=True):
+            node = data['checkpoint']
+            if node.buildingName != buildingName or node.levelNum != levelNum:
+                continue
+            if int(node.localNodeId) == int(point):
+                listOfCheckpoints.append(node)
+                break
 
-def orientate_user(graph, array, coord_X, coord_Y, bearing):
-    nearestNode = find_nearest_node(array, coord_X, coord_Y)['nearest_node']
-    nodeCoordX = int(nearestNode.xCoord)
-    nodecoordY = int(nearestNode.yCoord)
-    distanceToNode = find_nearest_node(array, coord_X, coord_Y)['distance_to_node']
-    intialBearing = bearing
-    bearingToNode = calculate_bearing(coord_X, coord_Y, nodeCoordX, nodecoordY)
-    
-    turningAngle = bearingToNode - intialBearing
-    direction = getDirection(distanceToNode,turningAngle)
-    
-    print nearestNode.nodeId
-    return direction
+    return listOfCheckpoints
 
+
+
+def orientate_user(srcX, srcY, destX, destY, currBearing):
+    """
+    :param currBearing: user's compass heading w.r.t north of map.
+    :return: {'turning_angle': a, 'distance_to_node': b}
+    if a < 0, turn CCW. If a > 0, turn CW
+    """
+    # make sure bearing is positive to simplify calculations:
+    if currBearing < 0:
+        currBearing += 360
+    distance = calculate_distance(srcX, srcY, destX, destY)
+    bearingToNode = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
+    turningAngle = bearingToNode - currBearing
+
+    if abs(turningAngle) < 180:
+        return {'turning_angle': turningAngle, 'distance_to_node': distance}
+    if turningAngle < 0:
+        return {'turning_angle': turningAngle+360, 'distance_to_node': distance}
+    # Turning angle > 0, and abs(angle) > 180
+    return {'turning_angle': - (360 - turningAngle), 'distance_to_node': distance}
 # -------------------------------------------------------------------------------------------------------------------
 
 def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId):
-    graph = nx.Graph()
-    checkpointList = []
-
-    startingMapInfo =  download_map(sourceBuilding, sourceLevel)
-    graph = nx.Graph()
-    update_graph(startingMapInfo, graph, checkpointList, graph)
-
-    if sourceBuilding == destBuilding and sourceLevel == destLevel:
-        destMapInfo = startingMapInfo
-    else:
-        destMapInfo = download_map(destBuilding, destLevel)
-
-    destAndWeightedStartingGraph = update_graph(destMapInfo, weightedStartingGraph, checkpointList)
-    weightedOverallGraph = update_edges_with_weight(checkpointList, destAndWeightedStartingGraph)
-    finalGraph = combine_graph(weightedOverallGraph, checkpointList)
-
-    path = find_shortest_path(finalGraph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId)
+    graph = build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel)
+    path = find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNodeId,
+                                          destBuilding, destLevel, destNodeId)
     return convert_to_API(path)
 
 
@@ -471,68 +437,40 @@ def test_path_finding():
     while True:
         startNode = raw_input('start node id: ')
         endNode  = raw_input('end node id: ')
-        pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode), 
-            buildingName, int(levelNum), int(endNode))
+        pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode),
+        buildingName, int(levelNum), int(endNode))
         pathObj = json.loads(pathStr)
         print 'path: {}'.format(pathObj[0]['path'])
-        response = json.load(urllib2.urlopen('http://localhost:3000/draw_path?path={}'.format(pathStr)))
-        print 'visualize: {}'.format(response['transaction_id'])
-
-
+        url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
+        res = requests.get(url)
+        print 'visualize: {}'.format(res.json()["transaction_id"])
 
 def test_giving_directions():
     buildingName = raw_input('building name: ')
-    levelNum = raw_input('level num: ')
+    levelNum = int(raw_input('level num: '))
     startNode = raw_input('start node id: ')
     endNode  = raw_input('end node id: ')
-    pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode), 
-        buildingName, int(levelNum), int(endNode))
-    pathObj = json.loads(pathStr)
-    print 'path: {}'.format(pathObj[0]['path'])
-    response = json.load(urllib2.urlopen('http://localhost:3000/draw_path?path={}'.format(pathStr)))
-    print 'visualize: {}'.format(response['transaction_id'])
+    graph = build_graph(buildingName, levelNum, buildingName, levelNum)
+    listOfGlobalNodeIds = find_shortest_path_given_graph(graph, buildingName, levelNum, startNode,
+                                          buildingName, levelNum, endNode)
+    pathStr = convert_to_API(listOfGlobalNodeIds)
+    url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
+    res = requests.get(url)
+    print 'visualize: {}'.format(res.json()["transaction_id"])
+    stage = json.loads(pathStr)[0]
+    path = stage['path']
+    print path
 
     while True:
-        initial_x = int(raw_input('initial x: '))
-        initial_y = int(raw_input('initial y: '))
-        heading = int(raw_input('heading: '))
-        if heading < 0:
-            heading = 360 + heading
-            # nearestNode = get_nearest_node(graph, initial_x, initial_y)
-            # turningAngle = get_turning_angle(graph, nearestNode, initial_x, initial_y)
-            # distance = get_distance_to_next(graph, nextNode, initial_x, initial_y)
-
-            # print 'turn {} degrees'.format(turningAngle)
-            # print 'walk {} cm'.format(distance)
-
-            #get_turning_angle(graph, initial_x, initial_y, heading)
-
+        initial_x = int(raw_input('current x: '))
+        initial_y = int(raw_input('current y: '))
+        heading = int(raw_input('current heading: '))
+        checkpointList = convert_path_to_checkpoints(path, graph, buildingName, levelNum)
+        nearestNode = find_nearest_node_in_path(checkpointList, initial_x, initial_y)
+        directions = orientate_user(initial_x, initial_y, nearestNode.xCoord, nearestNode.yCoord, heading)
+        print 'Turning angle: {} degrees, Distance to node {}: {}'.format(
+            directions['turning_angle'], nearestNode.localNodeId, directions['distance_to_node'])
 
 
 if __name__ == "__main__":
-    # begin_test()
-    try:
-        build_graph('COM2', 2, 'COM41', 3)
-    except DestinationNotFound as e:
-        print e
-# G = nx.Graph()
-# checkpointList = []
-
-# map = download_map("COM1", 2)
-# G = update_graph(map, G, checkpointList)
-# G = update_edges_with_weight(checkpointList, G)
-
-# map = download_map("COM2", 2)
-# G = update_graph(map, G, checkpointList)
-# G = update_edges_with_weight(checkpointList, G)
-# G = combine_graph(G, checkpointList)
-
-# map = download_map("COM2", 3)
-# G = update_graph(map, G, checkpointList)
-# G = update_edges_with_weight(checkpointList, G)
-# G = combine_graph(G, checkpointList)
-
-# API = path_to_follow(G, "COM1", 2, 3, "COM2", 3, 12, 0)
-# print API
-# userMovement = orientate_user(G, checkpointList, 50, 100, 120)
-# print 'Turn %f degrees and walk straight for %f cm' %(userMovement.turningAngle, userMovement.distance)
+    begin_test()
