@@ -52,12 +52,21 @@ while True :
                     data = strpkt.split(":")
                     xyz = data[1].split(",")
 
-                    if(counter==0):
+                    if counter==0:
                         print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
+                        with open("acc_x.txt", "a") as myfile:
+                            myfile.write(xyz[1])
+                        with open("acc_y.txt", "a") as myfile:
+                            myfile.write(xyz[2])
+                        with open("acc_z.txt", "a") as myfile:
+                            myfile.write(xyz[3])
+                        with open("compass.txt", "a") as myfile:
+                            myfile.write(xyz[0])
+
                     else:
-                        counter = counter + 1
-                        if(counter == 15):
-                            counter = 0;
+                        counter += 1
+                        if counter == 10:
+                            counter = 0
 
                     x = int(xyz[0])
                     y = int(xyz[1])
