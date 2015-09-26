@@ -46,3 +46,6 @@ coverage.xml
 
 # IDE files
 .idea
+
+# Mac files
+.DS_Store
