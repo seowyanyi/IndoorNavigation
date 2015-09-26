@@ -41,6 +41,17 @@ class ParseNodeNames(unittest.TestCase):
         self.assertEquals(planner.get_linkage_global_id('TO COM5-4-3'), 'COM5-4-3')
         self.assertEquals(planner.get_linkage_global_id('TO   COM 5 -4 -3'), 'COM5-4-3')
 
+class Direction(unittest.TestCase):
+    def test_calculate_bearing(self):
+        bearing = planner.calculate_bearing_from_vertical(0,0,5,7)
+        self.assertEquals(round(bearing,2), 35.54)
+        bearing = planner.calculate_bearing_from_vertical(5,7,0,0)
+        self.assertEquals(round(bearing,2), 215.54)
+        bearing = planner.calculate_bearing_from_vertical(15,15,10,20)
+        self.assertEquals(round(bearing,2), 315)
+        bearing = planner.calculate_bearing_from_vertical(2,10,10,2)
+        self.assertEquals(round(bearing,2), 135)
+
 class PathPlanning(unittest.TestCase):
     NUM_EDGES_COM1_2 = 41
     NUM_NODES_COM1_2 = 40
@@ -140,3 +151,6 @@ class PathPlanning(unittest.TestCase):
         self.assertEquals(graph.number_of_nodes(),
                           self.NUM_NODES_COM1_2 + self.NUM_NODES_COM2_2 + self.NUM_NODES_COM2_3)
 
+    def test_get_shortest_path(self):
+        path = planner.get_shortest_path('COM1', 2, 11, 'COM2', 3, 13)
+        print path
