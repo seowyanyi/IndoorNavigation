@@ -42,15 +42,28 @@ class ParseNodeNames(unittest.TestCase):
         self.assertEquals(planner.get_linkage_global_id('TO   COM 5 -4 -3'), 'COM5-4-3')
 
 class PathPlanning(unittest.TestCase):
+    NUM_EDGES_COM1_2 = 41
+    NUM_NODES_COM1_2 = 40
+
+    NUM_EDGES_COM2_2 = 19
+    NUM_NODES_COM2_2 = 20
+
+    NUM_EDGES_COM2_3 = 15
+    NUM_NODES_COM2_3 = 16
+
     def test_update_graph(self):
         sourceMap =  planner.download_map('COM2', 3)
         checkpoints = planner.get_checkpoints(sourceMap)
         graph = nx.Graph()
         planner.update_graph(checkpoints, graph)
-        self.assertEquals(graph.number_of_nodes(), 16)
-        self.assertEquals(graph.number_of_edges(), 15)
+        self.assertEquals(graph.number_of_nodes(), self.NUM_NODES_COM2_3)
+        self.assertEquals(graph.number_of_edges(), self.NUM_EDGES_COM2_3)
 
     def test_find_next_stage(self):
+        """
+        COM1-2 ---- COM2-2 ---- COM2-3 ---- COM1-3 (missing)
+        """
+        #----------------------  COM 1 LEVEL 2 ------------------------
         sourceMap =  planner.download_map('COM1', 2)
         checkpoints = planner.get_checkpoints(sourceMap)
 
@@ -66,6 +79,7 @@ class PathPlanning(unittest.TestCase):
         self.assertEquals(nextStage['rank'], 3)
         self.assertEquals(nextStage['node'].localNodeId, '31')
 
+        #----------------------  COM 2 LEVEL 2 ------------------------
         com2Level2Map =  planner.download_map('COM2', 2)
         com2Level2chkpts = planner.get_checkpoints(com2Level2Map)
 
@@ -77,10 +91,52 @@ class PathPlanning(unittest.TestCase):
         self.assertEquals(nextStage['rank'], 1)
         self.assertEquals(nextStage['node'].localNodeId, '16')
 
-        # next stage not found yet
-        nextStage = planner.find_next_stage(com2Level2chkpts, 'COM2', 2, [])
+        # final destination at least two stages away
+        nextStage = planner.find_next_stage(com2Level2chkpts, 'COM1', 3, [])
         otherNodes = nextStage['others']
         self.assertEquals(len(otherNodes), 1)
+        self.assertEquals(nextStage['rank'], 2)
+        self.assertEquals(nextStage['node'].localNodeId, '1')
 
-    def test_explore_and_build(self):
-        pass
+        com1_level_2_map = planner.MapInfoObj('COM1', 2, None, None)
+        nextStage = planner.find_next_stage(com2Level2chkpts, 'COM1', 3, [com1_level_2_map])
+        otherNodes = nextStage['others']
+        self.assertEquals(len(otherNodes), 0) # only have one choice since COM1-2 is explored
+        self.assertEquals(nextStage['rank'], 3)
+        self.assertEquals(nextStage['node'].localNodeId, '16')
+
+
+    def test_build_graph_negative(self):
+        """
+        COM1-2 ---- COM2-2 ---- COM2-3 ---- COM1-3 (missing)
+        """
+        # There is a link to the destination map, but destination map cannot be downloaded
+        self.assertRaises(planner.DestinationNotFound,
+                          planner.build_graph,
+                          'COM2', 2, 'COM1', 3)
+
+        # Destination map not found
+        self.assertRaises(planner.DestinationNotFound,
+                          planner.build_graph,
+                          'COM2', 2, 'ABC', 12)
+
+    def test_build_graph_positive(self):
+        # source == destination
+        graph = planner.build_graph('COM1', 2, 'COM1', 2)
+        self.assertEquals(graph.number_of_edges(), self.NUM_EDGES_COM1_2)
+        self.assertEquals(graph.number_of_nodes(), self.NUM_NODES_COM1_2)
+
+        # source and destination maps are adjacent
+        graph = planner.build_graph('COM1', 2, 'COM2', 2)
+        self.assertEquals(graph.number_of_edges(),
+                          self.NUM_EDGES_COM1_2 + self.NUM_EDGES_COM2_2 +1)
+        self.assertEquals(graph.number_of_nodes(),
+                          self.NUM_NODES_COM1_2 + self.NUM_NODES_COM2_2)
+
+        # source and destination maps are at least two stages away
+        graph = planner.build_graph('COM1', 2, 'COM2', 3)
+        self.assertEquals(graph.number_of_edges(),
+                          self.NUM_EDGES_COM1_2 + self.NUM_EDGES_COM2_2 + self.NUM_EDGES_COM2_3 + 2)
+        self.assertEquals(graph.number_of_nodes(),
+                          self.NUM_NODES_COM1_2 + self.NUM_NODES_COM2_2 + self.NUM_NODES_COM2_3)
+

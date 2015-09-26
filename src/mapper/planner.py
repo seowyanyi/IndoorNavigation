@@ -9,12 +9,24 @@ StartNodeError = 'NO_START_NODE_FOUND_ERROR'
 EndNodeError = 'NO_END_NODE_FOUND_ERROR'
 PathError = 'NO_VALID_PATH_ERROR'
 InvalidReqError = 'INVALID_REQUEST_ERROR'
+DESTINATION_MAP_MISSING = 'Link to destination found, but the map is missing'
+DESTINATION_NOT_FOUND = 'No links lead to destination'
 # -------------------------------------------------------------------------------------------------------------------
+
+class DestinationNotFound(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
 
 class MapInfoObj:
     def __init__(self, buildingName, levelNum, mapJsonData, initialBearing):
         self.buildingName = buildingName
-        self.levelNum = levelNum
+        if type(levelNum) is str:
+            self.levelNum = int(levelNum)
+        else:
+            self.levelNum = levelNum
         self.mapJsonData = mapJsonData
         self.initialBearing = initialBearing
 
@@ -63,12 +75,11 @@ def calculate_bearing(coordSrcX, coordSrcY, coordDestX, coordDestY):
 # -------------------------------------------------------------------------------------------------------------------
 
 def download_map(buildingName, levelNum):
-    mapJsonData = json.load(urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName,levelNum)))
-    initialBearing = mapJsonData["info"]["northAt"]
-    
+    url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName,levelNum)
+    mapJsonData = json.load(urllib2.urlopen(url))
     if mapJsonData["info"] is None:
         raise ValueError(MapError)
-    
+    initialBearing = mapJsonData["info"]["northAt"]
     return MapInfoObj(buildingName, levelNum, mapJsonData, initialBearing)
 
 def is_link_to_other_maps(nodeName):
@@ -133,61 +144,79 @@ def get_checkpoints(mapInfo):
 
 
 def build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel):
-    sourceMap =  download_map(sourceBuilding, sourceLevel)
-    sourceMapCheckpoints = get_checkpoints(sourceMap)
     graph = nx.Graph()
-    update_graph(sourceMapCheckpoints, graph)
+    explore_and_build(sourceBuilding, sourceLevel, destBuilding, destLevel, graph, [], [])
+    return graph
 
-    if sourceBuilding == destBuilding and sourceLevel == destLevel:
-        return graph
-    else:
-        explored = [sourceMap]
-        explore_and_build(sourceMapCheckpoints, destBuilding, destLevel, graph, [], explored)
+def explore_unexplored_maps(destBuilding, destLevel, graph, unexplored, explored):
+    if len(unexplored) == 0:
+        raise DestinationNotFound(DESTINATION_NOT_FOUND)
 
-def explore_and_build(currLevelCheckpoints, destBuilding, destLevel, graph, unexplored, explored):
+    unexploredNode = unexplored.pop()
+    unexploredBuilding = get_linkage_building(unexploredNode.nodeName)
+    unexploredLevel = get_linkage_level(unexploredNode.nodeName)
+    graph.add_edge(unexploredNode.get_global_id(),
+                   get_linkage_global_id(unexploredNode.nodeName),
+                   weight=1)
+
+    print 'going to explore {}-{} next'.format(unexploredBuilding, unexploredLevel)
+    explore_and_build(unexploredBuilding, unexploredLevel,
+                      destBuilding, destLevel, graph, unexplored, explored)
+
+
+def explore_and_build(nextBuilding, nextLevel, destBuilding, destLevel, graph, unexplored, explored):
     """
-    Recursively explores maps to find destination map
+    Recursively explores maps to find destination map.
+    Given next building and next level to search, this function first downloads the corresponding map
+    and builds the graph
 
-    :param currLevelCheckpoints: array of Checkpoints of the current map
     :param graph: network x graph
     :param unexplored: array of checkpoints linking to unexplored maps
     :param explored: array of MapInfoObj of explored maps
     :return:
     """
-    # find next stage and augment graph with new nodes and edges
-    nextStage = find_next_stage(currLevelCheckpoints, destBuilding, destLevel, explored)
-    nextBuilding = get_linkage_building(nextStage['node'].nodeName)
-    nextLevel = get_linkage_level(nextStage['node'].nodeName)
-    nextMap = download_map(nextBuilding, nextLevel)
-    nextCheckpoints = get_checkpoints(nextMap)
-    update_graph(nextCheckpoints, graph)
+    try:
+        # Download map, update graph, mark as explored
+        currMap =  download_map(nextBuilding, nextLevel)
+        currMapCheckpoints = get_checkpoints(currMap)
+        update_graph(currMapCheckpoints, graph)
+        explored.append(currMap)
+        print '------------------downloaded and updated: {}-{}'.format(currMap.buildingName,
+                                                    currMap.levelNum)
+    except ValueError:
+        if nextBuilding == destBuilding and nextLevel == destLevel:
+            raise DestinationNotFound(DESTINATION_MAP_MISSING)
+        else:
+            #try other unexplored maps
+            explore_unexplored_maps(destBuilding, destLevel, graph, unexplored, explored)
 
-    # add edge linking this stage to next stage
-    graph.add_edge(nextStage['node'].get_global_id(),
-                   get_linkage_global_id(nextStage['node'].nodeName)
-                   , weight=1)
-
-    explored.append(nextMap)
-    unexplored = nextStage['others'] + unexplored
-
-    if nextStage['rank'] == 1:
+    if nextBuilding == destBuilding and nextLevel == destLevel:
         # we have found our destination map
+        print 'destination map found. returning...'
         return
-    elif nextStage['rank'] == 2 or nextStage['rank'] == 3:
-        # we haven't found our destination map, but there are some nodes left to explore
-        explore_and_build(nextCheckpoints, destBuilding, destLevel, graph, unexplored, explored)
-    elif len(nextStage['others']) == 0 and len(unexplored) > 0:
-        # dead end!
-        # try unexplored maps
-        unexploredNode = unexplored.pop()
-        unexploredMap =  download_map(unexploredNode.buildingName, unexploredNode.levelNum)
-        unexploredMapCheckpoints = get_checkpoints(unexploredMap)
-        explored.append(unexploredMap)
-        explore_and_build(unexploredMapCheckpoints, destBuilding, destLevel, graph, unexplored, explored)
+
+    # continue searching and augment graph with new nodes and edges
+    nextStage = find_next_stage(currMapCheckpoints, destBuilding, destLevel, explored)
+    if nextStage['node'] is not None:
+        # add edge linking current stage to next stage
+        graph.add_edge(nextStage['node'].get_global_id(),
+                       get_linkage_global_id(nextStage['node'].nodeName),
+                       weight=1)
+
+        subsequentBuilding = get_linkage_building(nextStage['node'].nodeName)
+        subsequentLevel = get_linkage_level(nextStage['node'].nodeName)
+        print 'going to explore {}-{} next'.format(subsequentBuilding, subsequentLevel)
+        unexplored = nextStage['others'] + unexplored
+        explore_and_build(subsequentBuilding, subsequentLevel,
+                          destBuilding, destLevel, graph, unexplored, explored)
+    elif len(unexplored) > 0:
+        print 'dead end !!'
+        # dead end because no links exists from current map to other unexplored maps
+        # try unexplored maps marked earlier
+        explore_unexplored_maps(destBuilding, destLevel, graph, unexplored, explored)
     else:
-        # dead end and we have no unexplored maps
-        print 'UNABLE TO FIND PATH'
-        return
+        raise DestinationNotFound('No links lead to destination')
+
 
 def is_explored(node, explored):
     toBuilding = get_linkage_building(node.nodeName)
@@ -214,12 +243,17 @@ def find_next_stage(checkpointArr, destBuilding, destLevel, explored):
         if not is_link_to_other_maps(node.nodeName):
             continue
         if is_explored(node, explored):
+            toBuilding = get_linkage_building(node.nodeName)
+            toLevel = get_linkage_level(node.nodeName)
             continue
-        allNodes.append(node)
+
         toBuilding = get_linkage_building(node.nodeName)
         toLevel = get_linkage_level(node.nodeName)
         if toBuilding == destBuilding and toLevel == destLevel:
             return {'rank': 1, 'node': node, 'others': []}
+        else:
+            allNodes.append(node)
+
         if toBuilding == destBuilding:
             currentBestNode = node
             currentBestRank = 2
@@ -227,7 +261,8 @@ def find_next_stage(checkpointArr, destBuilding, destLevel, explored):
             currentBestNode = node
             currentBestRank = 3
 
-    allNodes.remove(currentBestNode)
+    if currentBestNode is not None:
+        allNodes.remove(currentBestNode)
     return {'rank': currentBestRank, 'node': currentBestNode, 'others': allNodes}
 
 
@@ -475,8 +510,11 @@ def test_giving_directions():
 
 
 if __name__ == "__main__":
-    begin_test()
-
+    # begin_test()
+    try:
+        build_graph('COM2', 2, 'COM41', 3)
+    except DestinationNotFound as e:
+        print e
 # G = nx.Graph()
 # checkpointList = []
 
