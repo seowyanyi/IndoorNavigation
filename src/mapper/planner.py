@@ -202,7 +202,7 @@ def convert_to_API(path):
 
         p=p+1
 
-    stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
+stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
     building = startingBuild
     level = startingLevel
     apiNode = '{"stage":%d,"building":"%s","level":%s,"path":%s}' %(stage, building, level, stringNodes)
@@ -268,21 +268,21 @@ def orientate_user(graph, array, coord_X, coord_Y, bearing):
 def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId):
     graph = nx.Graph()
     checkpointList = []
-
+    
     startingMapInfo =  download_map(sourceBuilding, sourceLevel)
     startingGraph = update_graph(startingMapInfo, graph, checkpointList)
     weightedStartingGraph = update_edges_with_weight(checkpointList, startingGraph)
-
+    
     if (sourceBuilding == destBuilding and sourceLevel == destLevel):
         destMapInfo = startingMapInfo
     else:
         destMapInfo = download_map(destBuilding, destLevel)
-
+    
     destAndWeightedStartingGraph = update_graph(destMapInfo, weightedStartingGraph, checkpointList)
     weightedOverallGraph = update_edges_with_weight(checkpointList, destAndWeightedStartingGraph)
     finalGraph = combine_graph(weightedOverallGraph, checkpointList)
 
-    path = find_shortest_path(finalGraph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId)
+path = find_shortest_path(finalGraph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId)
     return convert_to_API(path)
 
 
@@ -290,11 +290,11 @@ def begin_test():
     testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
     while testType != 1 and testType != 2:
         testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
-
+    
     if testType == 1:
         test_path_finding()
     else:
-        test_giving_directions()    
+        test_giving_directions()
 
 
 def test_path_finding():
@@ -303,8 +303,8 @@ def test_path_finding():
     while True:
         startNode = raw_input('start node id: ')
         endNode  = raw_input('end node id: ')
-        pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode), 
-            buildingName, int(levelNum), int(endNode))
+        pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode),
+                                    buildingName, int(levelNum), int(endNode))
         pathObj = json.loads(pathStr)
         print pathObj[0]
         print 'path: {}'.format(pathObj[0]['path'])
@@ -340,4 +340,3 @@ if __name__ == "__main__":
 # print API
 # userMovement = orientate_user(G, checkpointList, 50, 100, 120)
 # print 'Turn %f degrees and walk straight for %f cm' %(userMovement.turningAngle, userMovement.distance)
-
