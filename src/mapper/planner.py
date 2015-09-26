@@ -1,7 +1,6 @@
 import json
 import urllib2
 import networkx as nx
-import matplotlib.pyplot as plt
 import math
 
 # -------------------------------------------------------------------------------------------------------------------
@@ -74,13 +73,13 @@ def calculate_bearing(coordSrcX, coordSrcY, coordDestX, coordDestY):
     bearing = math.degrees(bearing) + 90
     if bearing > 180:
         bearing = 180 - bearing
-
+    
     return bearing
 
 # -------------------------------------------------------------------------------------------------------------------
 
 def download_map(buildingName, levelNum):
-    mapJsonData = json.load(urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=%s&Level=%d'%(buildingName,levelNum)))
+    mapJsonData = json.load(urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName,levelNum)))
     initialBearing = mapJsonData["info"]["northAt"]
     
     if (mapJsonData["info"] == None):
@@ -100,7 +99,7 @@ def update_graph(mapDetails, graph, array):
         if i == length_map:
             break
         checkpoint = create_checkpoint(mapJsonData["map"][i]["nodeId"], mapJsonData["map"][i]["x"], mapJsonData["map"][i]["y"], mapJsonData["map"][i]["nodeName"], mapJsonData["map"][i]["linkTo"])
-        checkpoint.nodeId = "%s-%d-%s" %(mapDetails.buildingName, mapDetails.levelNum, checkpoint.nodeId)
+        checkpoint.nodeId = "{}-{}-{}".format(mapDetails.buildingName, mapDetails.levelNum, checkpoint.nodeId)
         array.append(checkpoint)
         graph.add_node(checkpoint.nodeId)
         # Create edges between the nodes using nodeId and LinkTo values
@@ -114,7 +113,7 @@ def update_graph(mapDetails, graph, array):
             j = j+1
         
         i = i+1
-
+    
     return graph
 
 def combine_graph(graph, array):
@@ -128,7 +127,7 @@ def combine_graph(graph, array):
             nextLevelNode = str(nextLevelNode[1])
             graph.add_edge(array[p].nodeId, nextLevelNode, weight=1)
         p = p+1
-
+    
     return graph
 
 def update_edges_with_weight(array, graph):
@@ -151,13 +150,13 @@ def update_edges_with_weight(array, graph):
             m=m+1
             n=0
         n=n+1
-
+    
     return graph
 
 def find_shortest_path(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId):
     
-    nodeIdSrc = '%s-%d-%d' %(sourceBuilding, sourceLevel, sourceNodeId)
-    nodeIdDest = '%s-%d-%d' %(destBuilding, destLevel, destNodeId)
+    nodeIdSrc = '{}-{}-{}'.format(sourceBuilding, sourceLevel, sourceNodeId)
+    nodeIdDest = '{}-{}-{}'.format(destBuilding, destLevel, destNodeId)
     
     path = nx.dijkstra_path(graph, nodeIdSrc, nodeIdDest, 'weight')
     pathLength = nx.dijkstra_path_length(graph, nodeIdSrc, nodeIdDest, 'weight')
@@ -165,7 +164,7 @@ def find_shortest_path(graph, sourceBuilding, sourceLevel, sourceNodeId, destBui
     if (pathLength == 0):
         raise IndexError(PathError)
     
-#    print pathLength
+    #    print pathLength
     return path
 
 # -------------------------------------------------------------------------------------------------------------------
@@ -200,15 +199,15 @@ def convert_to_API(path):
                     stage = stage+1
                     startingBuild = path[r].split('-')[0]
                     startingLevel = path[r].split('-')[1]
-                    
+
         p=p+1
 
-    stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
+stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
     building = startingBuild
     level = startingLevel
     apiNode = '{"stage":%d,"building":"%s","level":%s,"path":%s}' %(stage, building, level, stringNodes)
     arrayStages.append(apiNode)
-
+    
     return "[{0}]".format(", ".join(str(i) for i in arrayStages))
 
 
@@ -216,12 +215,12 @@ def path_to_follow(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuildin
     k=0
     path = find_shortest_path(graph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId)
     path_length = len(path)
-#    while True:
-#        if k == path_length:
-#            break
-#
-#        k=k+1
-
+    #    while True:
+    #        if k == path_length:
+    #            break
+    #
+    #        k=k+1
+    
     API_MAP = convert_to_API(path)
     return API_MAP
 
@@ -266,25 +265,78 @@ def orientate_user(graph, array, coord_X, coord_Y, bearing):
 
 # -------------------------------------------------------------------------------------------------------------------
 
-G = nx.Graph()
-checkpointList = []
+def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId):
+    graph = nx.Graph()
+    checkpointList = []
+    
+    startingMapInfo =  download_map(sourceBuilding, sourceLevel)
+    startingGraph = update_graph(startingMapInfo, graph, checkpointList)
+    weightedStartingGraph = update_edges_with_weight(checkpointList, startingGraph)
+    
+    if (sourceBuilding == destBuilding and sourceLevel == destLevel):
+        destMapInfo = startingMapInfo
+    else:
+        destMapInfo = download_map(destBuilding, destLevel)
+    
+    destAndWeightedStartingGraph = update_graph(destMapInfo, weightedStartingGraph, checkpointList)
+    weightedOverallGraph = update_edges_with_weight(checkpointList, destAndWeightedStartingGraph)
+    finalGraph = combine_graph(weightedOverallGraph, checkpointList)
 
-map = download_map("COM1", 2)
-G = update_graph(map, G, checkpointList)
-G = update_edges_with_weight(checkpointList, G)
+path = find_shortest_path(finalGraph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId)
+    return convert_to_API(path)
 
-map = download_map("COM2", 2)
-G = update_graph(map, G, checkpointList)
-G = update_edges_with_weight(checkpointList, G)
-G = combine_graph(G, checkpointList)
 
-map = download_map("COM2", 3)
-G = update_graph(map, G, checkpointList)
-G = update_edges_with_weight(checkpointList, G)
-G = combine_graph(G, checkpointList)
+def begin_test():
+    testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
+    while testType != 1 and testType != 2:
+        testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
+    
+    if testType == 1:
+        test_path_finding()
+    else:
+        test_giving_directions()
 
-API = path_to_follow(G, "COM1", 2, 3, "COM2", 3, 12, 0)
-print API
-userMovement = orientate_user(G, checkpointList, 50, 100, 120)
-print 'Turn %f degrees and walk straight for %f cm' %(userMovement.turningAngle, userMovement.distance)
 
+def test_path_finding():
+    buildingName = raw_input('building name: ')
+    levelNum = raw_input('level num: ')
+    while True:
+        startNode = raw_input('start node id: ')
+        endNode  = raw_input('end node id: ')
+        pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode),
+                                    buildingName, int(levelNum), int(endNode))
+        pathObj = json.loads(pathStr)
+        print pathObj[0]
+        print 'path: {}'.format(pathObj[0]['path'])
+        response = json.load(urllib2.urlopen('http://localhost:3000/draw_path?path={}'.format(pathStr)))
+        print 'visualize: {}'.format(response['transaction_id'])
+
+
+def test_giving_directions():
+    pass
+
+
+if __name__ == "__main__":
+    begin_test()
+
+# G = nx.Graph()
+# checkpointList = []
+
+# map = download_map("COM1", 2)
+# G = update_graph(map, G, checkpointList)
+# G = update_edges_with_weight(checkpointList, G)
+
+# map = download_map("COM2", 2)
+# G = update_graph(map, G, checkpointList)
+# G = update_edges_with_weight(checkpointList, G)
+# G = combine_graph(G, checkpointList)
+
+# map = download_map("COM2", 3)
+# G = update_graph(map, G, checkpointList)
+# G = update_edges_with_weight(checkpointList, G)
+# G = combine_graph(G, checkpointList)
+
+# API = path_to_follow(G, "COM1", 2, 3, "COM2", 3, 12, 0)
+# print API
+# userMovement = orientate_user(G, checkpointList, 50, 100, 120)
+# print 'Turn %f degrees and walk straight for %f cm' %(userMovement.turningAngle, userMovement.distance)
