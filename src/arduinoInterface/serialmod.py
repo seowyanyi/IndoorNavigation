@@ -1,7 +1,7 @@
 import sprotapi as sprotapi
 import sprotpkt as sprotpkt
 import serialmod as serialmod
-
+import queueManager as qm
 DATA_SIZE = 16
 DEST_PORT_CRUNCHER = 9003
 DEST_PORT_ALERT = 9004
@@ -23,7 +23,7 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
-       
+counter = 0       
 
 # Strips trailing zeroes if required
 def removeNullChars(str):
@@ -38,7 +38,6 @@ def removeNullChars(str):
 while True :
 
     # Read a packet
-##    pkt = sprotapi.SPROTReceive()
     pkt = sprotapi.SPROTReceive()  
   
     try :
@@ -48,9 +47,33 @@ while True :
             else :
                 pkt.printPacket()
                 strpkt = pkt.data.decode("ascii")
+           
+                if (strpkt[0] == b'a') :
+                    data = strpkt.split(":")
+                    xyz = data[1].split(",")
 
-                if (strpkt[0] == b'1') :
-                    sonar1Data = convertPacketToSonarData(strpkt)
+                    if counter==0:
+                        print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
+                        with open("acc_x.txt", "a") as myfile:
+                            myfile.write(xyz[1])
+                        with open("acc_y.txt", "a") as myfile:
+                            myfile.write(xyz[2])
+                        with open("acc_z.txt", "a") as myfile:
+                            myfile.write(xyz[3])
+                        with open("compass.txt", "a") as myfile:
+                            myfile.write(xyz[0])
+
+                    else:
+                        counter += 1
+                        if counter == 10:
+                            counter = 0
+
+                    x = int(xyz[0])
+                    y = int(xyz[1])
+                    z = int(xyz[2])
+                    qm.IMUData(xAxis=x, yAxis=y, zAxis=z)
+                    
+                    
                 elif (strpkt[0] == b'2') :
                     sonar2Data = convertPacketToSonarData(strpkt)
                 elif (strpkt[0] == b'3') :
