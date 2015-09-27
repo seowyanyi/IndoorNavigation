@@ -202,7 +202,7 @@ def convert_to_API(path):
 
         p=p+1
 
-stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
+    stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
     building = startingBuild
     level = startingLevel
     apiNode = '{"stage":%d,"building":"%s","level":%s,"path":%s}' %(stage, building, level, stringNodes)
@@ -282,7 +282,7 @@ def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, d
     weightedOverallGraph = update_edges_with_weight(checkpointList, destAndWeightedStartingGraph)
     finalGraph = combine_graph(weightedOverallGraph, checkpointList)
 
-path = find_shortest_path(finalGraph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId)
+    path = find_shortest_path(finalGraph, sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId)
     return convert_to_API(path)
 
 
