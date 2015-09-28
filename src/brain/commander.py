@@ -3,10 +3,11 @@ The commander module coordinates all threads and components
 """
 from src.communication import queueManager
 from src.communication import feedbackDispatcher
-from src.arduinoInterface import sensorManager
+from src.arduinoInterface import serialmod
 import routeManager
 import obstacleDetector
 import src.mapper.mapper as mapper
+import pedometer
 
 def start():
     leftSonarQueue = queueManager.LEFT_SONAR_QUEUE
@@ -19,25 +20,25 @@ def start():
     # mapper.init_mapper()
 
     # Thread 1
-    sensorManager.SensorManagerThread(
-        threadName='sensorManager', delaySeconds=2, imuQueue=imuQueue,
+    serialmod.SensorManagerThread(
+        threadName='sensorManager', imuQueue=imuQueue,
         middleSonarQueue=middleSonarQueue, leftSonarQueue=leftSonarQueue,
         rightSonarQueue=rightSonarQueue).start()
 
     # Thread 2
-    routeManager.RouteManagerThread(
-        threadName='routeManager', delaySeconds=2, imuQueue=imuQueue, audioQueue=audioQueue).start()
+    pedometer.PedometerThread(
+        threadName='pedometer', imuQueue=imuQueue).start()
 
     # Thread 3
-    obstacleDetector.ObstacleDetectorThread(
-        threadName='obstacleDetector', delaySeconds=1, middleSonarQueue=middleSonarQueue,
-        leftSonarQueue=leftSonarQueue, rightSonarQueue=rightSonarQueue, audioQueue=audioQueue,
-        hapticQueue=hapticQueue).start()
+    # obstacleDetector.ObstacleDetectorThread(
+    #     threadName='obstacleDetector', delaySeconds=1, middleSonarQueue=middleSonarQueue,
+    #     leftSonarQueue=leftSonarQueue, rightSonarQueue=rightSonarQueue, audioQueue=audioQueue,
+    #     hapticQueue=hapticQueue).start()
 
     # Thread 4
-    feedbackDispatcher.AudioDispatcherThread(
-        threadName='audioDispatcher', delaySeconds=1, audioQueue=audioQueue).start()
+    # feedbackDispatcher.AudioDispatcherThread(
+    #     threadName='audioDispatcher', delaySeconds=1, audioQueue=audioQueue).start()
 
    # Thread 5
-    feedbackDispatcher.HapticDispatcherThread(
-        threadName='hapticDispatcher', delaySeconds=1, hapticQueue=hapticQueue).start()
+   #  feedbackDispatcher.HapticDispatcherThread(
+   #      threadName='hapticDispatcher', delaySeconds=1, hapticQueue=hapticQueue).start()

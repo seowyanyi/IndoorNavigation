@@ -1,7 +1,10 @@
 import sprotapi as sprotapi
 import sprotpkt as sprotpkt
-import serialmod as serialmod
-import os
+# import serialmod as serialmod
+import threading
+import src.communication.queueManager as qm
+import Queue
+
 DATA_SIZE = 16
 DEST_PORT_CRUNCHER = 9003
 DEST_PORT_ALERT = 9004
@@ -11,11 +14,6 @@ ACC_X_DATA_FILE = "acc_x.txt"
 ACC_Y_DATA_FILE = "acc_y.txt"
 ACC_Z_DATA_FILE = "acc_z.txt"
 COMPASS_DATA_FILE = "compass.txt"
-
-# Extract sonar data from generic packet
-def convertPacketToSonarData(strpkt):
-    sonarData = { strpkt[0] : strpkt[2:5] }
-    return sonarData
 
 sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)
 
@@ -27,6 +25,27 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
+LIMIT_DATA_RATE = 10
+
+class SensorManagerThread(threading.Thread):
+    def __init__(self, threadName, imuQueue, middleSonarQueue, leftSonarQueue, rightSonarQueue):
+        threading.Thread.__init__(self)
+        self.threadName = threadName
+        self.imuQueue = imuQueue
+        self.middleSonarQueue = middleSonarQueue
+        self.leftSonarQueue = leftSonarQueue
+        self.rightSonarQueue = rightSonarQueue
+
+    def run(self):
+        print 'Starting {} thread'.format(self.threadName)
+        read_packet(LIMIT_DATA_RATE, self.imuQueue)
+        print 'Exited {} thread'.format(self.threadName)
+
+
+# Extract sonar data from generic packet
+def convertPacketToSonarData(strpkt):
+    sonarData = { strpkt[0] : strpkt[2:5] }
+    return sonarData
 
 # Strips trailing zeroes if required
 def removeNullChars(str):
@@ -37,8 +56,8 @@ def removeNullChars(str):
 
     return str[0:maxIndex+1]
     
-def read_packet():
-    counter = 0
+def read_packet(limit, imuQueue):
+    counter = 1
     while True :
 
         # Read a packet
@@ -56,8 +75,9 @@ def read_packet():
                         data = strpkt.split(":")
                         xyz = data[1].split(",")
 
-                        if counter==0:
+                        if counter == 1:
                             print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
+                            imuQueue.put(qm.IMUData(xyz[1], xyz[2], xyz[3]))
                             with open(ACC_X_DATA_FILE, "a") as myfile:
                                 myfile.write(xyz[1] + '\n')
                             with open(ACC_Y_DATA_FILE, "a") as myfile:
@@ -66,11 +86,9 @@ def read_packet():
                                 myfile.write(xyz[3] + '\n')
                             with open(COMPASS_DATA_FILE, "a") as myfile:
                                 myfile.write(xyz[0] + '\n')
-
-                        else:
-                            counter += 1
-                            if counter == 10:
-                                counter = 0
+                        if counter == limit:
+                            counter = 0
+                        counter += 1
 
                         x = int(xyz[0])
                         y = int(xyz[1])
@@ -89,15 +107,5 @@ def read_packet():
             sprotapi.SPROTClose()
             sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)
 
-def remove_previous_data_files():
-    os.remove(ACC_X_DATA_FILE)
-    os.remove(ACC_Y_DATA_FILE)
-    os.remove(ACC_Z_DATA_FILE)
-    os.remove(COMPASS_DATA_FILE)
-
-def begin_transmission():
-    remove_previous_data_files()
-    read_packet()
-
 if __name__ == "__main__":
-    begin_transmission()
+    read_packet(LIMIT_DATA_RATE, Queue.Queue())
