@@ -49,7 +49,7 @@ def read_packet():
                 if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
                     print "recv error"
                 else :
-                    pkt.printPacket()
+                    # pkt.printPacket()
                     strpkt = pkt.data.decode("ascii")
 
                     if (strpkt[0] == b'a') :
