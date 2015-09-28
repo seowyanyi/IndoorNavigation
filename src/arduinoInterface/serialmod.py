@@ -49,7 +49,7 @@ def read_packet():
                 if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
                     print "recv error"
                 else :
-                    pkt.printPacket()
+                    # pkt.printPacket()
                     strpkt = pkt.data.decode("ascii")
 
                     if (strpkt[0] == b'a') :
@@ -75,7 +75,7 @@ def read_packet():
                         x = int(xyz[0])
                         y = int(xyz[1])
                         z = int(xyz[2])
-                        qm.IMUData(xAxis=x, yAxis=y, zAxis=z)
+                        # qm.IMUData(xAxis=x, yAxis=y, zAxis=z)
 
 
                     elif (strpkt[0] == b'2') :
