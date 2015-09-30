@@ -442,8 +442,12 @@ def test_path_finding():
         pathObj = json.loads(pathStr)
         print 'path: {}'.format(pathObj[0]['path'])
         url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
-        res = requests.get(url)
-        print 'visualize: {}'.format(res.json()["transaction_id"])
+        try:
+            res = requests.get(url)
+            print 'visualize: {}'.format(res.json()["transaction_id"])
+        except requests.exceptions.RequestException as e:
+            pass
+
 
 def test_giving_directions():
     buildingName = raw_input('building name: ')
@@ -455,8 +459,12 @@ def test_giving_directions():
                                           buildingName, levelNum, endNode)
     pathStr = convert_to_API(listOfGlobalNodeIds)
     url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
-    res = requests.get(url)
-    print 'visualize: {}'.format(res.json()["transaction_id"])
+    try:
+        res = requests.get(url)
+        print 'visualize: {}'.format(res.json()["transaction_id"])
+    except requests.exceptions.RequestException as e:
+        pass
+
     stage = json.loads(pathStr)[0]
     path = stage['path']
     print path

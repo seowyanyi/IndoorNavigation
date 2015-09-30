@@ -7,6 +7,7 @@ acc_z_sensor = Queue.Queue()
 WINDOW_SIZE = 10
 AT_REST_LIMIT = 30
 SWING_LIMIT = 5
+CM_PER_STEP = 45
 
 import threading
 
@@ -46,8 +47,6 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit):
     while True:
         imuData = dataQueue.get(True)
         x = imuData.xAxis
-        y = imuData.yAxis
-        z = imuData.zAxis
 
         if len(data) > windowSize:
             data.pop(0)
@@ -79,6 +78,7 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit):
         if previouslyAtRest and swing_count > swingLimit:
             steps += 1
             print 'NUMBER OF STEPS: {}'.format(steps)
+            print 'DISTANCE TRAVELLED: {} cm'.format(steps * CM_PER_STEP)
             swing_count = 0
             previouslyAtRest = False
             at_rest_count = 0
