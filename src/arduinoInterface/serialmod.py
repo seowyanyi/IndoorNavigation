@@ -102,7 +102,7 @@ def read_packet(limit, imuQueue):
                     elif (strpkt[0] == b'C') :
                         compassData = strpkt[2:5]
 
-        except KeyboardInterrupt:
+        except:
             sprotapi.SPROTClose()
             sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)
 
