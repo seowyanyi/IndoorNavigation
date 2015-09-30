@@ -1,12 +1,13 @@
 import numpy as np
 import Queue
 import os
-acc_x_sensor = Queue.Queue()
-acc_y_sensor = Queue.Queue()
-acc_z_sensor = Queue.Queue()
-WINDOW_SIZE = 10
-AT_REST_LIMIT = 30
-SWING_LIMIT = 5
+import src.communication.queueManager as qm
+
+test_queue = Queue.Queue()
+
+WINDOW_SIZE = 5
+AT_REST_LIMIT = 1
+SWING_LIMIT = 2
 CM_PER_STEP = 45
 
 import threading
@@ -19,37 +20,28 @@ class PedometerThread(threading.Thread):
 
     def run(self):
         print 'Starting {} thread'.format(self.threadName)
-        start_pedometer_processing(self.imuQueue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT)
+        start_pedometer_processing(self.imuQueue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, False)
         print 'Exited {} thread'.format(self.threadName)
 
 def init_test_queue():
-    with open('acc_y.txt') as f:
-        for line in f:
-            acc_y_sensor.put(int(line))
-
-    with open('acc_z.txt') as f:
-        for line in f:
-            acc_z_sensor.put(int(line))
-
     with open('acc_x.txt') as f:
         for line in f:
-            acc_x_sensor.put(int(line))
+            test_queue.put(qm.IMUData(int(line), 0, 0))
 
-
-def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit):
+def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit, debug):
     steps = 0
     data = []
 
     swing_count = 0
     at_rest_count = 0
     previouslyAtRest = True
-    counter = 0
 
     while True:
+        if debug and dataQueue.qsize() <= 1:
+            break
+
         imuData = dataQueue.get(True)
         x = imuData.xAxis
-        y = imuData.yAxis
-        z = imuData.zAxis
 
         if len(data) > windowSize:
             data.pop(0)
@@ -69,9 +61,10 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit):
         else:
             at_rest_count = 0
 
-        # line = get_equation_of_line(data)
-        # gradient = line[0]
-        # write_to_gradient_file(gradient)
+        if debug:
+            line = get_equation_of_line(data)
+            gradient = line[0]
+            write_to_gradient_file(gradient)
 
         # count as at rest
         if at_rest_count > atRestLimit:
@@ -85,16 +78,10 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit):
             swing_count = 0
             previouslyAtRest = False
             at_rest_count = 0
-
-        counter += 1
-
-        if counter > 100:
-            counter = 0
-            print 'Is currently at rest: {}'.format(is_at_rest(data))
-
-        #     write_to_step_file('1')
-        # else:
-        #     write_to_step_file('0')
+            if debug:
+                write_to_step_file('1')
+        elif debug:
+            write_to_step_file('0')
 
 def write_to_gradient_file(data):
     with open("gradient.txt", "a") as myfile:
@@ -113,7 +100,7 @@ def get_equation_of_line(data):
 def is_downward_swing(data):
     line = get_equation_of_line(data)
     gradient = line[0]
-    return gradient < -0.35
+    return gradient < -0.30
 
 def is_at_rest(data):
     line = get_equation_of_line(data)
@@ -132,4 +119,5 @@ def clean_up():
 
 if __name__ == "__main__":
     clean_up()
-    start_pedometer_processing(acc_y_sensor, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT)
+    init_test_queue()
+    start_pedometer_processing(test_queue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True)
