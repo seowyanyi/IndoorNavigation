@@ -42,6 +42,7 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit, d
 
         imuData = dataQueue.get(True)
         x = imuData.xAxis
+        heading = imuData.heading
 
         if len(data) > windowSize:
             data.pop(0)
@@ -75,6 +76,8 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit, d
             steps += 1
             print 'NUMBER OF STEPS: {}'.format(steps)
             print 'DISTANCE TRAVELLED: {} cm'.format(steps * CM_PER_STEP)
+            print 'CURRENT HEADING: {} degrees\n'.format(heading)
+
             swing_count = 0
             previouslyAtRest = False
             at_rest_count = 0
