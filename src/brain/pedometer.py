@@ -19,7 +19,7 @@ class PedometerThread(threading.Thread):
 
     def run(self):
         print 'Starting {} thread'.format(self.threadName)
-        start_pedometer_processing(acc_y_sensor, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT)
+        start_pedometer_processing(self.imuQueue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT)
         print 'Exited {} thread'.format(self.threadName)
 
 def init_test_queue():
@@ -48,6 +48,8 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit):
     while True:
         imuData = dataQueue.get(True)
         x = imuData.xAxis
+        y = imuData.yAxis
+        z = imuData.zAxis
 
         if len(data) > windowSize:
             data.pop(0)
