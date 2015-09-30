@@ -43,6 +43,7 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit):
     swing_count = 0
     at_rest_count = 0
     previouslyAtRest = True
+    counter = 0
 
     while True:
         imuData = dataQueue.get(True)
@@ -82,6 +83,13 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit):
             swing_count = 0
             previouslyAtRest = False
             at_rest_count = 0
+
+        counter += 1
+
+        if counter > 100:
+            counter = 0
+            print 'Is currently at rest: {}'.format(is_at_rest(data))
+
         #     write_to_step_file('1')
         # else:
         #     write_to_step_file('0')
