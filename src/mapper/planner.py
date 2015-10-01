@@ -62,9 +62,14 @@ def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY
     Clockwise from vertical of source
     """
     bearing = -math.atan2(coordDestY-coordSrcY, coordDestX-coordSrcX)
+    if abs(bearing) == 0:
+        bearingDeg = abs(bearing)
+        return bearingDeg
     bearingDeg = math.degrees(bearing) + 90
     if bearingDeg < 0:
         return 360 + bearingDeg
+
+    print bearingDeg
     return  bearingDeg
 
 # -------------------------------------------------------------------------------------------------------------------
@@ -397,13 +402,21 @@ def orientate_user(srcX, srcY, destX, destY, currBearing):
     :param currBearing: user's compass heading w.r.t north of map.
     :return: {'turning_angle': a, 'distance_to_node': b}
     if a < 0, turn CCW. If a > 0, turn CW
+    
+    the NorthAt of the map should be taken into consideration given that the
+    current bearing is based on the north of the map and not the true north
     """
     # make sure bearing is positive to simplify calculations:
     if currBearing < 0:
         currBearing += 360
     distance = calculate_distance(srcX, srcY, destX, destY)
     bearingToNode = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
-    turningAngle = bearingToNode - currBearing
+    if bearingToNode == 0:
+        turningAngle = 0
+    else:
+        turningAngle = bearingToNode - currBearing
+
+    print turningAngle
 
     if abs(turningAngle) < 180:
         return {'turning_angle': turningAngle, 'distance_to_node': distance}
