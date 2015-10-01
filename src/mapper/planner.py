@@ -62,7 +62,7 @@ def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY
     Clockwise from vertical of source
     """
     bearing = -math.atan2(coordDestY-coordSrcY, coordDestX-coordSrcX)
-    if abs(bearing) == 0:
+    if abs(coordDestY-coordSrcY) == 0 and abs(coordDestX-coordSrcX) == 0:
         bearingDeg = abs(bearing)
         return bearingDeg
     bearingDeg = math.degrees(bearing) + 90
