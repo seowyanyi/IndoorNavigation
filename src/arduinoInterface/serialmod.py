@@ -75,7 +75,7 @@ def read_packet(limit, imuQueue):
                         xyz = data[1].split(",")
 
                         if counter == 1:
-                            print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
+                            #print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
                             heading = int(xyz[0])
                             x = int(xyz[1])
                             y = int(xyz[2])
