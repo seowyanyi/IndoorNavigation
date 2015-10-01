@@ -11,7 +11,8 @@ class Sonar:
     Left, Right, Front, UpperShin, LowerShin, IMU = range(6)
 
 class IMUData:
-    def __init__(self, xAxis, yAxis, zAxis):
+    def __init__(self, xAxis, yAxis, zAxis, heading):
         self.xAxis = xAxis
         self.yAxis = yAxis
         self.zAxis = zAxis
+        self.heading = heading
