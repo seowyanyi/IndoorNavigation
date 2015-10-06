@@ -62,14 +62,13 @@ def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY
     Clockwise from vertical of source
     """
     bearing = -math.atan2(coordDestY-coordSrcY, coordDestX-coordSrcX)
-    if abs(bearing) == 0:
+    if abs(coordDestY-coordSrcY) == 0 and abs(coordDestX-coordSrcX) == 0:
         bearingDeg = abs(bearing)
         return bearingDeg
     bearingDeg = math.degrees(bearing) + 90
     if bearingDeg < 0:
         return 360 + bearingDeg
 
-    print bearingDeg
     return  bearingDeg
 
 # -------------------------------------------------------------------------------------------------------------------
@@ -334,21 +333,37 @@ def convert_to_API(path):
     
     return "[{0}]".format(", ".join(str(i) for i in arrayStages))
 
-def find_nearest_node_in_path(checkpointList, coord_X, coord_Y):
+def find_nearest_next_node(checkpointList, coord_X, coord_Y):
     """
-    Finds nearest node in the path from the current location
+    Finds nearest next node in the path from the current location
     This only works for a single map
+    e.g. A -> B -> C
+    If user not on the path but nearest to B, nearest next node is B
+    If user is on B, the nearest next node is C
+    If user is on C (destination), return None
     :param checkpointList: list of checkpoints along the path
     """
     currShortestDist = None
     currNearestNode = None
+    length = len(checkpointList)
+    counter = 0
+    go_next = False
+
     for node in checkpointList:
+        counter += 1
         x = node.xCoord
         y = node.yCoord
         if x == coord_X and y == coord_Y:
-            # same node
-            return node
+            if counter == length:
+                # already at destination
+                return None
+            else:
+                go_next = True
+                continue
+
         distance = calculate_distance(coord_X, coord_Y, x, y)
+        if go_next:
+            return node
         if currShortestDist is None or distance < currShortestDist:
             currShortestDist = distance
             currNearestNode = node
@@ -416,8 +431,6 @@ def orientate_user(srcX, srcY, destX, destY, currBearing):
     else:
         turningAngle = bearingToNode - currBearing
 
-    print turningAngle
-
     if abs(turningAngle) < 180:
         return {'turning_angle': turningAngle, 'distance_to_node': distance}
     if turningAngle < 0:
@@ -467,6 +480,10 @@ def test_giving_directions():
     levelNum = int(raw_input('level num: '))
     startNode = raw_input('start node id: ')
     endNode  = raw_input('end node id: ')
+
+    currMap =  download_map(buildingName, levelNum)
+    northAt = currMap.initialBearing
+
     graph = build_graph(buildingName, levelNum, buildingName, levelNum)
     listOfGlobalNodeIds = find_shortest_path_given_graph(graph, buildingName, levelNum, startNode,
                                           buildingName, levelNum, endNode)
@@ -487,10 +504,16 @@ def test_giving_directions():
         initial_y = int(raw_input('current y: '))
         heading = int(raw_input('current heading: '))
         checkpointList = convert_path_to_checkpoints(path, graph, buildingName, levelNum)
-        nearestNode = find_nearest_node_in_path(checkpointList, initial_x, initial_y)
-        directions = orientate_user(initial_x, initial_y, nearestNode.xCoord, nearestNode.yCoord, heading)
-        print 'Turning angle: {} degrees, Distance to node {}: {}'.format(
-            directions['turning_angle'], nearestNode.localNodeId, directions['distance_to_node'])
+        nearestNextNode = find_nearest_next_node(checkpointList, initial_x, initial_y)
+        if nearestNextNode is None:
+            print 'Already at destination'
+        else:
+            heading_wrt_vertical = int(northAt) + heading
+            if heading_wrt_vertical >= 360:
+                heading_wrt_vertical -= 360
+            directions = orientate_user(initial_x, initial_y, nearestNextNode.xCoord, nearestNextNode.yCoord, heading_wrt_vertical)
+            print 'Turning angle: {} degrees, Distance to node {}: {} cm'.format(
+                directions['turning_angle'], nearestNextNode.localNodeId, directions['distance_to_node'])
 
 
 if __name__ == "__main__":

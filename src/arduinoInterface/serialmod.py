@@ -17,7 +17,6 @@ COMPASS_DATA_FILE = "compass.txt"
 
 sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)
 
-PRINT_EVERY_N_ITER = 10
 canPrint = False
 iterationCount = 0
 sonar1Data = 0      # Left Sonar
@@ -76,13 +75,13 @@ def read_packet(limit, imuQueue):
                         xyz = data[1].split(",")
 
                         if counter == 1:
-                            print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
-                            compass = int(xyz[0])
+                            #print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
+                            heading = int(xyz[0])
                             x = int(xyz[1])
                             y = int(xyz[2])
                             z = int(xyz[3])
 
-                            imuQueue.put(qm.IMUData(x, y, z))
+                            imuQueue.put(qm.IMUData(x, y, z, heading))
                             # with open(ACC_X_DATA_FILE, "a") as myfile:
                             #     myfile.write(xyz[1] + '\n')
                             # with open(ACC_Y_DATA_FILE, "a") as myfile:
