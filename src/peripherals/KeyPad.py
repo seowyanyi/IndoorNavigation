@@ -3,7 +3,6 @@ from matrix_keypad import RPi_GPIO
 
 class KeyPad:
     def __init__(self):
-        self.data = []
         self.kp = RPi_GPIO.keypad(columnCount = 3)
 
     #Get a single input from the keypad and sleep for a while
@@ -27,20 +26,17 @@ class KeyPad:
             userInput = self.get_user_input()
         return userInput
 
-    #Run the user interface to get 2 strings of user input
+    #Run to get and return 2 strings of user input as a list
     def run(self):
-        data = self.get_user_input()
-        self.data.append(data)
-        data = self.get_user_input()
-        self.data.append(data)
-
-    #Return the user inputs as a list
-    def get_data(self):
-        return self.data
+        data = []
+        userInput = self.get_user_input()
+        data.append(userInput)
+        userInput = self.get_user_input()
+        data.append(data)
+        return data
     
 if __name__ == "__main__":
     ui = KeyPad()
-    ui.run()
-    data = ui.get_data()
+    data = ui.run()
     print data[0]
     print data[1]
