@@ -32,7 +32,7 @@ class KeyPad:
         userInput = self.get_user_input()
         data.append(userInput)
         userInput = self.get_user_input()
-        data.append(data)
+        data.append(userInput)
         return data
     
 if __name__ == "__main__":
