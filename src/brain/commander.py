@@ -14,6 +14,7 @@ def start():
     middleSonarQueue = queueManager.MIDDLE_SONAR_QUEUE
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
+    pedometerQueue = queueManager.PEDOMETER_QUEUE
 
     # mapper.init_mapper()
 
@@ -25,7 +26,7 @@ def start():
 
     # Thread 2
     pedometer.PedometerThread(
-        threadName='pedometer', imuQueue=imuQueue).start()
+        threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue).start()
 
     # Thread 3
     audio.AudioDispatcherThread(
