@@ -26,7 +26,8 @@ class AudioCommands:
     match the total number of commands
     """
     ASK_FOR_STARTING_BUILDING, ASK_FOR_STARTING_LEVEL, TURN_X_DEGREES_CCW, TURN_X_DEGREES_CW,\
-        SLIGHT_RIGHT, SLIGHT_LEFT = range(6)
+        SLIGHT_RIGHT, SLIGHT_LEFT, DESTINATION_REACHED, CHECKPOINT_REACHED, NUM_STEPS_LEFT,\
+        METERS_TO_NEXT = range(8)
 
 
 class AudioDispatcherThread(threading.Thread):
@@ -49,7 +50,23 @@ def start_audio_processing(audioQueue):
             # output the relevant audio
             pass
         elif data['type'] == AudioCommands.TURN_X_DEGREES_CCW:
+            degrees = data['data']
+        elif data['type'] == AudioCommands.TURN_X_DEGREES_CW:
+            # output the relevant audio
             pass
+        elif data['type'] == AudioCommands.SLIGHT_LEFT:
+            pass
+        elif data['type'] == AudioCommands.SLIGHT_RIGHT:
+            # output the relevant audio
+            pass
+        elif data['type'] == AudioCommands.DESTINATION_REACHED:
+            pass
+        elif data['type'] == AudioCommands.CHECKPOINT_REACHED:
+            pass
+        elif data['type'] == AudioCommands.NUM_STEPS_LEFT:
+            pass
+        elif data['type'] == AudioCommands.METERS_TO_NEXT:
+            dist_in_meters = data['data']
 
 class Notification:
     def __init__(self, ASK_FOR_STARTING_BUILDING, ASK_FOR_STARTING_LEVEL, ASK_FOR_STARTING_NODE, ASK_FOR_DESTINATION_BUILDING, ASK_FOR_DESTINATION_LEVEL, ASK_FOR_DESTINATION_NODE, CONFIRM_INPUT):
