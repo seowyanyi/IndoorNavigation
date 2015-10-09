@@ -1,3 +1,10 @@
+"""
+Computes type of step an bearing after each step
+Types of steps:
+1. Normal forward step
+2. Step sideways left/right (for avoiding obstacles)
+3. Turning on the spot
+"""
 import numpy as np
 import Queue
 import os
@@ -8,19 +15,24 @@ test_queue = Queue.Queue()
 WINDOW_SIZE = 5
 AT_REST_LIMIT = 1
 SWING_LIMIT = 2
-CM_PER_STEP = 45
+#todo: minus ~5 degrees from bearing due to angle of foot
 
 import threading
 
+
+class Step:
+    FORWARD, TURN, AT_REST = range(5)
+
 class PedometerThread(threading.Thread):
-    def __init__(self, threadName, imuQueue):
+    def __init__(self, threadName, imuQueue, pedometerQueue):
         threading.Thread.__init__(self)
         self.threadName = threadName
         self.imuQueue = imuQueue
+        self.pedometerQueue = pedometerQueue
 
     def run(self):
         print 'Starting {} thread'.format(self.threadName)
-        start_pedometer_processing(self.imuQueue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, False)
+        start_pedometer_processing(self.imuQueue, self.pedometerQueue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, False)
         print 'Exited {} thread'.format(self.threadName)
 
 def init_test_queue():
@@ -28,7 +40,7 @@ def init_test_queue():
         for line in f:
             test_queue.put(qm.IMUData(int(line), 0, 0))
 
-def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit, debug):
+def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug):
     steps = 0
     data = []
 
@@ -67,15 +79,15 @@ def start_pedometer_processing(dataQueue, windowSize, atRestLimit, swingLimit, d
             gradient = line[0]
             write_to_gradient_file(gradient)
 
-        # count as at rest
+        # count as at rest between steps
         if at_rest_count > atRestLimit:
             previouslyAtRest = True
             at_rest_count = 0
 
         if previouslyAtRest and swing_count > swingLimit:
             steps += 1
+            pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': heading})
             print 'NUMBER OF STEPS: {}'.format(steps)
-            print 'DISTANCE TRAVELLED: {} cm'.format(steps * CM_PER_STEP)
             print 'CURRENT HEADING: {} degrees\n'.format(heading)
 
             swing_count = 0

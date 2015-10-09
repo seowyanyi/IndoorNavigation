@@ -2,10 +2,9 @@
 The commander module coordinates all threads and components
 """
 from src.communication import queueManager
-from src.communication import feedbackDispatcher
+from src.peripherals import audio
 from src.arduinoInterface import serialmod
 import routeManager
-import obstacleDetector
 import src.mapper.mapper as mapper
 import pedometer
 
@@ -15,7 +14,7 @@ def start():
     middleSonarQueue = queueManager.MIDDLE_SONAR_QUEUE
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
-    hapticQueue = queueManager.HAPTIC_QUEUE
+    pedometerQueue = queueManager.PEDOMETER_QUEUE
 
     # mapper.init_mapper()
 
@@ -27,18 +26,8 @@ def start():
 
     # Thread 2
     pedometer.PedometerThread(
-        threadName='pedometer', imuQueue=imuQueue).start()
+        threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue).start()
 
     # Thread 3
-    # obstacleDetector.ObstacleDetectorThread(
-    #     threadName='obstacleDetector', delaySeconds=1, middleSonarQueue=middleSonarQueue,
-    #     leftSonarQueue=leftSonarQueue, rightSonarQueue=rightSonarQueue, audioQueue=audioQueue,
-    #     hapticQueue=hapticQueue).start()
-
-    # Thread 4
-    # feedbackDispatcher.AudioDispatcherThread(
-    #     threadName='audioDispatcher', delaySeconds=1, audioQueue=audioQueue).start()
-
-   # Thread 5
-   #  feedbackDispatcher.HapticDispatcherThread(
-   #      threadName='hapticDispatcher', delaySeconds=1, hapticQueue=hapticQueue).start()
+    audio.AudioDispatcherThread(
+        threadName='audioDispatcher', audioQueue=audioQueue).start()
