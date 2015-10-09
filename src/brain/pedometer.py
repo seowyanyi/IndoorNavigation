@@ -1,3 +1,10 @@
+"""
+Computes type of step an bearing after each step
+Types of steps:
+1. Normal forward step
+2. Step sideways left/right (for avoiding obstacles)
+3. Turning on the spot
+"""
 import numpy as np
 import Queue
 import os
@@ -9,8 +16,13 @@ WINDOW_SIZE = 5
 AT_REST_LIMIT = 1
 SWING_LIMIT = 2
 CM_PER_STEP = 45
+#todo: minus ~5 degrees from bearing due to angle of foot
 
 import threading
+
+
+class Step:
+    FORWARD, TURN, AT_REST = range(5)
 
 class PedometerThread(threading.Thread):
     def __init__(self, threadName, imuQueue):
