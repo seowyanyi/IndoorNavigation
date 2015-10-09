@@ -25,7 +25,8 @@ class AudioCommands:
     The different audio command types available. Remember to increment the range value to
     match the total number of commands
     """
-    ASK_FOR_STARTING_BUILDING, ASK_FOR_STARTING_LEVEL = range(2)
+    ASK_FOR_STARTING_BUILDING, ASK_FOR_STARTING_LEVEL, TURN_X_DEGREES_CCW, TURN_X_DEGREES_CW,\
+        SLIGHT_RIGHT, SLIGHT_LEFT = range(6)
 
 
 class AudioDispatcherThread(threading.Thread):
@@ -38,18 +39,16 @@ class AudioDispatcherThread(threading.Thread):
         start_audio_processing(self.audioQueue)
         print 'Exited {} thread'.format(self.threadName)
 
-def init_test_queue(queue):
-    queue.put(AudioCommands.ASK_FOR_STARTING_BUILDING)
-    queue.put(AudioCommands.ASK_FOR_STARTING_LEVEL)
-
 def start_audio_processing(audioQueue):
     while True:
         data = audioQueue.get(True)
-        if data == AudioCommands.ASK_FOR_STARTING_BUILDING:
+        if data['type'] == AudioCommands.ASK_FOR_STARTING_BUILDING:
             # output the relevant audio
             pass
-        elif data == AudioCommands.ASK_FOR_STARTING_BUILDING:
+        elif data['type'] == AudioCommands.ASK_FOR_STARTING_BUILDING:
             # output the relevant audio
+            pass
+        elif data['type'] == AudioCommands.TURN_X_DEGREES_CCW:
             pass
 
 class Notification:
@@ -83,6 +82,15 @@ def output_Notif(notificationType, input):
     pygame.mixer.music.play()
     while pygame.mixer.music.get_busy() == True:
         continue
+
+def init_test_queue(queue):
+    data1 = {'type': AudioCommands.ASK_FOR_STARTING_BUILDING}
+    data2 = {'type': AudioCommands.ASK_FOR_STARTING_LEVEL}
+    data3 = {'type': AudioCommands.TURN_X_DEGREES_CCW, 'data': 60} # should output "turn 60 degrees ccw"
+    queue.put(data1)
+    queue.put(data2)
+    queue.put(data3)
+
 
 if __name__ == '__main__':
     # run python audio.py to test
