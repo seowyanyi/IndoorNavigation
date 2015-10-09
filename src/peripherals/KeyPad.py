@@ -25,18 +25,8 @@ class KeyPad:
         if digit == "#":
             userInput = self.get_user_input()
         return userInput
-
-    #Run to get and return 2 strings of user input as a list
-    def run(self):
-        data = []
-        userInput = self.get_user_input()
-        data.append(userInput)
-        userInput = self.get_user_input()
-        data.append(userInput)
-        return data
     
 if __name__ == "__main__":
-    ui = KeyPad()
-    data = ui.run()
-    print data[0]
-    print data[1]
+    kp = KeyPad()
+    data = kp.get_user_input()
+    print data
