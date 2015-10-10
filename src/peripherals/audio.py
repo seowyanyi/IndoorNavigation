@@ -11,9 +11,14 @@ ASK_FOR_DESTINATION_LEVEL = "/Users/malavikamenon/IndoorNavigation/src/periphera
 ASK_FOR_DESTINATION_NODE = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/ASK_FOR_DEST_NODE.ogg"
 CONFIRM_INPUT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/CONFIRM_INPUT.ogg"
 TURN_RIGHT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/TURN_RIGHT.ogg"
-TURN_LEFT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/URN_LEFT.ogg"
+TURN_LEFT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/TURN_LEFT.ogg"
 WALK_STRAIGHT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/WALK_STRAIGHT.ogg"
 OBSTACLE_STOP = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/STOP_OBSTACLE.ogg"
+CHECKPOINT_REACHED = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/CHECKPOINT_REACHED.ogg"
+DESTINATION_REACHED = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/DEST_REACHED.ogg"
+SLIGHT_LEFT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/SLIGHT_LEFT.ogg"
+SLIGHT_RIGHT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/SLIGHT_RIGHT.ogg"
+METERS_TO_NEXT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/DIST_TO_NEXT_CHECKPOINT.ogg"
 
 
 import threading
