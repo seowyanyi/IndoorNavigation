@@ -24,7 +24,7 @@ class keypad:
         #Reset current user input if user input #
         if digit == "#":
             userInput = self.get_user_input()
-        return userInput
+        return int(userInput)
     
 if __name__ == "__main__":
     kp = KeyPad()
