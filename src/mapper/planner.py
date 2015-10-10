@@ -119,7 +119,7 @@ def get_linkage_node(nodeName):
 
 def get_linkage_global_id(nodeName):
     """
-    Given TO COM2-3-1, returns COM2-3-1 (int)
+    Given TO COM2-3-1, returns COM2-3-1
     """
     removedTheWord_TO = nodeName[3:]
     noWhiteSpace = removedTheWord_TO.replace(' ', '')
@@ -395,7 +395,7 @@ def find_nearest_node_in_graph(graph, coord_X, coord_Y):
             currNearestNode = node
     return {'nearest_node_on_path': currNearestNode, 'distance_to_node': currShortestDist}
 
-def convert_path_to_checkpoints(path, graph, buildingName, levelNum):
+def convert_path_to_checkpoints(local_path, graph, buildingName, levelNum):
     """
     :param path: list of local node ids along the path (int)
     :param graph: the networkx graph
@@ -404,7 +404,7 @@ def convert_path_to_checkpoints(path, graph, buildingName, levelNum):
     :return: list of Checkpoint objects
     """
     listOfCheckpoints = []
-    for point in path:
+    for point in local_path:
         for nxNode,data in graph.nodes_iter(data=True):
             node = data['checkpoint']
             if node.buildingName != buildingName or node.levelNum != levelNum:
@@ -415,15 +415,18 @@ def convert_path_to_checkpoints(path, graph, buildingName, levelNum):
 
     return listOfCheckpoints
 
-def orientate_user_to_node(srcX, srcY, destX, destY, northAt):
+def convert_global_path_to_checkpoints(global_path, graph):
+    listOfCheckpoints = []
+    checkpoints = nx.get_node_attributes(graph, 'checkpoint')
+    for point in global_path:
+        listOfCheckpoints.append(checkpoints[point])
+    return listOfCheckpoints
+
+
+def bearing_to_node(srcX, srcY, destX, destY, northAt):
     """
-        :param currBearing: user's compass heading w.r.t north of map.
-        :return: {'turning_angle': a, 'distance_to_node': b}
-        if a < 0, turn CCW. If a > 0, turn CW
-        
-        the NorthAt of the map should be taken into consideration given that the
-        current bearing is based on the north of the map and not the true north
-        """
+    :return: {'bearing_to_next': a, 'distance_to_next': b}
+    """
     # make sure bearing is positive to simplify calculations:
     distance = calculate_distance(srcX, srcY, destX, destY)
     bearing = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
@@ -457,10 +460,10 @@ def orientate_user(srcX, srcY, destX, destY, currBearing):
     # Turning angle > 0, and abs(angle) > 180
     return {'turning_angle': - (360 - turningAngle), 'distance_to_node': distance}
 
-def find_dist_bearing_to_next_node(path, graph, buildingName, levelNum, northAt):
+def find_dist_bearing_to_next_node(path, graph, northAt):
     array=[]
     currentNodeIndex=0
-    checkpointList = convert_path_to_checkpoints(path, graph, buildingName, levelNum)
+    checkpointList = convert_global_path_to_checkpoints(path, graph)
 
     while True:
         if currentNodeIndex == len(checkpointList)-1:
@@ -468,11 +471,10 @@ def find_dist_bearing_to_next_node(path, graph, buildingName, levelNum, northAt)
         currentNode = checkpointList[currentNodeIndex]
         coord_X = currentNode.xCoord
         coord_Y = currentNode.yCoord
-        nextNode = find_nearest_next_node(checkpointList, coord_X, coord_Y)
-        dist_and_bearing = orientate_user_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, northAt)
+        nextNode = checkpointList[currentNodeIndex+1]
+        dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, northAt)
         array.append(dist_and_bearing)
         currentNodeIndex += 1
-    print array
     return array
 
 # -------------------------------------------------------------------------------------------------------------------
@@ -482,18 +484,10 @@ def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, d
     path = find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNodeId,
                                           destBuilding, destLevel, destNodeId)
     currMap = mapsDownloaded[0] # todo: factor in different maps
-    return find_dist_bearing_to_next_node(path, graph, currMap.buildingName,
-                                          currMap.levelNum, currMap.initialBearing)
+    return find_dist_bearing_to_next_node(path, graph, currMap.initialBearing)
 
 def begin_test():
     testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
-    while testType != 1 and testType != 2:
-        testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
-
-    if testType == 1:
-        test_path_finding()
-    else:
-        test_giving_directions()    
 
 
 def test_path_finding():
@@ -514,48 +508,6 @@ def test_path_finding():
             print 'visualize: {}'.format(res.json()["transaction_id"])
         except requests.exceptions.RequestException as e:
             pass
-
-
-def test_giving_directions():
-    buildingName = raw_input('building name: ')
-    levelNum = int(raw_input('level num: '))
-    startNode = raw_input('start node id: ')
-    endNode  = raw_input('end node id: ')
-
-    currMap =  download_map(buildingName, levelNum)
-    northAt = currMap.initialBearing
-
-    graph = build_graph(buildingName, levelNum, buildingName, levelNum)
-    listOfGlobalNodeIds = find_shortest_path_given_graph(graph, buildingName, levelNum, startNode,
-                                          buildingName, levelNum, endNode)
-    pathStr = convert_to_API(listOfGlobalNodeIds)
-    url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
-    try:
-        res = requests.get(url)
-        print 'visualize: {}'.format(res.json()["transaction_id"])
-    except requests.exceptions.RequestException as e:
-        pass
-
-    stage = json.loads(pathStr)[0]
-    path = stage['path']
-    print path
-    find_dist_bearing_to_next_node(path, graph, buildingName, levelNum, northAt)
-
-    while True:
-        initial_x = int(raw_input('current x: '))
-        initial_y = int(raw_input('current y: '))
-        heading = int(raw_input('current heading: '))
-        checkpointList = convert_path_to_checkpoints(path, graph, buildingName, levelNum)
-        nearestNextNode = find_nearest_next_node(checkpointList, initial_x, initial_y)
-        if nearestNextNode is None:
-            print 'Already at destination'
-        else:
-            heading_wrt_vertical = int(northAt) + heading
-            if heading_wrt_vertical >= 360:
-                heading_wrt_vertical -= 360
-            directions = orientate_user(initial_x, initial_y, nearestNextNode.xCoord, nearestNextNode.yCoord, heading_wrt_vertical)
-            print 'Turning angle: {} degrees, Distance to node {}: {} cm'.format(
-                directions['turning_angle'], nearestNextNode.localNodeId, directions['distance_to_node'])
 
 
 if __name__ == "__main__":
