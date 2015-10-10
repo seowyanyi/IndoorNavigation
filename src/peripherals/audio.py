@@ -88,43 +88,45 @@ def start_audio_processing(audioQueue):
         data = audioQueue.get(True)
         if data['type'] == Notif.ASK_FOR_STARTING_BUILDING:
             engine.say(ASK_FOR_STARTING_BUILDING)
-            engine.runAndWait()
-        
+#            engine.runAndWait()
+
         elif data['type'] == Notif.ASK_FOR_STARTING_LEVEL:
             engine.say(ASK_FOR_STARTING_LEVEL)
-            engine.runAndWait()
-        
+#            engine.runAndWait()
+
         elif data['type'] == Direct.TURN_X_DEGREES_CCW:
             degrees = data['data']
             turning_direction = TURN_X_DEGREES_CCW.format(degrees)
             engine.say(turning_direction)
-            engine.runAndWait()
-        
+#            engine.runAndWait()
+
         elif data['type'] == Direct.TURN_X_DEGREES_CW:
             degrees = data['data']
             turning_direction = TURN_X_DEGREES_CW.format(degrees)
             engine.say(turning_direction)
-            engine.runAndWait()
-        
+#            engine.runAndWait()
+
         elif data['type'] == Notif.DESTINATION_REACHED:
             engine.say(DESTINATION_REACHED)
-            engine.runAndWait()
-        
+#            engine.runAndWait()
+
         elif data['type'] == Notif.CHECKPOINT_REACHED:
             engine.say(CHECKPOINT_REACHED)
-            engine.runAndWait()
-        
+#            engine.runAndWait()
+
         elif data['type'] == Notif.NUM_STEPS_LEFT:
             steps = data['data']
             steps_left = NUM_STEPS_LEFT.format(steps)
             engine.say(steps_left)
-            engine.runAndWait()
-        
+#            engine.runAndWait()
+
         elif data['type'] == Notif.METERS_TO_NEXT:
             dist_in_meters = data['data']
             distance_left = METERS_TO_NEXT.format(dist_in_meters)
             engine.say(distance_left)
-            engine.runAndWait()
+
+
+    engine.runAndWait()
 
 
 #def output_Notif(notificationType, input):
