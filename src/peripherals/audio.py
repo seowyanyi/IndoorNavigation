@@ -50,7 +50,7 @@ def start_audio_processing(audioQueue):
     engine = init_player();
     while True:
         data = audioQueue.get(True)
-        engine.say(ASK_FOR_STARTING_BUILDING)
+        engine.say(data)
         engine.runAndWait()
 
 def init_test_queue(queue):
