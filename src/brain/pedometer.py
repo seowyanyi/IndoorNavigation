@@ -15,6 +15,7 @@ test_queue = Queue.Queue()
 
 WINDOW_SIZE = 5
 AT_REST_LIMIT = 1
+AT_REST_LIMIT_LONG = 5
 SWING_LIMIT = 2
 WINDOW_SIZE_BEARING = 5
 SECS_BETW_BEARING_READINGS = 1
@@ -24,9 +25,8 @@ TURNING_THRESHOLD = 10
 
 import threading
 
-
 class Step:
-    FORWARD, TURN = range(2)
+    FORWARD, TURN, AT_REST = range(2)
 
 class PedometerThread(threading.Thread):
     def __init__(self, threadName, imuQueue, pedometerQueue):
@@ -43,7 +43,7 @@ class PedometerThread(threading.Thread):
 def init_test_queue():
     with open('acc_x.txt') as f:
         for line in f:
-            test_queue.put(qm.IMUData(int(line), 0, 0))
+            test_queue.put(qm.IMUData(int(line), 0, 0, 0))
 
 def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug):
     steps = 0
@@ -86,7 +86,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             if abs(current_bearing - previous_bearing) > TURNING_THRESHOLD:
                 previous_bearing = current_bearing
                 pedometerQueue.put({'type': Step.TURN, 'actual_bearing': current_bearing})
-                print 'USER IS MAKING A TURN'
                 continue
 
         # detect the movement type
@@ -110,12 +109,14 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             previouslyAtRest = True
             at_rest_count = 0
 
+        # User is at rest
+        if at_rest_count > AT_REST_LIMIT_LONG:
+            pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': np.mean(recent_bearings)})
+
+        # User took a step forward
         if previouslyAtRest and swing_count > swingLimit:
             steps += 1
             pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': np.mean(recent_bearings)})
-            print 'NUMBER OF STEPS: {}'.format(steps)
-            print 'CURRENT HEADING: {} degrees\n'.format(np.mean(recent_bearings))
-
             swing_count = 0
             previouslyAtRest = False
             at_rest_count = 0
