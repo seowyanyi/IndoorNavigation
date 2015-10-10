@@ -87,6 +87,7 @@ def is_confirm(keypadInput):
     return int(keypadInput) == int(KEYPAD_CONFIRM)
 
 def get_input_and_request_confirmation(audioQueue):
+    userInput = keypad.get_user_input()
     audioQueue.put(CONFIRM_INPUT.format(userInput))
     return userInput
 
