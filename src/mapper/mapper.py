@@ -15,13 +15,13 @@ DESTINATION_NODE = 'destination_node'
 KEYPAD_CONFIRM = 1
 CONTINUE = '-1'
 
-ASK_FOR_STARTING_BUILDING = 'Please input the starting building'
-ASK_FOR_STARTING_LEVEL = 'Please input the starting level'
-ASK_FOR_STARTING_NODE = 'Please input the starting node'
-ASK_FOR_DESTINATION_BUILDING = 'Please input the destination building'
-ASK_FOR_DESTINATION_LEVEL = 'Please input the destination level'
-ASK_FOR_DESTINATION_NODE = 'Please input the destination node'
-CONFIRM_INPUT = 'Your input is {}. Please confirm your input by pressing 1, to repeat press 2'
+ASK_FOR_STARTING_BUILDING = 'Hi Ken. Input the starting building'
+ASK_FOR_STARTING_LEVEL = 'Input the starting level'
+ASK_FOR_STARTING_NODE = 'Input the starting node'
+ASK_FOR_DESTINATION_BUILDING = 'Input the destination building'
+ASK_FOR_DESTINATION_LEVEL = 'Input the destination level'
+ASK_FOR_DESTINATION_NODE = 'Input the destination node'
+CONFIRM_INPUT = 'Your input is {}. Press 1 to confirm'
 
 def init_mapper(audioQueue):
     locations = get_start_and_end_locations(audioQueue)
