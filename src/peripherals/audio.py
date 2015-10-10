@@ -3,19 +3,18 @@ import pygame
 #----------------------------------------------------------------------------------------------------------
 # The audio files should be converted to and used as .ogg files for maximum quality and reliability.
 #----------------------------------------------------------------------------------------------------------
-#ASK_FOR_STARTING_BUILDING = file
-#ASK_FOR_STARTING_LEVEL = file
-#ASK_FOR_STARTING_NODE = file
-#ASK_FOR_DESTINATION_BUILDING = file
-#ASK_FOR_DESTINATION_LEVEL = file
-#ASK_FOR_DESTINATION_NODE = file
-#CONFIRM_INPUT = file
-#TURN_RIGHT = file
-#TURN_LEFT = file
-#WALK_STRAIGHT = file
-#OBSTACLE_STOP = file
-file_confirm = "/Users/malavikamenon/IndoorNavigation/src/peripherals/myFile2.ogg"
-file = "/Users/malavikamenon/IndoorNavigation/src/peripherals/myFile.ogg"
+ASK_FOR_STARTING_BUILDING = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/ASK_FOR_STARTING_BUILDING.ogg"
+ASK_FOR_STARTING_LEVEL = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/ASK_FOR_STARTING_LEVEL.ogg"
+ASK_FOR_STARTING_NODE = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/ASK_FOR_STARTING_NODE.ogg"
+ASK_FOR_DESTINATION_BUILDING = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/ASK_FOR_DEST_BUILDING.ogg"
+ASK_FOR_DESTINATION_LEVEL = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/ASK_FOR_DEST_LEVEL.ogg"
+ASK_FOR_DESTINATION_NODE = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/ASK_FOR_DEST_NODE.ogg"
+CONFIRM_INPUT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/CONFIRM_INPUT.ogg"
+TURN_RIGHT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/TURN_RIGHT.ogg"
+TURN_LEFT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/URN_LEFT.ogg"
+WALK_STRAIGHT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/WALK_STRAIGHT.ogg"
+OBSTACLE_STOP = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/STOP_OBSTACLE.ogg"
+
 
 import threading
 import Queue
@@ -86,14 +85,17 @@ class Direction:
         self.OBSTACLE_STOP = OBSTACLE_STOP
 
 def Initialize_Notif():
-    notification = Notification(file, file, file, file, file, file, file_confirm)
+    notification = Notification(ASK_FOR_STARTING_BUILDING, ASK_FOR_STARTING_LEVEL, ASK_FOR_STARTING_NODE, ASK_FOR_DESTINATION_BUILDING, ASK_FOR_DESTINATION_LEVEL, ASK_FOR_DESTINATION_NODE, CONFIRM_INPUT)
     return notification
 
 def Initialize_Direction():
-    direction = Direction(file, file, file, file)
+    direction = Direction(TURN_RIGHT, TURN_LEFT, WALK_STRAIGHT, OBSTACLE_STOP)
     return direction
 
 def output_Notif(notificationType, input):
+    play_audio_Command(notificationType)
+
+def play_audio_Command(notificationType):
     pygame.mixer.init()
     pygame.mixer.music.load(notificationType)
     pygame.mixer.music.play()
