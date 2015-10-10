@@ -2,22 +2,9 @@ import pyttsx
 import threading
 import Queue
 
-ASK_FOR_STARTING_BUILDING = 'Please input the starting building'
-ASK_FOR_STARTING_LEVEL = 'Please input the starting level'
-ASK_FOR_STARTING_NODE = 'Please input the starting node'
-ASK_FOR_DESTINATION_BUILDING = 'Please input the destination building'
-ASK_FOR_DESTINATION_LEVEL = 'Please input the destination level'
-ASK_FOR_DESTINATION_NODE = 'Please input the destination node'
-CONFIRM_INPUT = 'Your input is {}. Please confirm your input by pressing 1, to repeat press 2'
-TURN_X_DEGREES_CW = 'Turn RIGHT by {} degrees'
-TURN_X_DEGREES_CCW = 'Turn LEFT by {} degrees'
+
 WALK_STRAIGHT = 'Walk STRAIGHT'
 OBSTACLE_STOP = 'STOP. Obstacle ahead'
-CHECKPOINT_REACHED = 'Checkpoint reached'
-DESTINATION_REACHED = 'Destination reached'
-METERS_TO_NEXT = 'Distance to the next checkpoint is {} meters'
-NUM_STEPS_LEFT = '{} steps to the next checkpoint'
-
 
 # Initialise the pyttsx which is the library used for text to speech conversion
 def init_player():
@@ -104,9 +91,7 @@ def start_audio_processing(audioQueue):
             engine.runAndWait()
 
         elif data['type'] == Notif.CONFIRM_INPUT:
-            input = data['data']
-            input_confirm = CONFIRM_INPUT.format(dist_in_meters)
-            engine.say(input_confirm)
+            engine.say(CONFIRM_INPUT)
             engine.runAndWait()
 
 def init_test_queue(queue):

@@ -1,4 +1,4 @@
-import planner as planner
+opimport planner as planner
 import sys
 sys.path.insert(0, '/Users/malavikamenon/IndoorNavigation/src/')
 from peripherals import audio
@@ -13,6 +13,14 @@ DESTINATION_LEVEL = 'destination_level'
 DESTINATION_NODE = 'destination_node'
 KEYPAD_CONFIRM = 1
 CONTINUE = '-1'
+
+ASK_FOR_STARTING_BUILDING = 'Please input the starting building'
+ASK_FOR_STARTING_LEVEL = 'Please input the starting level'
+ASK_FOR_STARTING_NODE = 'Please input the starting node'
+ASK_FOR_DESTINATION_BUILDING = 'Please input the destination building'
+ASK_FOR_DESTINATION_LEVEL = 'Please input the destination level'
+ASK_FOR_DESTINATION_NODE = 'Please input the destination node'
+CONFIRM_INPUT = 'Your input is {}. Please confirm your input by pressing 1, to repeat press 2'
 
 def init_mapper(audioQueue):
     locations = get_start_and_end_locations(audioQueue)
@@ -47,32 +55,32 @@ def get_start_and_end_locations(audioQueue):
         DESTINATION_BUILDING: destBuilding , DESTINATION_LEVEL: destLevel, DESTINATION_NODE: destNode}
 
 def get_destination_building(audioQueue):
-    audioQueue.put(notify.ASK_FOR_DESTINATION_BUILDING)
+    audioQueue.put(ASK_FOR_DESTINATION_BUILDING)
     print "ASK_FOR_DESTINATION_BUILDING"
     return get_input_and_request_confirmation(audioQueue)
 
 def get_destination_level(audioQueue):
-    audioQueue.put(notify.ASK_FOR_DESTINATION_LEVEL)
+    audioQueue.put(ASK_FOR_DESTINATION_LEVEL)
     print "ASK_FOR_DESTINATION_LEVEL"
     return get_input_and_request_confirmation(audioQueue)
 
 def get_destination_nodeID(audioQueue):
-    audioQueue.put(notify.ASK_FOR_DESTINATION_NODE)
+    audioQueue.put(ASK_FOR_DESTINATION_NODE)
     print "ASK_FOR_DESTINATION_NODE"
     return get_input_and_request_confirmation(audioQueue)
 
 def get_starting_building(audioQueue):
-    audioQueue.put(notify.ASK_FOR_STARTING_BUILDING)
+    audioQueue.put(ASK_FOR_STARTING_BUILDING)
     print "ASK_FOR_STARTING_BUILDING"
     return get_input_and_request_confirmation(audioQueue)
 
 def get_starting_level(audioQueue):
-    audioQueue.put(notify.ASK_FOR_STARTING_LEVEL)
+    audioQueue.put(ASK_FOR_STARTING_LEVEL)
     print "ASK_FOR_STARTING_LEVEL"
     return get_input_and_request_confirmation(audioQueue)
 
 def get_starting_nodeID(audioQueue):
-    audioQueue.put(notify.ASK_FOR_STARTING_NODE)
+    audioQueue.put(ASK_FOR_STARTING_NODE)
     print "ASK_FOR_STARTING_NODE"
     return get_input_and_request_confirmation(audioQueue)
 
@@ -80,7 +88,7 @@ def is_confirm(keypadInput):
     return int(keypadInput) == int(KEYPAD_CONFIRM)
 
 def get_input_and_request_confirmation(audioQueue):
-    audioQueue.put(notify.CONFIRM_INPUT.format(userInput))
+    audioQueue.put(CONFIRM_INPUT.format(userInput))
     return userInput
 
 
