@@ -15,6 +15,8 @@ DESTINATION_NOT_FOUND = 'No links lead to destination'
 
 # -------------------------------------------------------------------------------------------------------------------
 
+mapsDownloaded = []
+
 class DestinationNotFound(Exception):
     def __init__(self, value):
         self.value = value
@@ -181,8 +183,9 @@ def explore_and_build(nextBuilding, nextLevel, destBuilding, destLevel, graph, u
         currMapCheckpoints = get_checkpoints(currMap)
         update_graph(currMapCheckpoints, graph)
         explored.append(currMap)
-        # print '------------------downloaded and updated: {}-{}'.format(currMap.buildingName,
-        #                                             currMap.levelNum)
+        mapsDownloaded.append(currMap)
+        print '------------------downloaded and updated: {}-{}'.format(currMap.buildingName,
+                                                    currMap.levelNum)
     except ValueError:
         if nextBuilding == destBuilding and nextLevel == destLevel:
             raise DestinationNotFound(DESTINATION_MAP_MISSING)
@@ -457,18 +460,18 @@ def orientate_user(srcX, srcY, destX, destY, currBearing):
 def find_dist_bearing_to_next_node(path, graph, buildingName, levelNum, northAt):
     array=[]
     currentNodeIndex=0
-    list = convert_path_to_checkpoints(path, graph, buildingName, levelNum)
+    checkpointList = convert_path_to_checkpoints(path, graph, buildingName, levelNum)
 
     while True:
-        if currentNodeIndex == len(list)-1:
+        if currentNodeIndex == len(checkpointList)-1:
             break
-        currentNode = list[currentNodeIndex]
+        currentNode = checkpointList[currentNodeIndex]
         coord_X = currentNode.xCoord
         coord_Y = currentNode.yCoord
-        nextNode = find_nearest_next_node(list, coord_X, coord_Y)
+        nextNode = find_nearest_next_node(checkpointList, coord_X, coord_Y)
         dist_and_bearing = orientate_user_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, northAt)
         array.append(dist_and_bearing)
-        currentNodeIndex = currentNodeIndex+1
+        currentNodeIndex += 1
     print array
     return array
 
@@ -478,8 +481,9 @@ def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, d
     graph = build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel)
     path = find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNodeId,
                                           destBuilding, destLevel, destNodeId)
-    return convert_to_API(path)
-
+    currMap = mapsDownloaded[0] # todo: factor in different maps
+    return find_dist_bearing_to_next_node(path, graph, currMap.buildingName,
+                                          currMap.levelNum, currMap.initialBearing)
 
 def begin_test():
     testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
