@@ -7,29 +7,20 @@ Keeps track, and saves to disk, the current location in the following format:
  - current bearing
 
  Notifies the user (through audioQueue) when he is approaching the next checkpoint.
-
 """
 import threading
 import pedometer
-import logging
-from src.peripherals import audio
 
-logger = logging.getLogger('routeManager')
-logger.setLevel(logging.INFO)
-# create file handler
-fh = logging.FileHandler('navigation.log')
-fh.setLevel(logging.INFO)
-# create console handler
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-# create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
-ch.setFormatter(formatter)
-# add the handlers to the logger
-logger.addHandler(fh)
-logger.addHandler(ch)
+# Audio commands
+TURN_X_DEG_CW = 'Turn {} degrees clockwise'
+TURN_X_DEG_ACW = 'Turn {} degrees anti clockwise'
+METERS_LEFT = '{} meters to next checkpoint'
+DESTINATION_REACHED = 'Destination reached'
+CHECKPOINT_REACHED = 'Checkpoint reached'
+DISTANCE_LEFT_METERS = '{} meters left'
+DISTANCE_LEFT_STEPS = '{} steps left'
 
+# Constants
 CM_PER_STEP = 45
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 4 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 3
@@ -40,21 +31,20 @@ def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, th
         guide_user(data['actual_bearing'], target_bearing, audioQueue)
 
 
-
 def guide_user(actual_bearing, target_bearing, audioQueue):
     difference = target_bearing - actual_bearing
     # check how much to turn, and whether CW or CCW
+    print 'guiding user. target: {} deg, actual: {} deg'.format(target_bearing, actual_bearing)
     if 0 < difference <= 180:
-        audioQueue.put({'type': audio.AudioCommands.TURN_X_DEGREES_CW, 'data': difference})
+        audioQueue.put(TURN_X_DEG_CW.format(difference))
     elif difference > 180:
         difference = 360 - difference
-        audioQueue.put({'type': audio.AudioCommands.TURN_X_DEGREES_CCW, 'data': difference})
+        audioQueue.put(TURN_X_DEG_ACW.format(difference))
     elif -180 <= difference < 0 :
-        audioQueue.put({'type': audio.AudioCommands.TURN_X_DEGREES_CCW, 'data': abs(difference)})
+        audioQueue.put(TURN_X_DEG_ACW.format(abs(difference)))
     else:
         difference += 360
-        audioQueue.put({'type': audio.AudioCommands.TURN_X_DEGREES_CW, 'data': difference})
-
+        audioQueue.put(TURN_X_DEG_CW.format(difference))
 
 
 class RouteManagerThread(threading.Thread):
@@ -66,9 +56,9 @@ class RouteManagerThread(threading.Thread):
         self.precomputedCheckpointData = precomputedCheckpointData
 
     def run(self):
-        logger.info( 'Starting {} thread'.format(self.threadName))
+        print  'Starting {} thread'.format(self.threadName)
         start_managing_routes(self.pedometerQueue, self.audioQueue, self.precomputedCheckpointData)
-        logger.info('Exited {} thread'.format(self.threadName))
+        print 'Exited {} thread'.format(self.threadName)
 
 def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData):
     curr_index = 0 # first checkpoint has 0 index
@@ -85,14 +75,14 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
 
             if curr_index == len(precomputedCheckpointData) - 1:
                 #reached destination
-                audioQueue.put({'type': audio.AudioCommands.DESTINATION_REACHED})
+                audioQueue.put(DESTINATION_REACHED)
                 break
             else:
                 distance_to_next = precomputedCheckpointData[curr_index]['distance_to_next']
                 bearing_to_next = precomputedCheckpointData[curr_index]['bearing_to_next']
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
-                audioQueue.put({'type': audio.AudioCommands.METERS_TO_NEXT, 'data': int(distance_to_next/100)})
-                logger.info('Distance to next: {} cm Bearing to next: {} deg'.format(distance_to_next, bearing_to_next))
+                audioQueue.put(METERS_LEFT.format(distance_to_next/100))
+                print 'Distance to next: {} cm Bearing to next: {} deg'.format(distance_to_next, bearing_to_next)
 
         else:
             data = pedometerQueue.get(True)
@@ -107,8 +97,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
 
             if distance_to_next <= 10 * CM_PER_STEP:
                 # start counting down 10 steps before reaching next checkpoint
-                audioQueue.put({'type': audio.AudioCommands.NUM_STEPS_LEFT,
-                                     'data': int(distance_to_next / CM_PER_STEP)})
+                audioQueue.put(DISTANCE_LEFT_STEPS.format(int(distance_to_next / CM_PER_STEP)))
+
             if distance_to_next <= 0:
                 reached_checkpoint = True
-                audioQueue.put({'type': audio.AudioCommands.CHECKPOINT_REACHED})
+                audioQueue.put(CHECKPOINT_REACHED)
