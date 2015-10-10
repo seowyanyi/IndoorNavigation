@@ -9,6 +9,7 @@ import src.mapper.mapper as mapper
 import pedometer
 
 def start():
+    
     leftSonarQueue = queueManager.LEFT_SONAR_QUEUE
     rightSonarQueue = queueManager.RIGHT_SONAR_QUEUE
     middleSonarQueue = queueManager.MIDDLE_SONAR_QUEUE
@@ -16,22 +17,23 @@ def start():
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
 
-    precomputedData = mapper.init_mapper()
-
-
     # Thread 1
+    audio.AudioDispatcherThread(
+        threadName='audio Dispatcher', audioQueue=audioQueue).start()
+
+
+    precomputedData = mapper.init_mapper(audioQueue)
+
+    # Thread 2
     serialmod.SensorManagerThread(
         threadName='sensor Manager', imuQueue=imuQueue,
         middleSonarQueue=middleSonarQueue, leftSonarQueue=leftSonarQueue,
         rightSonarQueue=rightSonarQueue).start()
 
-    # Thread 2
+    # Thread 3
     pedometer.PedometerThread(
         threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue).start()
 
-    # Thread 3
-    audio.AudioDispatcherThread(
-        threadName='audio Dispatcher', audioQueue=audioQueue).start()
 
     # Thread 4
     routeManager.RouteManagerThread(

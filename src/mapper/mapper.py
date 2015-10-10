@@ -4,7 +4,6 @@ sys.path.insert(0, '/Users/malavikamenon/IndoorNavigation/src/')
 from peripherals import audio
 from peripherals import keypad
 
-notify = audio.Initialize_Notif()
 
 START_BUILDING = 'start_building'
 START_LEVEL = 'start_level'
@@ -15,81 +14,73 @@ DESTINATION_NODE = 'destination_node'
 KEYPAD_CONFIRM = 1
 CONTINUE = '-1'
 
-def init_mapper():
-    locations = get_start_and_end_locations()
-    print locations
+def init_mapper(audioQueue):
+    locations = get_start_and_end_locations(audioQueue)
     return planner.get_shortest_path(sourceBuilding=locations[START_BUILDING], sourceLevel=locations[START_LEVEL], sourceNodeId=locations[START_NODE], destBuilding=locations[DESTINATION_BUILDING],destLevel=locations[DESTINATION_LEVEL], destNodeId=locations[DESTINATION_NODE])
 
-def get_start_and_end_locations():
-    startBuilding = get_starting_building()
-    while not is_confirm(keypad.getInput()):
-        print "is not confirmed"
-        startBuilding = get_starting_building()
+def get_start_and_end_locations(audioQueue):
+    startBuilding = get_starting_building(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        startBuilding = get_starting_building(audioQueue)
     
-    startLevel = get_starting_level()
-    while not is_confirm(keypad.getInput()):
-        print "is not confirmed"
-        startLevel = get_starting_level()
+    startLevel = get_starting_level(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        startLevel = get_starting_level(audioQueue)
     
-    startNode = get_starting_nodeID()
-    while not is_confirm(keypad.getInput()):
-        print "is not confirmed"
-        startNode = get_starting_nodeID()
+    startNode = get_starting_nodeID(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        startNode = get_starting_nodeID(audioQueue)
     
-    destBuilding = get_destination_building()
-    while not is_confirm(keypad.getInput()):
-        print "is not confirmed"
-        destBuilding = get_destination_building()
+    destBuilding = get_destination_building(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        destBuilding = get_destination_building(audioQueue)
     
-    destLevel = get_destination_level()
-    while not is_confirm(keypad.getInput()):
-        print "is not confirmed"
-        destLevel = get_destination_level()
+    destLevel = get_destination_level(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        destLevel = get_destination_level(audioQueue)
     
-    destNode = get_destination_nodeID()
-    while not is_confirm(keypad.getInput()):
-        print "is not confirmed"
-        destNode = get_destination_nodeID()
+    destNode = get_destination_nodeID(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        destNode = get_destination_nodeID(audioQueue)
 
     return {START_BUILDING: startBuilding, START_LEVEL: startLevel, START_NODE: startNode,
         DESTINATION_BUILDING: destBuilding , DESTINATION_LEVEL: destLevel, DESTINATION_NODE: destNode}
 
-def get_destination_building():
-    audio.output_Notif(notify.ASK_FOR_DESTINATION_BUILDING, CONTINUE)
+def get_destination_building(audioQueue):
+    audioQueue.put(notify.ASK_FOR_DESTINATION_BUILDING)
     print "ASK_FOR_DESTINATION_BUILDING"
-    return get_input_and_request_confirmation()
+    return get_input_and_request_confirmation(audioQueue)
 
-def get_destination_level():
-    audio.output_Notif(notify.ASK_FOR_DESTINATION_LEVEL, CONTINUE)
+def get_destination_level(audioQueue):
+    audioQueue.put(notify.ASK_FOR_DESTINATION_LEVEL)
     print "ASK_FOR_DESTINATION_LEVEL"
-    return get_input_and_request_confirmation()
+    return get_input_and_request_confirmation(audioQueue)
 
-def get_destination_nodeID():
-    audio.output_Notif(notify.ASK_FOR_DESTINATION_NODE, CONTINUE)
+def get_destination_nodeID(audioQueue):
+    audioQueue.put(notify.ASK_FOR_DESTINATION_NODE)
     print "ASK_FOR_DESTINATION_NODE"
-    return get_input_and_request_confirmation()
+    return get_input_and_request_confirmation(audioQueue)
 
-def get_starting_building():
-    audio.output_Notif(notify.ASK_FOR_STARTING_BUILDING, CONTINUE)
+def get_starting_building(audioQueue):
+    audioQueue.put(notify.ASK_FOR_STARTING_BUILDING)
     print "ASK_FOR_STARTING_BUILDING"
-    return get_input_and_request_confirmation()
+    return get_input_and_request_confirmation(audioQueue)
 
-def get_starting_level():
-    audio.output_Notif(notify.ASK_FOR_STARTING_LEVEL, CONTINUE)
+def get_starting_level(audioQueue):
+    audioQueue.put(notify.ASK_FOR_STARTING_LEVEL)
     print "ASK_FOR_STARTING_LEVEL"
-    return get_input_and_request_confirmation()
+    return get_input_and_request_confirmation(audioQueue)
 
-def get_starting_nodeID():
-    audio.output_Notif(notify.ASK_FOR_STARTING_NODE, CONTINUE)
+def get_starting_nodeID(audioQueue):
+    audioQueue.put(notify.ASK_FOR_STARTING_NODE)
     print "ASK_FOR_STARTING_NODE"
-    return get_input_and_request_confirmation()
+    return get_input_and_request_confirmation(audioQueue)
 
 def is_confirm(keypadInput):
     return int(keypadInput) == int(KEYPAD_CONFIRM)
 
-def get_input_and_request_confirmation():
-    userInput = raw_input('input: ')
-    audio.output_Notif(notify.CONFIRM_INPUT, userInput)
+def get_input_and_request_confirmation(audioQueue):
+    audioQueue.put(notify.CONFIRM_INPUT.format(userInput))
     return userInput
 
 
