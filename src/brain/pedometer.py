@@ -9,19 +9,24 @@ import numpy as np
 import Queue
 import os
 import src.communication.queueManager as qm
+import time
 
 test_queue = Queue.Queue()
 
 WINDOW_SIZE = 5
 AT_REST_LIMIT = 1
 SWING_LIMIT = 2
+WINDOW_SIZE_BEARING = 5
+SECS_BETW_BEARING_READINGS = 1
+TURNING_THRESHOLD = 10
+
 #todo: minus ~5 degrees from bearing due to angle of foot
 
 import threading
 
 
 class Step:
-    FORWARD, TURN, AT_REST = range(5)
+    FORWARD, TURN = range(2)
 
 class PedometerThread(threading.Thread):
     def __init__(self, threadName, imuQueue, pedometerQueue):
@@ -43,6 +48,9 @@ def init_test_queue():
 def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug):
     steps = 0
     data = []
+    previous_bearing = None
+    time_bearing_taken = None
+    recent_bearings = []
 
     swing_count = 0
     at_rest_count = 0
@@ -52,18 +60,36 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         if debug and dataQueue.qsize() <= 1:
             break
 
+        # Get data from imu and populate the relevant lists
         imuData = dataQueue.get(True)
         x = imuData.xAxis
         heading = imuData.heading
 
+        if len(recent_bearings) > WINDOW_SIZE_BEARING:
+            recent_bearings.pop(0)
+        recent_bearings.append(heading)
+
+        if previous_bearing is None:
+            previous_bearing = np.mean(recent_bearings)
+            time_bearing_taken = time.time()
+
         if len(data) > windowSize:
             data.pop(0)
-
         data.append(x)
-
         if len(data) < windowSize:
             continue
 
+        # check whether we are making a turn
+        if time.time() - time_bearing_taken >= SECS_BETW_BEARING_READINGS:
+            time_bearing_taken = time.time()
+            current_bearing = np.mean(recent_bearings)
+            if abs(current_bearing - previous_bearing) > TURNING_THRESHOLD:
+                previous_bearing = current_bearing
+                pedometerQueue.put({'type': Step.TURN, 'actual_bearing': current_bearing})
+                print 'USER IS MAKING A TURN'
+                continue
+
+        # detect the movement type
         if is_downward_swing(data):
             swing_count += 1
         else:
@@ -86,9 +112,9 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         if previouslyAtRest and swing_count > swingLimit:
             steps += 1
-            pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': heading})
+            pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': np.mean(recent_bearings)})
             print 'NUMBER OF STEPS: {}'.format(steps)
-            print 'CURRENT HEADING: {} degrees\n'.format(heading)
+            print 'CURRENT HEADING: {} degrees\n'.format(np.mean(recent_bearings))
 
             swing_count = 0
             previouslyAtRest = False
