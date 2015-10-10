@@ -26,7 +26,7 @@ TURNING_THRESHOLD = 10
 import threading
 
 class Step:
-    FORWARD, TURN, AT_REST = range(2)
+    FORWARD, TURN, AT_REST = range(3)
 
 class PedometerThread(threading.Thread):
     def __init__(self, threadName, imuQueue, pedometerQueue):
