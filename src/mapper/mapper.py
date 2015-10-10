@@ -25,6 +25,7 @@ CONFIRM_INPUT = 'Your input is {}. Press 1 to confirm'
 
 def init_mapper(audioQueue):
     locations = get_start_and_end_locations(audioQueue)
+    print locations
     return planner.get_shortest_path(sourceBuilding=locations[START_BUILDING], sourceLevel=locations[START_LEVEL], sourceNodeId=locations[START_NODE], destBuilding=locations[DESTINATION_BUILDING],destLevel=locations[DESTINATION_LEVEL], destNodeId=locations[DESTINATION_NODE])
 
 def get_start_and_end_locations(audioQueue):
@@ -49,16 +50,16 @@ def get_start_and_end_locations(audioQueue):
         startNode = get_starting_nodeID(audioQueue)
     
     destBuilding = get_destination_building(audioQueue)
-    if startBuilding == 1:
-        startBuilding = "COM1"
-    elif startBuilding == 2:
-        startBuilding = "COM2"
+    if destBuilding == 1:
+        destBuilding = "COM1"
+    elif destBuilding == 2:
+        destBuilding = "COM2"
     while not is_confirm(keypad.get_user_input()):
         destBuilding = get_destination_building(audioQueue)
-        if startBuilding == 1:
-            startBuilding = "COM1"
-        elif startBuilding == 2:
-            startBuilding = "COM2"
+        if destBuilding == 1:
+            destBuilding = "COM1"
+        elif destBuilding == 2:
+            destBuilding = "COM2"
     
     destLevel = get_destination_level(audioQueue)
     while not is_confirm(keypad.get_user_input()):
