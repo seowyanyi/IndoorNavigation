@@ -26,7 +26,7 @@ import threading
 
 
 class Step:
-    FORWARD, TURN, AT_REST = range(5)
+    FORWARD, TURN = range(2)
 
 class PedometerThread(threading.Thread):
     def __init__(self, threadName, imuQueue, pedometerQueue):
@@ -53,7 +53,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
     recent_bearings = []
 
     swing_count = 0
-    momentarily_at_rest_count = 0
+    at_rest_count = 0
     previouslyAtRest = True
 
     while True:
@@ -95,10 +95,10 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         else:
             swing_count = 0
 
-        if is_momentarily_at_rest(data):
-            momentarily_at_rest_count += 1
+        if is_at_rest(data):
+            at_rest_count += 1
         else:
-            momentarily_at_rest_count = 0
+            at_rest_count = 0
 
         if debug:
             line = get_equation_of_line(data)
@@ -106,9 +106,9 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             write_to_gradient_file(gradient)
 
         # count as at rest between steps
-        if momentarily_at_rest_count > atRestLimit:
+        if at_rest_count > atRestLimit:
             previouslyAtRest = True
-            momentarily_at_rest_count = 0
+            at_rest_count = 0
 
         if previouslyAtRest and swing_count > swingLimit:
             steps += 1
@@ -118,7 +118,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
             swing_count = 0
             previouslyAtRest = False
-            momentarily_at_rest_count = 0
+            at_rest_count = 0
             if debug:
                 write_to_step_file('1')
         elif debug:
@@ -143,7 +143,7 @@ def is_downward_swing(data):
     gradient = line[0]
     return gradient < -0.30
 
-def is_momentarily_at_rest(data):
+def is_at_rest(data):
     line = get_equation_of_line(data)
     gradient = abs(line[0])
     return gradient <= 0.15
