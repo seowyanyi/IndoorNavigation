@@ -23,6 +23,10 @@ NUM_STEPS_LEFT = '{} steps to the next checkpoint'
 import threading
 import Queue
 
+engine = pyttsx.init()
+engine.setProperty('rate', 140)
+engine.setProperty('volume', 1.0)
+
 class Notification:
     def __init__(self, ASK_FOR_STARTING_BUILDING, ASK_FOR_STARTING_LEVEL, ASK_FOR_STARTING_NODE, ASK_FOR_DESTINATION_BUILDING, ASK_FOR_DESTINATION_LEVEL, ASK_FOR_DESTINATION_NODE, CHECKPOINT_REACHED, DESTINATION_REACHED, METERS_TO_NEXT, NUM_STEPS_LEFT, CONFIRM_INPUT):
         self.ASK_FOR_STARTING_BUILDING = ASK_FOR_STARTING_BUILDING
@@ -52,11 +56,6 @@ def Initialize_Notif():
 def Initialize_Direction():
     direction = Direction(TURN_X_DEGREES_CW, TURN_X_DEGREES_CCW, WALK_STRAIGHT, OBSTACLE_STOP)
     return direction
-
-def init_player():
-    engine = pyttsx.init()
-    engine.setProperty('rate', 140)
-    engine.setProperty('volume', 1.0)
     
 Notif = Initialize_Notif()
 Direct = Initialize_Direction()
@@ -83,8 +82,8 @@ class AudioDispatcherThread(threading.Thread):
         print 'Exited {} thread'.format(self.threadName)
 
 def start_audio_processing(audioQueue):
-    init_player()
-    
+#    init_player()
+
     while True:
         data = audioQueue.get(True)
         if data['type'] == Notif.ASK_FOR_STARTING_BUILDING:
