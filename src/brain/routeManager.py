@@ -10,6 +10,7 @@ Keeps track, and saves to disk, the current location in the following format:
 """
 import threading
 import pedometer
+import time
 
 # Audio commands
 TURN_X_DEG_CW = 'Turn {} degrees clockwise'
@@ -30,7 +31,7 @@ def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, th
     data = pedometerQueue.get(True)
     while abs(target_bearing - data['actual_bearing']) > threshold:
         guide_user(data['actual_bearing'], target_bearing, audioQueue)
-
+        time.sleep(15)
 
 def guide_user(actual_bearing, target_bearing, audioQueue):
     difference = target_bearing - actual_bearing
@@ -82,7 +83,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 distance_to_next = precomputedCheckpointData[curr_index]['distance_to_next']
                 bearing_to_next = precomputedCheckpointData[curr_index]['bearing_to_next']
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
-                audioQueue.put(METERS_LEFT.format(distance_to_next/100))
+                audioQueue.put(METERS_LEFT.format(round(distance_to_next/100,1)))
                 print 'Distance to next: {} cm Bearing to next: {} deg'.format(distance_to_next, bearing_to_next)
 
         else:
@@ -102,7 +103,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
 
             if distance_to_next <= 10 * CM_PER_STEP:
                 # start counting down 10 steps before reaching next checkpoint
-                audioQueue.put(DISTANCE_LEFT_STEPS.format(int(distance_to_next / CM_PER_STEP)))
+                audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
 
             if distance_to_next <= 0:
                 reached_checkpoint = True
