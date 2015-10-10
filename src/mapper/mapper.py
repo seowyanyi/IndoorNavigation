@@ -1,9 +1,8 @@
-opimport planner as planner
+import planner as planner
 import sys
-sys.path.insert(0, '/Users/malavikamenon/IndoorNavigation/src/')
-from peripherals import audio
-from peripherals import keypad
-
+# sys.path.insert(0, '/Users/malavikamenon/IndoorNavigation/src/')
+from src.peripherals import audio
+from src.peripherals import keypad
 
 START_BUILDING = 'start_building'
 START_LEVEL = 'start_level'
