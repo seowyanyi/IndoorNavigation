@@ -23,6 +23,7 @@ DISTANCE_LEFT_STEPS = '{} steps left'
 # Constants
 CM_PER_STEP = 45
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 4 # degrees
+ACCEPTABLE_BEARING_ERROR_MOVING = 8 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 3
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
@@ -93,7 +94,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
 
             if steps == NUM_STEPS_BEFORE_CORRECTING:
                 steps = 0
-                guide_user(data['actual_bearing'], bearing_to_next, audioQueue)
+                if abs(bearing_to_next - data['actual_bearing']) > ACCEPTABLE_BEARING_ERROR_MOVING:
+                    guide_user(data['actual_bearing'], bearing_to_next, audioQueue)
 
             if distance_to_next <= 10 * CM_PER_STEP:
                 # start counting down 10 steps before reaching next checkpoint
