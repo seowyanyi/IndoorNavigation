@@ -52,6 +52,11 @@ def Initialize_Notif():
 def Initialize_Direction():
     direction = Direction(TURN_X_DEGREES_CW, TURN_X_DEGREES_CCW, WALK_STRAIGHT, OBSTACLE_STOP)
     return direction
+
+def init_player():
+    engine = pyttsx.init()
+    engine.setProperty('rate', 140)
+    engine.setProperty('volume', 1.0)
     
 Notif = Initialize_Notif()
 Direct = Initialize_Direction()
@@ -126,10 +131,6 @@ def start_audio_processing(audioQueue):
 #def output_Notif(notificationType, input):
 #    play_audio_Command(notificationType)
 
-def init_player():
-    engine = pyttsx.init()
-    engine.setProperty('rate', 140)
-    engine.setProperty('volume', 1.0)
 
 def init_test_queue(queue):
     data1 = {'type': Notif.ASK_FOR_STARTING_BUILDING}
