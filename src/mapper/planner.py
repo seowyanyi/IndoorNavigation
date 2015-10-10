@@ -429,7 +429,7 @@ def orientate_user_to_node(srcX, srcY, destX, destY, northAt):
     bearing = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
     bearingToNode = (360 - int(northAt)) + int(bearing)
     
-    return {'bearing_from_north': bearingToNode, 'distance_to_node': distance}
+    return {'bearing_to_next': bearingToNode, 'distance_to_next': distance}
 
 def orientate_user(srcX, srcY, destX, destY, currBearing):
     """
