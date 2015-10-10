@@ -15,9 +15,9 @@ def start():
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
-    precomputedData = []
 
-    # mapper.init_mapper()
+    precomputedData = mapper.init_mapper()
+
 
     # Thread 1
     serialmod.SensorManagerThread(
@@ -33,7 +33,8 @@ def start():
     audio.AudioDispatcherThread(
         threadName='audio Dispatcher', audioQueue=audioQueue).start()
 
+    # Thread 4
     routeManager.RouteManagerThread(
         threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
         precomputedCheckpointData=precomputedData
-    )
+    ).start()
