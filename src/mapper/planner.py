@@ -35,7 +35,7 @@ class MapInfoObj:
         self.initialBearing = initialBearing
 
 class Checkpoint:    
-    def __init__(self, buildingName, levelNum, nodeId, xCoord, yCoord, nodeName, linkTo):
+    def __init__(self, buildingName, levelNum, nodeId, xCoord, yCoord, nodeName, linkTo, northAt):
         self.buildingName = buildingName
         self.levelNum = levelNum
         if type(nodeId) is int:
@@ -46,6 +46,7 @@ class Checkpoint:
         self.yCoord = int(yCoord)
         self.nodeName = nodeName
         self.linkTo = linkTo.replace(' ', '').split(',')
+        self.northAt = northAt
 
     def get_global_id(self):
         return "{}-{}-{}".format(self.buildingName, self.levelNum, self.localNodeId)
@@ -139,7 +140,8 @@ def get_checkpoints(mapInfo):
             currNode["x"],
             currNode["y"],
             currNode["nodeName"],
-            currNode["linkTo"])
+            currNode["linkTo"],
+            mapInfo.initialBearing)
 
         checkpoints_array.append(checkpoint)
     return checkpoints_array
@@ -337,83 +339,6 @@ def convert_to_API(path):
     
     return "[{0}]".format(", ".join(str(i) for i in arrayStages))
 
-def find_nearest_next_node(checkpointList, coord_X, coord_Y):
-    """
-    Finds nearest next node in the path from the current location
-    This only works for a single map
-    e.g. A -> B -> C
-    If user not on the path but nearest to B, nearest next node is B
-    If user is on B, the nearest next node is C
-    If user is on C (destination), return None
-    :param checkpointList: list of checkpoints along the path
-    """
-    currShortestDist = None
-    currNearestNode = None
-    length = len(checkpointList)
-    counter = 0
-    go_next = False
-
-    for node in checkpointList:
-        counter += 1
-        x = node.xCoord
-        y = node.yCoord
-        if x == coord_X and y == coord_Y:
-            if counter == length:
-                # already at destination
-                return None
-            else:
-                go_next = True
-                continue
-
-        distance = calculate_distance(coord_X, coord_Y, x, y)
-        if go_next:
-            return node
-        if currShortestDist is None or distance < currShortestDist:
-            currShortestDist = distance
-            currNearestNode = node
-    return currNearestNode
-
-
-def find_nearest_node_in_graph(graph, coord_X, coord_Y):
-    """
-    Finds nearest node in the graph from the current location
-    This only works for a single map
-    :param graph: the network x graph
-    """
-    currShortestDist = None
-    currNearestNode = None
-    for nxNode,data in graph.nodes_iter(data=True):
-        node = data['checkpoint']
-        x = node.xCoord
-        y = node.yCoord
-        if x == coord_X and y == coord_Y:
-            # same node
-            return {'nearest_node_on_path': node, 'distance_to_node': 0}
-        distance = calculate_distance(coord_X, coord_Y, x, y)
-        if currShortestDist is None or distance < currShortestDist:
-            currShortestDist = distance
-            currNearestNode = node
-    return {'nearest_node_on_path': currNearestNode, 'distance_to_node': currShortestDist}
-
-def convert_path_to_checkpoints(local_path, graph, buildingName, levelNum):
-    """
-    :param path: list of local node ids along the path (int)
-    :param graph: the networkx graph
-    :param buildingName: building the path belongs to
-    :param levelName: level the path belongs to
-    :return: list of Checkpoint objects
-    """
-    listOfCheckpoints = []
-    for point in local_path:
-        for nxNode,data in graph.nodes_iter(data=True):
-            node = data['checkpoint']
-            if node.buildingName != buildingName or node.levelNum != levelNum:
-                continue
-            if int(node.localNodeId) == int(point):
-                listOfCheckpoints.append(node)
-                break
-
-    return listOfCheckpoints
 
 def convert_global_path_to_checkpoints(global_path, graph):
     listOfCheckpoints = []
@@ -433,32 +358,6 @@ def bearing_to_node(srcX, srcY, destX, destY, northAt):
     bearingToNode = (360 - int(northAt)) + int(bearing)
     
     return {'bearing_to_next': bearingToNode, 'distance_to_next': distance}
-
-def orientate_user(srcX, srcY, destX, destY, currBearing):
-    """
-    :param currBearing: user's compass heading w.r.t north of map.
-    :return: {'turning_angle': a, 'distance_to_node': b}
-    if a < 0, turn CCW. If a > 0, turn CW
-    
-    the NorthAt of the map should be taken into consideration given that the
-    current bearing is based on the north of the map and not the true north
-    """
-    # make sure bearing is positive to simplify calculations:
-    if currBearing < 0:
-        currBearing += 360
-    distance = calculate_distance(srcX, srcY, destX, destY)
-    bearingToNode = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
-    if bearingToNode == 0:
-        turningAngle = 0
-    else:
-        turningAngle = bearingToNode - currBearing
-
-    if abs(turningAngle) < 180:
-        return {'turning_angle': turningAngle, 'distance_to_node': distance}
-    if turningAngle < 0:
-        return {'turning_angle': turningAngle+360, 'distance_to_node': distance}
-    # Turning angle > 0, and abs(angle) > 180
-    return {'turning_angle': - (360 - turningAngle), 'distance_to_node': distance}
 
 def find_dist_bearing_to_next_node(path, graph, northAt):
     array=[]
@@ -486,29 +385,132 @@ def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, d
     currMap = mapsDownloaded[0] # todo: factor in different maps
     return find_dist_bearing_to_next_node(path, graph, currMap.initialBearing)
 
-def begin_test():
-    testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
+# def begin_test():
+#     testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
+#
+#
+# def test_path_finding():
+#     buildingName = raw_input('building name: ')
+#     levelNum = raw_input('level num: ')
+#     while True:
+#         startNode = raw_input('start node id: ')
+#         endNode  = raw_input('end node id: ')
+#         pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode),
+#         buildingName, int(levelNum), int(endNode))
+#         print pathStr
+#         pathObj = json.loads(pathStr)
+#         final_path = 'path: {}'.format(pathObj[0]['path'])
+#         print final_path
+#         url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
+#         try:
+#             res = requests.get(url)
+#             print 'visualize: {}'.format(res.json()["transaction_id"])
+#         except requests.exceptions.RequestException as e:
+#             pass
+#
 
+# def orientate_user(srcX, srcY, destX, destY, currBearing):
+#     """
+#     :param currBearing: user's compass heading w.r.t north of map.
+#     :return: {'turning_angle': a, 'distance_to_node': b}
+#     if a < 0, turn CCW. If a > 0, turn CW
+#
+#     the NorthAt of the map should be taken into consideration given that the
+#     current bearing is based on the north of the map and not the true north
+#     """
+#     # make sure bearing is positive to simplify calculations:
+#     if currBearing < 0:
+#         currBearing += 360
+#     distance = calculate_distance(srcX, srcY, destX, destY)
+#     bearingToNode = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
+#     if bearingToNode == 0:
+#         turningAngle = 0
+#     else:
+#         turningAngle = bearingToNode - currBearing
+#
+#     if abs(turningAngle) < 180:
+#         return {'turning_angle': turningAngle, 'distance_to_node': distance}
+#     if turningAngle < 0:
+#         return {'turning_angle': turningAngle+360, 'distance_to_node': distance}
+#     # Turning angle > 0, and abs(angle) > 180
+#     return {'turning_angle': - (360 - turningAngle), 'distance_to_node': distance}
 
-def test_path_finding():
-    buildingName = raw_input('building name: ')
-    levelNum = raw_input('level num: ')
-    while True:
-        startNode = raw_input('start node id: ')
-        endNode  = raw_input('end node id: ')
-        pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode),
-        buildingName, int(levelNum), int(endNode))
-        print pathStr
-        pathObj = json.loads(pathStr)
-        final_path = 'path: {}'.format(pathObj[0]['path'])
-        print final_path
-        url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
-        try:
-            res = requests.get(url)
-            print 'visualize: {}'.format(res.json()["transaction_id"])
-        except requests.exceptions.RequestException as e:
-            pass
+# def convert_path_to_checkpoints(local_path, graph, buildingName, levelNum):
+#     """
+#     :param path: list of local node ids along the path (int)
+#     :param graph: the networkx graph
+#     :param buildingName: building the path belongs to
+#     :param levelName: level the path belongs to
+#     :return: list of Checkpoint objects
+#     """
+#     listOfCheckpoints = []
+#     for point in local_path:
+#         for nxNode,data in graph.nodes_iter(data=True):
+#             node = data['checkpoint']
+#             if node.buildingName != buildingName or node.levelNum != levelNum:
+#                 continue
+#             if int(node.localNodeId) == int(point):
+#                 listOfCheckpoints.append(node)
+#                 break
+#
+#     return listOfCheckpoints
 
+# def find_nearest_node_in_graph(graph, coord_X, coord_Y):
+#     """
+#     Finds nearest node in the graph from the current location
+#     This only works for a single map
+#     :param graph: the network x graph
+#     """
+#     currShortestDist = None
+#     currNearestNode = None
+#     for nxNode,data in graph.nodes_iter(data=True):
+#         node = data['checkpoint']
+#         x = node.xCoord
+#         y = node.yCoord
+#         if x == coord_X and y == coord_Y:
+#             # same node
+#             return {'nearest_node_on_path': node, 'distance_to_node': 0}
+#         distance = calculate_distance(coord_X, coord_Y, x, y)
+#         if currShortestDist is None or distance < currShortestDist:
+#             currShortestDist = distance
+#             currNearestNode = node
+#     return {'nearest_node_on_path': currNearestNode, 'distance_to_node': currShortestDist}
 
-if __name__ == "__main__":
-    begin_test()
+# def find_nearest_next_node(checkpointList, coord_X, coord_Y):
+#     """
+#     Finds nearest next node in the path from the current location
+#     This only works for a single map
+#     e.g. A -> B -> C
+#     If user not on the path but nearest to B, nearest next node is B
+#     If user is on B, the nearest next node is C
+#     If user is on C (destination), return None
+#     :param checkpointList: list of checkpoints along the path
+#     """
+#     currShortestDist = None
+#     currNearestNode = None
+#     length = len(checkpointList)
+#     counter = 0
+#     go_next = False
+#
+#     for node in checkpointList:
+#         counter += 1
+#         x = node.xCoord
+#         y = node.yCoord
+#         if x == coord_X and y == coord_Y:
+#             if counter == length:
+#                 # already at destination
+#                 return None
+#             else:
+#                 go_next = True
+#                 continue
+#
+#         distance = calculate_distance(coord_X, coord_Y, x, y)
+#         if go_next:
+#             return node
+#         if currShortestDist is None or distance < currShortestDist:
+#             currShortestDist = distance
+#             currNearestNode = node
+#     return currNearestNode
+
+# if __name__ == "__main__":
+#     begin_test()
