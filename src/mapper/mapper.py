@@ -2,7 +2,7 @@ import planner as planner
 import sys
 sys.path.insert(0, '/home/pi/IndoorNavigation/src/')
 from peripherals import audio
-from peripherals import KeyPad
+from peripherals import KeyPad.KeyPad
 
 START_BUILDING = 'start_building'
 START_LEVEL = 'start_level'
