@@ -27,27 +27,27 @@ def init_mapper(audioQueue):
 
 def get_start_and_end_locations(audioQueue):
     startBuilding = get_starting_building(audioQueue)
-    while not is_confirm(keypad.get_user_input()):
+    while not is_confirm(KeyPad.get_user_input()):
         startBuilding = get_starting_building(audioQueue)
     
     startLevel = get_starting_level(audioQueue)
-    while not is_confirm(keypad.get_user_input()):
+    while not is_confirm(KeyPad.get_user_input()):
         startLevel = get_starting_level(audioQueue)
     
     startNode = get_starting_nodeID(audioQueue)
-    while not is_confirm(keypad.get_user_input()):
+    while not is_confirm(KeyPad.get_user_input()):
         startNode = get_starting_nodeID(audioQueue)
     
     destBuilding = get_destination_building(audioQueue)
-    while not is_confirm(keypad.get_user_input()):
+    while not is_confirm(KeyPad.get_user_input()):
         destBuilding = get_destination_building(audioQueue)
     
     destLevel = get_destination_level(audioQueue)
-    while not is_confirm(keypad.get_user_input()):
+    while not is_confirm(KeyPad.get_user_input()):
         destLevel = get_destination_level(audioQueue)
     
     destNode = get_destination_nodeID(audioQueue)
-    while not is_confirm(keypad.get_user_input()):
+    while not is_confirm(KeyPad.get_user_input()):
         destNode = get_destination_nodeID(audioQueue)
 
     return {START_BUILDING: startBuilding, START_LEVEL: startLevel, START_NODE: startNode,
@@ -87,7 +87,7 @@ def is_confirm(keypadInput):
     return int(keypadInput) == int(KEYPAD_CONFIRM)
 
 def get_input_and_request_confirmation(audioQueue):
-    userInput = keypad.get_user_input()
+    userInput = KeyPad.get_user_input()
     audioQueue.put(CONFIRM_INPUT.format(userInput))
     return userInput
 
