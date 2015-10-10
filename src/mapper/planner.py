@@ -12,6 +12,7 @@ PathError = 'NO_VALID_PATH_ERROR'
 InvalidReqError = 'INVALID_REQUEST_ERROR'
 DESTINATION_MAP_MISSING = 'Link to destination found, but the map is missing'
 DESTINATION_NOT_FOUND = 'No links lead to destination'
+
 # -------------------------------------------------------------------------------------------------------------------
 
 class DestinationNotFound(Exception):
@@ -369,6 +370,7 @@ def find_nearest_next_node(checkpointList, coord_X, coord_Y):
             currNearestNode = node
     return currNearestNode
 
+
 def find_nearest_node_in_graph(graph, coord_X, coord_Y):
     """
     Finds nearest node in the graph from the current location
@@ -410,7 +412,21 @@ def convert_path_to_checkpoints(path, graph, buildingName, levelNum):
 
     return listOfCheckpoints
 
-
+def orientate_user_to_node(srcX, srcY, destX, destY, northAt):
+    """
+        :param currBearing: user's compass heading w.r.t north of map.
+        :return: {'turning_angle': a, 'distance_to_node': b}
+        if a < 0, turn CCW. If a > 0, turn CW
+        
+        the NorthAt of the map should be taken into consideration given that the
+        current bearing is based on the north of the map and not the true north
+        """
+    # make sure bearing is positive to simplify calculations:
+    distance = calculate_distance(srcX, srcY, destX, destY)
+    bearing = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
+    bearingToNode = (360 - int(northAt)) + int(bearing)
+    
+    return {'bearing_from_north': bearingToNode, 'distance_to_node': distance}
 
 def orientate_user(srcX, srcY, destX, destY, currBearing):
     """
@@ -437,6 +453,25 @@ def orientate_user(srcX, srcY, destX, destY, currBearing):
         return {'turning_angle': turningAngle+360, 'distance_to_node': distance}
     # Turning angle > 0, and abs(angle) > 180
     return {'turning_angle': - (360 - turningAngle), 'distance_to_node': distance}
+
+def find_dist_bearing_to_next_node(path, graph, buildingName, levelNum, northAt):
+    array=[]
+    currentNodeIndex=0
+    list = convert_path_to_checkpoints(path, graph, buildingName, levelNum)
+
+    while True:
+        if currentNodeIndex == len(list)-1:
+            break
+        currentNode = list[currentNodeIndex]
+        coord_X = currentNode.xCoord
+        coord_Y = currentNode.yCoord
+        nextNode = find_nearest_next_node(list, coord_X, coord_Y)
+        dist_and_bearing = orientate_user_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, northAt)
+        array.append(dist_and_bearing)
+        currentNodeIndex = currentNodeIndex+1
+    print array
+    return array
+
 # -------------------------------------------------------------------------------------------------------------------
 
 def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId):
@@ -465,8 +500,10 @@ def test_path_finding():
         endNode  = raw_input('end node id: ')
         pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode),
         buildingName, int(levelNum), int(endNode))
+        print pathStr
         pathObj = json.loads(pathStr)
-        print 'path: {}'.format(pathObj[0]['path'])
+        final_path = 'path: {}'.format(pathObj[0]['path'])
+        print final_path
         url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
         try:
             res = requests.get(url)
@@ -498,6 +535,7 @@ def test_giving_directions():
     stage = json.loads(pathStr)[0]
     path = stage['path']
     print path
+    find_dist_bearing_to_next_node(path, graph, buildingName, levelNum, northAt)
 
     while True:
         initial_x = int(raw_input('current x: '))

@@ -18,7 +18,7 @@ CHECKPOINT_REACHED = "/Users/malavikamenon/IndoorNavigation/src/peripherals/Audi
 DESTINATION_REACHED = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/DEST_REACHED.ogg"
 SLIGHT_LEFT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/SLIGHT_LEFT.ogg"
 SLIGHT_RIGHT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/SLIGHT_RIGHT.ogg"
-METERS_TO_NEXT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/DIST_TO_NEXT_CHECKPOINT.ogg"
+DIST_TO_NEXT_CHECKPOINT = "/Users/malavikamenon/IndoorNavigation/src/peripherals/AudioFiles/DIST_TO_NEXT_CHECKPOINT.ogg"
 
 
 import threading
@@ -48,8 +48,7 @@ def start_audio_processing(audioQueue):
     while True:
         data = audioQueue.get(True)
         if data['type'] == AudioCommands.ASK_FOR_STARTING_BUILDING:
-            # output the relevant audio
-            pass
+            play_audio_Command(ASK_FOR_STARTING_BUILDING)
         elif data['type'] == AudioCommands.ASK_FOR_STARTING_BUILDING:
             # output the relevant audio
             pass
