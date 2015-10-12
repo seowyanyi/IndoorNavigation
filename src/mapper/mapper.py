@@ -2,7 +2,9 @@ import planner as planner
 import sys
 sys.path.insert(0, '/home/pi/IndoorNavigation/src/')
 from peripherals import audio
-from peripherals import keypad
+from peripherals import KeyPad
+
+keypad = KeyPad.keypad()
 
 START_BUILDING = 'start_building'
 START_LEVEL = 'start_level'
@@ -13,22 +15,31 @@ DESTINATION_NODE = 'destination_node'
 KEYPAD_CONFIRM = 1
 CONTINUE = '-1'
 
-ASK_FOR_STARTING_BUILDING = 'Please input the starting building'
-ASK_FOR_STARTING_LEVEL = 'Please input the starting level'
-ASK_FOR_STARTING_NODE = 'Please input the starting node'
-ASK_FOR_DESTINATION_BUILDING = 'Please input the destination building'
-ASK_FOR_DESTINATION_LEVEL = 'Please input the destination level'
-ASK_FOR_DESTINATION_NODE = 'Please input the destination node'
-CONFIRM_INPUT = 'Your input is {}. Please confirm your input by pressing 1, to repeat press 2'
+ASK_FOR_STARTING_BUILDING = 'Hi Ken. Input the starting building'
+ASK_FOR_STARTING_LEVEL = 'Input the starting level'
+ASK_FOR_STARTING_NODE = 'Input the starting node'
+ASK_FOR_DESTINATION_BUILDING = 'Input the destination building'
+ASK_FOR_DESTINATION_LEVEL = 'Input the destination level'
+ASK_FOR_DESTINATION_NODE = 'Input the destination node'
+CONFIRM_INPUT = 'Your input is {}. Press 1 to confirm'
 
 def init_mapper(audioQueue):
     locations = get_start_and_end_locations(audioQueue)
+    print locations
     return planner.get_shortest_path(sourceBuilding=locations[START_BUILDING], sourceLevel=locations[START_LEVEL], sourceNodeId=locations[START_NODE], destBuilding=locations[DESTINATION_BUILDING],destLevel=locations[DESTINATION_LEVEL], destNodeId=locations[DESTINATION_NODE])
 
 def get_start_and_end_locations(audioQueue):
     startBuilding = get_starting_building(audioQueue)
+    if startBuilding == 1:
+        startBuilding = "COM1"
+    elif startBuilding == 2:
+        startBuilding = "COM2"
     while not is_confirm(keypad.get_user_input()):
         startBuilding = get_starting_building(audioQueue)
+        if startBuilding == 1:
+            startBuilding = "COM1"
+        elif startBuilding == 2:
+            startBuilding = "COM2"
     
     startLevel = get_starting_level(audioQueue)
     while not is_confirm(keypad.get_user_input()):
@@ -39,8 +50,16 @@ def get_start_and_end_locations(audioQueue):
         startNode = get_starting_nodeID(audioQueue)
     
     destBuilding = get_destination_building(audioQueue)
+    if destBuilding == 1:
+        destBuilding = "COM1"
+    elif destBuilding == 2:
+        destBuilding = "COM2"
     while not is_confirm(keypad.get_user_input()):
         destBuilding = get_destination_building(audioQueue)
+        if destBuilding == 1:
+            destBuilding = "COM1"
+        elif destBuilding == 2:
+            destBuilding = "COM2"
     
     destLevel = get_destination_level(audioQueue)
     while not is_confirm(keypad.get_user_input()):

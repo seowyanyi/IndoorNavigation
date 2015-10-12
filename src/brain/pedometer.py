@@ -19,14 +19,14 @@ AT_REST_LIMIT_LONG = 5
 SWING_LIMIT = 2
 WINDOW_SIZE_BEARING = 5
 SECS_BETW_BEARING_READINGS = 1
-TURNING_THRESHOLD = 10
+TURNING_THRESHOLD = 20
 
 #todo: minus ~5 degrees from bearing due to angle of foot
 
 import threading
 
 class Step:
-    FORWARD, TURN, AT_REST = range(2)
+    FORWARD, TURN, AT_REST = range(3)
 
 class PedometerThread(threading.Thread):
     def __init__(self, threadName, imuQueue, pedometerQueue):

@@ -1,7 +1,7 @@
 from time import sleep
 from matrix_keypad import RPi_GPIO
 
-class KeyPad:
+class keypad:
     def __init__(self):
         self.kp = RPi_GPIO.keypad(columnCount = 3)
 
@@ -24,7 +24,7 @@ class KeyPad:
         #Reset current user input if user input #
         if digit == "#":
             userInput = self.get_user_input()
-        return userInput
+        return int(userInput)
     
 if __name__ == "__main__":
     kp = KeyPad()
