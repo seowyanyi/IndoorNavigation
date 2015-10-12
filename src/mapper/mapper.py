@@ -30,16 +30,12 @@ def init_mapper(audioQueue):
 
 def get_start_and_end_locations(audioQueue):
     startBuilding = get_starting_building(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        startBuilding = get_starting_building(audioQueue)
     if startBuilding == 1:
         startBuilding = "COM1"
     elif startBuilding == 2:
         startBuilding = "COM2"
-    while not is_confirm(keypad.get_user_input()):
-        startBuilding = get_starting_building(audioQueue)
-        if startBuilding == 1:
-            startBuilding = "COM1"
-        elif startBuilding == 2:
-            startBuilding = "COM2"
     
     startLevel = get_starting_level(audioQueue)
     while not is_confirm(keypad.get_user_input()):
@@ -50,16 +46,12 @@ def get_start_and_end_locations(audioQueue):
         startNode = get_starting_nodeID(audioQueue)
     
     destBuilding = get_destination_building(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        destBuilding = get_destination_building(audioQueue)
     if destBuilding == 1:
         destBuilding = "COM1"
     elif destBuilding == 2:
         destBuilding = "COM2"
-    while not is_confirm(keypad.get_user_input()):
-        destBuilding = get_destination_building(audioQueue)
-        if destBuilding == 1:
-            destBuilding = "COM1"
-        elif destBuilding == 2:
-            destBuilding = "COM2"
     
     destLevel = get_destination_level(audioQueue)
     while not is_confirm(keypad.get_user_input()):
