@@ -9,7 +9,6 @@ import numpy as np
 import Queue
 import os
 import src.communication.queueManager as qm
-import time
 import timeit
 
 test_queue = Queue.Queue()
@@ -79,7 +78,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             time_bearing_taken = timeit.default_timer()
             if abs(heading - previous_bearing) > TURNING_THRESHOLD:
                 previous_bearing = heading
-                print 'User made a turn'
+                print 'User made a turn to {} deg'.format(heading)
                 pedometerQueue.put({'type': Step.TURN, 'actual_bearing': heading})
                 continue
 
@@ -106,12 +105,12 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         # User is at rest
         if at_rest_count > AT_REST_LIMIT_LONG:
-            print 'User currently at rest'
+            print 'User currently at rest. {} deg'.format(heading)
             pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
 
         # User took a step forward
         if previouslyAtRest and swing_count > swingLimit:
-            print 'Step taken'
+            print 'Step taken {} deg'.format(heading)
             steps += 1
             pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': heading})
             swing_count = 0
