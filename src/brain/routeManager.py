@@ -110,9 +110,9 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     if abs(bearing_to_next - data['actual_bearing']) > ACCEPTABLE_BEARING_ERROR_MOVING:
                         guide_user_while_walking(data['actual_bearing'], bearing_to_next, audioQueue)
             elif data['type'] == pedometer.Step.AT_REST:
-                print 'User currently at rest'
+                pass
             elif data['type'] == pedometer.Step.TURN:
-                print 'User made a turn'
+                pass
 
             if distance_to_next <= 5 * CM_PER_STEP:
                 # start counting down 5 steps before reaching next checkpoint
