@@ -15,8 +15,6 @@ DESTINATION_NOT_FOUND = 'No links lead to destination'
 
 # -------------------------------------------------------------------------------------------------------------------
 
-mapsDownloaded = []
-
 class DestinationNotFound(Exception):
     def __init__(self, value):
         self.value = value
@@ -185,7 +183,6 @@ def explore_and_build(nextBuilding, nextLevel, destBuilding, destLevel, graph, u
         currMapCheckpoints = get_checkpoints(currMap)
         update_graph(currMapCheckpoints, graph)
         explored.append(currMap)
-        mapsDownloaded.append(currMap)
         print '------------------downloaded and updated: {}-{}'.format(currMap.buildingName,
                                                     currMap.levelNum)
     except ValueError:
@@ -359,18 +356,43 @@ def bearing_to_node(srcX, srcY, destX, destY, northAt):
     
     return {'bearing_to_next': bearingToNode, 'distance_to_next': distance}
 
-def find_dist_bearing_to_next_node(path, graph, northAt):
+def is_link_change(curr, nextNode):
+    currBuilding = curr.split('-')[0]
+    currLevel = int(curr.split('-')[1])
+    nextBuilding = nextNode.split('-')[0]
+    nextLevel = int(nextNode.split('-')[1])
+    return currBuilding != nextBuilding or currLevel != nextLevel
+
+
+def find_linkages(global_path): # todo: not tested
+    """
+    Given global path like [COM2-1-19, COM2-1-22, COM2-2-1],
+    find the linkages to the next map, if any
+    Linkages are detected when the building or level changes.
+
+    Returns the index of the linkage start: COM2-1-22 in the above example.
+    COM2-1-22 --- COM2-2-1 is a linkage
+    """
+    linkages = []
+    for i in range(0, len(global_path)-1):
+        if is_link_change(global_path[i], global_path[i+1]):
+            linkages.append(i)
+    return linkages
+
+def find_dist_bearing_to_next_node(global_path, graph): # todo: test across different maps
     array=[]
     currentNodeIndex=0
-    checkpointList = convert_global_path_to_checkpoints(path, graph)
+    linkages = find_linkages(global_path)
+    checkpointList = convert_global_path_to_checkpoints(global_path, graph)
 
     while True:
         if currentNodeIndex == len(checkpointList)-1:
             break
         currentNode = checkpointList[currentNodeIndex]
+        nextNode = checkpointList[currentNodeIndex+1]
         coord_X = currentNode.xCoord
         coord_Y = currentNode.yCoord
-        nextNode = checkpointList[currentNodeIndex+1]
+        northAt = currentNode.northAt
         dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, northAt)
         array.append(dist_and_bearing)
         currentNodeIndex += 1
@@ -382,32 +404,34 @@ def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, d
     graph = build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel)
     path = find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNodeId,
                                           destBuilding, destLevel, destNodeId)
-    currMap = mapsDownloaded[0] # todo: factor in different maps
-    return find_dist_bearing_to_next_node(path, graph, currMap.initialBearing)
+    return find_dist_bearing_to_next_node(path, graph)
 
-# def begin_test():
-#     testType = int(raw_input('Enter test type. 1 for path finding. 2 for giving directions: '))
-#
-#
-# def test_path_finding():
-#     buildingName = raw_input('building name: ')
-#     levelNum = raw_input('level num: ')
-#     while True:
-#         startNode = raw_input('start node id: ')
-#         endNode  = raw_input('end node id: ')
-#         pathStr = get_shortest_path(buildingName, int(levelNum), int(startNode),
-#         buildingName, int(levelNum), int(endNode))
-#         print pathStr
-#         pathObj = json.loads(pathStr)
-#         final_path = 'path: {}'.format(pathObj[0]['path'])
-#         print final_path
-#         url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
-#         try:
-#             res = requests.get(url)
-#             print 'visualize: {}'.format(res.json()["transaction_id"])
-#         except requests.exceptions.RequestException as e:
-#             pass
-#
+def begin_test():
+    test_path_finding()
+
+def test_path_finding():
+    buildingName = 'COM1'
+    levelNum = '2'
+    while True:
+        startNode = raw_input('start node id: ')
+        endNode  = raw_input('end node id: ')
+
+        graph = build_graph(buildingName, int(levelNum), buildingName, int(levelNum))
+        path = find_shortest_path_given_graph(graph, buildingName, int(levelNum), int(startNode),
+                                          buildingName, int(levelNum), int(endNode))
+
+        pathStr = convert_to_API(path)
+        print 'path str: {}'.format(pathStr)
+        pathObj = json.loads(pathStr)
+        final_path = 'path: {}'.format(pathObj[0]['path'])
+        print final_path
+        url = 'http://localhost:3000/draw_path?path={}'.format(pathStr)
+        try:
+            res = requests.get(url)
+            print 'visualize: {}'.format(res.json()["transaction_id"])
+        except requests.exceptions.RequestException as e:
+            pass
+
 
 # def orientate_user(srcX, srcY, destX, destY, currBearing):
 #     """
@@ -512,5 +536,5 @@ def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, d
 #             currNearestNode = node
 #     return currNearestNode
 
-# if __name__ == "__main__":
-#     begin_test()
+if __name__ == "__main__":
+    begin_test()
