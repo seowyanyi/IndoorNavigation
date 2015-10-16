@@ -345,7 +345,7 @@ def convert_global_path_to_checkpoints(global_path, graph):
     return listOfCheckpoints
 
 
-def bearing_to_node(srcX, srcY, destX, destY, northAt):
+def bearing_to_node(srcX, srcY, destX, destY, northAt, nextNode):
     """
     :return: {'bearing_to_next': a, 'distance_to_next': b}
     """
@@ -354,7 +354,7 @@ def bearing_to_node(srcX, srcY, destX, destY, northAt):
     bearing = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
     bearingToNode = (360 - int(northAt)) + int(bearing)
     
-    return {'bearing_to_next': bearingToNode, 'distance_to_next': distance}
+    return {'bearing_to_next': bearingToNode, 'distance_to_next': distance, 'next_checkpoint': nextNode}
 
 def is_link_change(curr, nextNode):
     currBuilding = curr.split('-')[0]
@@ -379,6 +379,30 @@ def find_linkages(global_path): # todo: not tested
             linkages.append(i)
     return linkages
 
+def is_link_change(curr, nextNode):
+    currBuilding = curr.split('-')[0]
+    currLevel = int(curr.split('-')[1])
+    nextBuilding = nextNode.split('-')[0]
+    nextLevel = int(nextNode.split('-')[1])
+    return currBuilding != nextBuilding or currLevel != nextLevel
+
+
+def find_linkages(global_path): # todo: not tested
+    """
+    Given global path like [COM2-1-19, COM2-1-22, COM2-2-1],
+    find the linkages to the next map, if any
+    Linkages are detected when the building or level changes.
+
+    Returns the index of the linkage start: COM2-1-22 in the above example.
+    COM2-1-22 --- COM2-2-1 is a linkage
+    """
+    linkages = []
+    for i in range(0, len(global_path)-1):
+        if is_link_change(global_path[i], global_path[i+1]):
+            linkages.append(i)
+    return linkages
+
+
 def find_dist_bearing_to_next_node(global_path, graph): # todo: test across different maps
     array=[]
     currentNodeIndex=0
@@ -392,8 +416,9 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
         nextNode = checkpointList[currentNodeIndex+1]
         coord_X = currentNode.xCoord
         coord_Y = currentNode.yCoord
-        northAt = currentNode.northAt
-        dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, northAt)
+
+        nextNode = checkpointList[currentNodeIndex+1]
+        dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, northAt, nextNode)
         array.append(dist_and_bearing)
         currentNodeIndex += 1
     return array

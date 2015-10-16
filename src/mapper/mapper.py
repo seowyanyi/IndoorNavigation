@@ -15,7 +15,8 @@ DESTINATION_NODE = 'destination_node'
 KEYPAD_CONFIRM = 1
 CONTINUE = '-1'
 
-ASK_FOR_STARTING_BUILDING = 'Hi Ken. Input the starting building'
+ASK_FOR_START = 'Hi Ken. Input 1 for a building in COM and 2 for other buildings'
+ASK_FOR_STARTING_BUILDING = 'Input the starting building.'
 ASK_FOR_STARTING_LEVEL = 'Input the starting level'
 ASK_FOR_STARTING_NODE = 'Input the starting node'
 ASK_FOR_DESTINATION_BUILDING = 'Input the destination building'
@@ -29,14 +30,24 @@ def init_mapper(audioQueue):
     return planner.get_shortest_path(sourceBuilding=locations[START_BUILDING], sourceLevel=locations[START_LEVEL], sourceNodeId=locations[START_NODE], destBuilding=locations[DESTINATION_BUILDING],destLevel=locations[DESTINATION_LEVEL], destNodeId=locations[DESTINATION_NODE])
 
 def get_start_and_end_locations(audioQueue):
-    startBuilding = get_starting_building(audioQueue)
+    start = get_start(audioQueue)
     while not is_confirm(keypad.get_user_input()):
-        startBuilding = get_starting_building(audioQueue)
-    if startBuilding == 1:
-        startBuilding = "COM1"
-    elif startBuilding == 2:
-        startBuilding = "COM2"
+        start = get_start(audioQueue)
     
+    if start == 1:
+        startBuilding = get_starting_building(audioQueue)
+        while not is_confirm(keypad.get_user_input()):
+            startBuilding = get_starting_building(audioQueue)
+        if startBuilding == 1:
+            startBuilding = "COM1"
+        elif startBuilding == 2:
+            startBuilding = "COM2"
+
+    elif start == 2:
+        startBuilding = get_starting_building(audioQueue)
+        while not is_confirm(keypad.get_user_input()):
+            startBuilding = get_starting_building(audioQueue)
+
     startLevel = get_starting_level(audioQueue)
     while not is_confirm(keypad.get_user_input()):
         startLevel = get_starting_level(audioQueue)
@@ -92,6 +103,11 @@ def get_starting_level(audioQueue):
 def get_starting_nodeID(audioQueue):
     audioQueue.put(ASK_FOR_STARTING_NODE)
     print "ASK_FOR_STARTING_NODE"
+    return get_input_and_request_confirmation(audioQueue)
+
+def get_start(audioQueue):
+    audioQueue.put(ASK_FOR_START)
+    print "ASK_FOR_START"
     return get_input_and_request_confirmation(audioQueue)
 
 def is_confirm(keypadInput):
