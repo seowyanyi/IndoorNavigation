@@ -2,11 +2,12 @@
 The commander module coordinates all threads and components
 """
 from src.communication import queueManager
-from src.peripherals import audio
+from src.peripherals import audio, KeyPad
 from src.arduinoInterface import serialmod
 import routeManager
 import src.mapper.mapper as mapper
 import pedometer
+
 
 def start():
     
@@ -16,6 +17,7 @@ def start():
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
+    keypadQueue = queueManager.KEYPAD_QUEUE
 
     # Thread 1
     audio.AudioDispatcherThread(
@@ -32,7 +34,8 @@ def start():
 
     # Thread 3
     pedometer.PedometerThread(
-        threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue).start()
+        threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue,
+        keypressQueue=keypadQueue, audioQueue=audioQueue).start()
 
 
     # Thread 4
@@ -40,3 +43,6 @@ def start():
         threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
         precomputedCheckpointData=precomputedData
     ).start()
+
+    # Thread 5
+    KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue).start()
