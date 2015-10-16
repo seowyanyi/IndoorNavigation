@@ -59,11 +59,12 @@ def get_start_and_end_locations(audioQueue):
     destBuilding = get_destination_building(audioQueue)
     while not is_confirm(keypad.get_user_input()):
         destBuilding = get_destination_building(audioQueue)
-    if destBuilding == 1:
-        destBuilding = "COM1"
-    elif destBuilding == 2:
-        destBuilding = "COM2"
-    
+    if start == 1:
+        if destBuilding == 1:
+            destBuilding = "COM1"
+        elif destBuilding == 2:
+            destBuilding = "COM2"
+            
     destLevel = get_destination_level(audioQueue)
     while not is_confirm(keypad.get_user_input()):
         destLevel = get_destination_level(audioQueue)
