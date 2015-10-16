@@ -56,19 +56,22 @@ def get_start_and_end_locations(audioQueue):
     while not is_confirm(keypad.get_user_input()):
         startNode = get_starting_nodeID(audioQueue)
     
-    destBuilding = get_destination_building(audioQueue)
-    while not is_confirm(keypad.get_user_input()):
-        destBuilding = get_destination_building(audioQueue)
-    if start == 1:
-        if destBuilding == 1:
-            destBuilding = "COM1"
-        elif destBuilding == 2:
-            destBuilding = "COM2"
-            
-    destLevel = get_destination_level(audioQueue)
-    while not is_confirm(keypad.get_user_input()):
-        destLevel = get_destination_level(audioQueue)
-    
+    destBuilding = startBuilding
+    destLevel = startLevel
+
+#    destBuilding = get_destination_building(audioQueue)
+#    while not is_confirm(keypad.get_user_input()):
+#        destBuilding = get_destination_building(audioQueue)
+#    if start == 1:
+#        if destBuilding == 1:
+#            destBuilding = "COM1"
+#        elif destBuilding == 2:
+#            destBuilding = "COM2"
+#            
+#    destLevel = get_destination_level(audioQueue)
+#    while not is_confirm(keypad.get_user_input()):
+#        destLevel = get_destination_level(audioQueue)
+
     destNode = get_destination_nodeID(audioQueue)
     while not is_confirm(keypad.get_user_input()):
         destNode = get_destination_nodeID(audioQueue)
