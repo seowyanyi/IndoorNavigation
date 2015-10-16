@@ -365,7 +365,7 @@ def convert_global_path_to_checkpoints(global_path, graph):
     return listOfCheckpoints
 
 
-def bearing_to_node(srcX, srcY, destX, destY, northAt, nextNode):
+def bearing_to_node(srcX, srcY, destX, destY, northAt, node):
     """
     :return: {'bearing_to_next': a, 'distance_to_next': b}
     """
@@ -374,7 +374,7 @@ def bearing_to_node(srcX, srcY, destX, destY, northAt, nextNode):
     bearing = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
     bearingToNode = (360 - int(northAt)) + int(bearing)
     
-    return {'bearing_to_next': bearingToNode, 'distance_to_next': distance, 'next_checkpoint': nextNode}
+    return {'bearing_to_next': bearingToNode, 'distance_to_next': distance, 'next_checkpoint': node.localNodeId}
 
 def is_link_change(curr, nextNode):
     currBuilding = curr.split('-')[0]
@@ -436,7 +436,10 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
         nextNode = checkpointList[currentNodeIndex+1]
         coord_X = currentNode.xCoord
         coord_Y = currentNode.yCoord
-        dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, nextNode.northAt, nextNode)
+        
+        nextNode = checkpointList[currentNodeIndex+1]
+        dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, northAt, currentNode)
+
         array.append(dist_and_bearing)
         currentNodeIndex += 1
     print array
