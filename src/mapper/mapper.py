@@ -15,8 +15,8 @@ DESTINATION_NODE = 'destination_node'
 KEYPAD_CONFIRM = 1
 CONTINUE = '-1'
 
-ASK_FOR_START = 'Hi Ken. Input the starting building. 1 for a building in COM and 2 for other buildings'
-ASK_FOR_STARTING_BUILDING = 'Hi Ken. Input the starting building.'
+ASK_FOR_START = 'Hi Ken. Input 1 for a building in COM and 2 for other buildings'
+ASK_FOR_STARTING_BUILDING = 'Input the starting building.'
 ASK_FOR_STARTING_LEVEL = 'Input the starting level'
 ASK_FOR_STARTING_NODE = 'Input the starting node'
 ASK_FOR_DESTINATION_BUILDING = 'Input the destination building'
