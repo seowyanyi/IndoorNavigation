@@ -9,6 +9,7 @@ import numpy as np
 import Queue
 import os
 import src.communication.queueManager as qm
+import timeit
 import time
 
 test_queue = Queue.Queue()
@@ -17,9 +18,8 @@ WINDOW_SIZE = 5
 AT_REST_LIMIT = 1
 AT_REST_LIMIT_LONG = 5
 SWING_LIMIT = 2
-WINDOW_SIZE_BEARING = 5
-SECS_BETW_BEARING_READINGS = 1
-TURNING_THRESHOLD = 20
+SECS_BETW_BEARING_READINGS = 0.5
+TURNING_THRESHOLD = 40
 
 #todo: minus ~5 degrees from bearing due to angle of foot
 
@@ -29,15 +29,18 @@ class Step:
     FORWARD, TURN, AT_REST = range(3)
 
 class PedometerThread(threading.Thread):
-    def __init__(self, threadName, imuQueue, pedometerQueue):
+    def __init__(self, threadName, imuQueue, pedometerQueue, keypressQueue, audioQueue):
         threading.Thread.__init__(self)
         self.threadName = threadName
         self.imuQueue = imuQueue
         self.pedometerQueue = pedometerQueue
+        self.keypressQueue = keypressQueue
+        self.audioQueue = audioQueue
 
     def run(self):
         print 'Starting {} thread'.format(self.threadName)
-        start_pedometer_processing(self.imuQueue, self.pedometerQueue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, False)
+        start_pedometer_processing(self.imuQueue, self.pedometerQueue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, False,
+                                   self.keypressQueue, self.audioQueue)
         print 'Exited {} thread'.format(self.threadName)
 
 def init_test_queue():
@@ -45,33 +48,47 @@ def init_test_queue():
         for line in f:
             test_queue.put(qm.IMUData(int(line), 0, 0, 0))
 
-def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug):
+def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug, keypressQueue, audioQueue):
     steps = 0
     data = []
     previous_bearing = None
     time_bearing_taken = None
-    recent_bearings = []
 
     swing_count = 0
     at_rest_count = 0
     previouslyAtRest = True
 
+    pause_pedo = False
+
     while True:
         if debug and dataQueue.qsize() <= 1:
             break
+
+        try:
+            pause_pedo = keypressQueue.get(False)
+            if pause_pedo:
+                print '     ***   PEDOMETER PAUSED      ***'
+                audioQueue.put('Pedometer paused')
+            else:
+                print '     ***   PEDOMETER RESTARTED      ***'
+                audioQueue.put('Pedometer restarted')
+
+        except Queue.Empty:
+            pass
+
+        if pause_pedo:
+            time.sleep(0.5)
+            continue
+
 
         # Get data from imu and populate the relevant lists
         imuData = dataQueue.get(True)
         x = imuData.xAxis
         heading = imuData.heading
 
-        if len(recent_bearings) > WINDOW_SIZE_BEARING:
-            recent_bearings.pop(0)
-        recent_bearings.append(heading)
-
         if previous_bearing is None:
-            previous_bearing = np.mean(recent_bearings)
-            time_bearing_taken = time.time()
+            previous_bearing = heading
+            time_bearing_taken = timeit.default_timer()
 
         if len(data) > windowSize:
             data.pop(0)
@@ -79,13 +96,14 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         if len(data) < windowSize:
             continue
 
+
         # check whether we are making a turn
-        if time.time() - time_bearing_taken >= SECS_BETW_BEARING_READINGS:
-            time_bearing_taken = time.time()
-            current_bearing = np.mean(recent_bearings)
-            if abs(current_bearing - previous_bearing) > TURNING_THRESHOLD:
-                previous_bearing = current_bearing
-                pedometerQueue.put({'type': Step.TURN, 'actual_bearing': current_bearing})
+        if timeit.default_timer() - time_bearing_taken >= SECS_BETW_BEARING_READINGS:
+            time_bearing_taken = timeit.default_timer()
+            if abs(heading - previous_bearing) > TURNING_THRESHOLD:
+                previous_bearing = heading
+                print 'User made a turn to {} deg'.format(heading)
+                pedometerQueue.put({'type': Step.TURN, 'actual_bearing': heading})
                 continue
 
         # detect the movement type
@@ -111,12 +129,14 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         # User is at rest
         if at_rest_count > AT_REST_LIMIT_LONG:
-            pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': np.mean(recent_bearings)})
+            print 'User currently at rest. {} deg'.format(heading)
+            pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
 
         # User took a step forward
         if previouslyAtRest and swing_count > swingLimit:
+            print 'Step taken {} deg'.format(heading)
             steps += 1
-            pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': np.mean(recent_bearings)})
+            pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': heading})
             swing_count = 0
             previouslyAtRest = False
             at_rest_count = 0

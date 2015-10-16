@@ -17,7 +17,7 @@ TURN_X_DEG_CW = 'Turn {} degrees clockwise'
 TURN_X_DEG_ACW = 'Turn {} degrees anti clockwise'
 METERS_LEFT = 'Good to go. {} meters to next checkpoint'
 DESTINATION_REACHED = 'Destination reached'
-CHECKPOINT_REACHED = 'Checkpoint reached'
+CHECKPOINT_REACHED = 'Checkpoint {} reached'
 DISTANCE_LEFT_METERS = '{} meters left'
 DISTANCE_LEFT_STEPS = '{} steps left'
 
@@ -80,6 +80,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
     reached_checkpoint = False
     distance_to_next = precomputedCheckpointData[curr_index]['distance_to_next']
     bearing_to_next = precomputedCheckpointData[curr_index]['bearing_to_next']
+    checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
 
     steps = 0
 
@@ -95,9 +96,10 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
             else:
                 distance_to_next = precomputedCheckpointData[curr_index]['distance_to_next']
                 bearing_to_next = precomputedCheckpointData[curr_index]['bearing_to_next']
+                checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                 audioQueue.put(METERS_LEFT.format(round(distance_to_next/100,1)))
-                print 'Distance to next: {} cm Bearing to next: {} deg'.format(distance_to_next, bearing_to_next)
+                print 'Distance to {}: {} cm Bearing to {}: {} deg'.format(checkpoint.localNodeId, distance_to_next, checkpoint.localNodeId, bearing_to_next)
 
         else:
             data = pedometerQueue.get(True)
@@ -110,14 +112,15 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     if abs(bearing_to_next - data['actual_bearing']) > ACCEPTABLE_BEARING_ERROR_MOVING:
                         guide_user_while_walking(data['actual_bearing'], bearing_to_next, audioQueue)
             elif data['type'] == pedometer.Step.AT_REST:
-                print 'User currently at rest'
+                pass
             elif data['type'] == pedometer.Step.TURN:
-                print 'User made a turn'
+                pass
 
             if distance_to_next <= 5 * CM_PER_STEP:
                 # start counting down 5 steps before reaching next checkpoint
                 audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
 
             if distance_to_next <= 0:
+                checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 reached_checkpoint = True
-                audioQueue.put(CHECKPOINT_REACHED)
+                audioQueue.put(CHECKPOINT_REACHED.format(checkpoint.localNodeId))

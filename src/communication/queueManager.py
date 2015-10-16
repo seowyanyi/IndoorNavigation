@@ -6,6 +6,7 @@ MIDDLE_SONAR_QUEUE = Queue.Queue()
 IMU_QUEUE = Queue.Queue()       # IMUData
 AUDIO_QUEUE = Queue.Queue()     # {'type': AudioCommands.SOME_COMMAND, 'data': 60}
 PEDOMETER_QUEUE = Queue.Queue() # {'type': Step.SOME_STEP, 'actual_bearing': 120}
+KEYPAD_QUEUE = Queue.Queue()    # true / false. true for blocking pedo count
 
 class Sonar:
     LEFT, RIGHT, FRONT, UPPER_SHIN, LOWER_SHIN, GLOVE = range(6)
