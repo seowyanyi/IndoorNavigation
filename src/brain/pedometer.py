@@ -20,7 +20,7 @@ AT_REST_LIMIT_LONG = 5
 SWING_LIMIT = 2
 SECS_BETW_BEARING_READINGS = 0.5
 TURNING_THRESHOLD = 40
-
+FOOT_OFFSET_ANGLE = 8
 #todo: minus ~5 degrees from bearing due to angle of foot
 
 import threading
@@ -84,7 +84,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         # Get data from imu and populate the relevant lists
         imuData = dataQueue.get(True)
         x = imuData.xAxis
-        heading = imuData.heading
+        heading = imuData.heading - FOOT_OFFSET_ANGLE
 
         if previous_bearing is None:
             previous_bearing = heading

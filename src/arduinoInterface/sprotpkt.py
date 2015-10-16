@@ -32,7 +32,7 @@ class SPROTPacket:
         return self.raw
 
     def printPacket(self):
-##        print "pktinfo : DLEN=", self.dataLength, "  DATA=", self.data, "  CKS=", format(self.checksum, "02x")
+        print "pktinfo : DLEN=", self.dataLength, "  DATA=", self.data, "  CKS=", format(self.checksum, "02x")
         print "DATA=", self.data
 
 

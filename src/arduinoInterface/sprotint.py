@@ -32,16 +32,15 @@ def receivePacket(timeout=sprotcfg.SPROT_RECV_TIMEOUT):
     sprotapi.serialPort.timeout = timeout
     readResult = sprotapi.serialPort.read(sprotcfg.PACKET_SIZE)
     recvBytes = bytearray(readResult)
+    #print len(recvBytes)
     if (len(recvBytes) < sprotcfg.PACKET_SIZE):
         print "errorhere"
         return sprotcfg.SPROT_ERROR
     
-    packet = sprotpkt.SPROTPacket(recvBytes)
-            
+    packet = sprotpkt.SPROTPacket(recvBytes)            
     # Check for errors
     checksum = generateChecksum(packet)
-
-    if (checksum != packet.checksum) :    
+    if (checksum != packet.checksum) :
         return sprotcfg.SPROT_ERROR
     else :
         return packet
@@ -49,3 +48,8 @@ def receivePacket(timeout=sprotcfg.SPROT_RECV_TIMEOUT):
 
 def sendPacket(packet):
     sprotapi.serialPort.write(packet.toByteArray())
+
+def counter():
+    counter.count += 1
+    print "counter is %d" % counter.count
+counter.count = 0
