@@ -74,14 +74,31 @@ def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY
     return  bearingDeg
 
 # -------------------------------------------------------------------------------------------------------------------
+def internet_on():
+    try:
+        response=urllib2.urlopen('http://74.125.228.100',timeout=1)
+        return True
+    except urllib2.URLError as err:
+        pass
+    return False
 
 def download_map(buildingName, levelNum):
-    url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName,levelNum)
-    mapJsonData = json.load(urllib2.urlopen(url))
+    if internet_on():
+        url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName,levelNum)
+        mapJsonData = json.load(urllib2.urlopen(url))
+    else:
+        if (buildingName == "COM1" and levelNum == 2):
+            mapJsonData = json.load("/PreLoadedMaps/COM1Lvl2.json")
+        elif (buildingName == "COM2" and levelNum == 2):
+            mapJsonData = json.load("/PreLoadedMaps/COM2Lvl2.json")
+        elif (buildingName == "COM2" and levelNum == 3):
+            mapJsonData = json.load("/PreLoadedMaps/COM2Lvl3.json")
+
     if mapJsonData["info"] is None:
         raise ValueError(MapError)
     initialBearing = mapJsonData["info"]["northAt"]
     return MapInfoObj(buildingName, levelNum, mapJsonData, initialBearing)
+
 
 def is_link_to_other_maps(nodeName):
     """
