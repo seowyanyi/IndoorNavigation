@@ -76,12 +76,9 @@ class RouteManagerThread(threading.Thread):
         print 'Exited {} thread'.format(self.threadName)
 
 def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData):
-    curr_index = 0 # first checkpoint has 0 index
-    reached_checkpoint = False
-    distance_to_next = precomputedCheckpointData[curr_index]['distance_to_next']
-    bearing_to_next = precomputedCheckpointData[curr_index]['bearing_to_next']
-    checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
-
+    curr_index = -1
+    reached_checkpoint = True
+    
     steps = 0
 
     while True:
