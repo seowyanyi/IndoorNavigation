@@ -2,7 +2,7 @@ import sprotapi as sprotapi
 import sprotpkt as sprotpkt
 # import serialmod as serialmod
 import threading
-#import src.communication.queueManager as qm
+import src.communication.queueManager as qm # Don't take this out
 import Queue
 import time
 #from matrix_keypad import RPi_GPIO as GPIO
