@@ -96,7 +96,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                 audioQueue.put(METERS_LEFT.format(round(distance_to_next/100,1)))
-                print 'Distance to {}: {} cm Bearing to {}: {} deg'.format(checkpoint.localNodeId, distance_to_next, checkpoint.localNodeId, bearing_to_next)
+                print 'Distance to {}: {} cm Bearing to {}: {} deg'.format(checkpoint, distance_to_next, checkpoint, bearing_to_next)
 
         else:
             data = pedometerQueue.get(True)
@@ -120,4 +120,4 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
             if distance_to_next <= 0:
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 reached_checkpoint = True
-                audioQueue.put(CHECKPOINT_REACHED.format(checkpoint.localNodeId))
+                audioQueue.put(CHECKPOINT_REACHED.format(checkpoint))
