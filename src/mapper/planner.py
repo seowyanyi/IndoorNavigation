@@ -436,11 +436,10 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
         nextNode = checkpointList[currentNodeIndex+1]
         coord_X = currentNode.xCoord
         coord_Y = currentNode.yCoord
-
-        nextNode = checkpointList[currentNodeIndex+1]
-        dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, northAt, nextNode)
+        dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, nextNode.northAt, nextNode)
         array.append(dist_and_bearing)
         currentNodeIndex += 1
+    print array
     return array
 
 # -------------------------------------------------------------------------------------------------------------------

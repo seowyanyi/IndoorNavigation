@@ -13,9 +13,8 @@ def init_player():
 
 
 def onEnd(name, completed):
-    print 'finishing', name, completed
     if completed:
-        time.sleep(1)
+        time.sleep(0.5)
         engine.endLoop()
 
 engine = init_player()

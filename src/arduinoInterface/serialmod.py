@@ -2,8 +2,11 @@ import sprotapi as sprotapi
 import sprotpkt as sprotpkt
 # import serialmod as serialmod
 import threading
-import src.communication.queueManager as qm
+#import src.communication.queueManager as qm
 import Queue
+import time
+#from matrix_keypad import RPi_GPIO as GPIO
+import RPi.GPIO as GPIO
 
 DATA_SIZE = 16
 DEST_PORT_CRUNCHER = 9003
@@ -25,6 +28,12 @@ sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
 LIMIT_DATA_RATE = 10
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(21,GPIO.OUT)
+GPIO.output(21,GPIO.HIGH)
+time.sleep(0.05)
+GPIO.output(21,GPIO.LOW)
 
 class SensorManagerThread(threading.Thread):
     def __init__(self, threadName, imuQueue, middleSonarQueue, leftSonarQueue, rightSonarQueue):
@@ -66,8 +75,14 @@ def read_packet(limit, imuQueue):
                 # Check for error
                 if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
                     print "recv error"
+                    pass
+                    time.sleep(2)
+                    GPIO.output(21,True)
+                    time.sleep(0.05)
+                    GPIO.output(21,False)
                 else :
-                    # pkt.printPacket()
+                    #print "DATA="
+                    #print pkt.data
                     strpkt = pkt.data.decode("ascii")
 
                     if (strpkt[0] == b'a') :
@@ -75,7 +90,7 @@ def read_packet(limit, imuQueue):
                         xyz = data[1].split(",")
 
                         if counter == 1:
-                            #print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
+                            print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
                             heading = int(xyz[0])
                             x = int(xyz[1])
                             y = int(xyz[2])
@@ -100,7 +115,8 @@ def read_packet(limit, imuQueue):
                         sonar3Data = convertPacketToSonarData(strpkt)
                     elif (strpkt[0] == b'C') :
                         compassData = strpkt[2:5]
-
+                                   
+                time.sleep(0.05)
         except:
             sprotapi.SPROTClose()
             sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)

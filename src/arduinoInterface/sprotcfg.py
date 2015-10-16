@@ -16,7 +16,7 @@ FIELD_DATA_OFFSET =                  HEADER_LENGTH                # DATA field o
 
 # Timeout Parameters in secs
 SPROT_SEND_TIMEOUT =                 5                            # Default send timeout in ms
-SPROT_RECV_TIMEOUT =                 5                            # Default receive timeout ms
+SPROT_RECV_TIMEOUT =                 5000                            # Default receive timeout ms
 
 # Generic error constant
 SPROT_ERROR =                        -1
