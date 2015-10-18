@@ -135,14 +135,14 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         # User is at rest
         if at_rest_count_long > AT_REST_LIMIT_LONG:
-            #print 'User currently at rest. {} deg'.format(heading)
+            print 'User currently at rest. {} deg'.format(heading)
             pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
             at_rest_count_long = 0
             continue
 
         # User took a step forward
         if previouslyAtRest and swing_count > swingLimit:
-            #print 'Step taken {} deg'.format(heading)
+            print 'Step taken {} deg'.format(heading)
             steps += 1
             pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': heading})
             swing_count = 0
