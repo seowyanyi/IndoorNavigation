@@ -11,34 +11,34 @@ import pedometer
 
 def start():
     
-    leftSonarQueue = queueManager.LEFT_SONAR_QUEUE
-    rightSonarQueue = queueManager.RIGHT_SONAR_QUEUE
-    middleSonarQueue = queueManager.MIDDLE_SONAR_QUEUE
+    # leftSonarQueue = queueManager.LEFT_SONAR_QUEUE
+    # rightSonarQueue = queueManager.RIGHT_SONAR_QUEUE
+    # middleSonarQueue = queueManager.MIDDLE_SONAR_QUEUE
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
-    keypadQueue = queueManager.KEYPAD_QUEUE
+    # keypadQueue = queueManager.KEYPAD_QUEUE
 
     # Thread 1
     audio.AudioDispatcherThread(
         threadName='audio Dispatcher', audioQueue=audioQueue).start()
 
 
-    #precomputedData = mapper.init_mapper(audioQueue)
+    precomputedData = mapper.init_mapper(audioQueue)
 
-    # Thread 3
+    # Thread 2
     pedometer.PedometerThread(
         threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue,
         keypressQueue=keypadQueue, audioQueue=audioQueue).start()
 
-    """
-    # Thread 4
+    
+    # Thread 3
     routeManager.RouteManagerThread(
         threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
         precomputedCheckpointData=precomputedData
     ).start()
-    """
-    # Thread 2
+    
+    # Thread 4
     serialmod.SensorManagerThread(
         threadName='sensor Manager', imuQueue=imuQueue,
         middleSonarQueue=middleSonarQueue, leftSonarQueue=leftSonarQueue,
