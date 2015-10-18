@@ -25,7 +25,10 @@ SWING_LIMIT = 1
 SECS_BETW_BEARING_READINGS = 0.5
 TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 25
-#todo: minus ~5 degrees from bearing due to angle of foot
+
+AVG_DATA_RATE = 0.04
+DATA_RATE_ERROR_MARGIN = 0.02
+DATA_RATE_WINDOW_SIZE = 50
 
 import threading
 
@@ -52,6 +55,16 @@ def init_test_queue():
         for line in f:
             test_queue.put(qm.IMUData(int(line), 0, 0, 0))
 
+def is_two_seconds_passed(prev_two_seconds):
+    curr = int(time.time())
+    if curr % 2 == 0 and curr > prev_two_seconds:
+        return {'status':True, 'curr': curr}
+    return {'status':False, 'curr': curr}
+
+def isWithinRange(expected, actual, errorMargin):
+    return abs(expected - actual) <= errorMargin
+
+
 def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug, keypressQueue, audioQueue):
     steps = 0
     data = []
@@ -64,6 +77,10 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
     previouslyAtRest = True
 
     pause_pedo = False
+
+    # data rate stuff
+    dataRateList = []
+    prev_two_seconds = int(time.time())
 
     while True:
         if debug and dataQueue.qsize() <= 1:
@@ -90,6 +107,18 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         imuData = dataQueue.get(True)
         x = imuData.xAxis
         heading = imuData.heading - FOOT_OFFSET_ANGLE
+
+        # keeps track of a list of data rates. Compare with the expected average every two seconds
+        if len(dataRateList) > DATA_RATE_WINDOW_SIZE:
+            dataRateList.pop(0)
+        dataRateList.append(imuData.dataRate)
+        checkTwoSecs = is_two_seconds_passed(prev_two_seconds)
+        if checkTwoSecs['status']:
+            prev_two_seconds = checkTwoSecs['curr']
+            actual_rate = np.mean(dataRateList)
+            if not isWithinRange(actual_rate, AVG_DATA_RATE, DATA_RATE_ERROR_MARGIN):
+                print 'Data rate is off. Actual: {} s'.format(actual_rate)
+
 
         if previous_bearing is None:
             previous_bearing = heading

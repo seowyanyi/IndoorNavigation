@@ -5,6 +5,7 @@ import threading
 import src.communication.queueManager as qm # Don't take this out
 import Queue
 import RPi.GPIO as GPIO
+import timeit
 
 DATA_SIZE = 16
 DEST_PORT_CRUNCHER = 9003
@@ -64,6 +65,7 @@ def removeNullChars(str):
     
 def read_packet(limit, imuQueue):
     counter = 1
+    prev_time = timeit.default_timer()
     while True :
 
         # Read a packet
@@ -94,8 +96,9 @@ def read_packet(limit, imuQueue):
                             x = int(xyz[1])
                             y = int(xyz[2])
                             z = int(xyz[3])
-
-                            imuQueue.put(qm.IMUData(x, y, z, heading))
+                            curr_time = timeit.default_timer()
+                            imuQueue.put(qm.IMUData(x, y, z, heading, curr_time - prev_time))
+                            prev_time = curr_time
                             #with open(ACC_X_DATA_FILE, "a") as myfile:
                             #    myfile.write(xyz[1] + '\n')
                             #with open(ACC_Y_DATA_FILE, "a") as myfile:
