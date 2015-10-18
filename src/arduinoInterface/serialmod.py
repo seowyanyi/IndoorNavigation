@@ -2,7 +2,7 @@ import sprotapi as sprotapi
 import sprotpkt as sprotpkt
 # import serialmod as serialmod
 import threading
-#import src.communication.queueManager as qm
+import src.communication.queueManager as qm # Don't take this out
 import Queue
 import time
 #from matrix_keypad import RPi_GPIO as GPIO
@@ -28,12 +28,12 @@ sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
 LIMIT_DATA_RATE = 10
-
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(21,GPIO.OUT)
-GPIO.output(21,GPIO.HIGH)
-time.sleep(0.05)
-GPIO.output(21,GPIO.LOW)
+#
+# GPIO.setmode(GPIO.BOARD)
+# GPIO.setup(21,GPIO.OUT)
+# GPIO.output(21,GPIO.HIGH)
+# time.sleep(0.05)
+# GPIO.output(21,GPIO.LOW)
 
 class SensorManagerThread(threading.Thread):
     def __init__(self, threadName, imuQueue, middleSonarQueue, leftSonarQueue, rightSonarQueue):
@@ -76,10 +76,10 @@ def read_packet(limit, imuQueue):
                 if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
                     print "recv error"
                     pass
-                    time.sleep(2)
-                    GPIO.output(21,True)
-                    time.sleep(0.05)
-                    GPIO.output(21,False)
+                    # time.sleep(2)
+                    # GPIO.output(21,True)
+                    # time.sleep(0.05)
+                    # GPIO.output(21,False)
                 else :
                     #print "DATA="
                     #print pkt.data
@@ -90,7 +90,7 @@ def read_packet(limit, imuQueue):
                         xyz = data[1].split(",")
 
                         if counter == 1:
-                            print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
+                            #print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
                             heading = int(xyz[0])
                             x = int(xyz[1])
                             y = int(xyz[2])

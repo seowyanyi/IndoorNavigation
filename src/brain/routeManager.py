@@ -76,6 +76,7 @@ class RouteManagerThread(threading.Thread):
         print 'Exited {} thread'.format(self.threadName)
 
 def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData):
+    print 'start managing routes'
     curr_index = -1
     reached_checkpoint = True
     
@@ -94,9 +95,12 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 distance_to_next = precomputedCheckpointData[curr_index]['distance_to_next']
                 bearing_to_next = precomputedCheckpointData[curr_index]['bearing_to_next']
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
+                currNodeId = precomputedCheckpointData[curr_index]['curr_checkpoint']
+                print 'Current checkpoint: {}'.format(currNodeId)
+                audioQueue.put('Current checkpoint is {}'.format(currNodeId))
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                 audioQueue.put(METERS_LEFT.format(round(distance_to_next/100,1)))
-                print 'Distance to {}: {} cm Bearing to {}: {} deg'.format(checkpoint, distance_to_next, checkpoint, bearing_to_next)
+                print 'Distance to node {}: {} cm Bearing to {}: {} deg'.format(checkpoint, distance_to_next, checkpoint, bearing_to_next)
 
         else:
             data = pedometerQueue.get(True)
