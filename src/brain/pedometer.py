@@ -56,6 +56,8 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
     swing_count = 0
     at_rest_count = 0
+    at_rest_count_long = 0
+
     previouslyAtRest = True
 
     pause_pedo = False
@@ -114,8 +116,10 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         if is_at_rest(data):
             at_rest_count += 1
+            at_rest_count_long += 1
         else:
             at_rest_count = 0
+            at_rest_count_long = 0
 
         if debug:
             line = get_equation_of_line(data)
@@ -128,7 +132,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             at_rest_count = 0
 
         # User is at rest
-        if at_rest_count > AT_REST_LIMIT_LONG:
+        if at_rest_count_long > AT_REST_LIMIT_LONG:
             print 'User currently at rest. {} deg'.format(heading)
             pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
 
