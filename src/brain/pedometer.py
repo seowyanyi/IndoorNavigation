@@ -13,14 +13,15 @@ import time
 #import sys
 #sys.path.insert(0, '/home/seowyanyi/school/cg3002/IndoorNavigation/src')
 #import communication.queueManager as qm
+
 import src.communication.queueManager as qm
 
 test_queue = Queue.Queue()
 
-WINDOW_SIZE = 10
-AT_REST_LIMIT = 25
-AT_REST_LIMIT_LONG = 50
-SWING_LIMIT = 5
+WINDOW_SIZE = 20
+AT_REST_LIMIT = 5
+AT_REST_LIMIT_LONG = 10
+SWING_LIMIT = 1
 SECS_BETW_BEARING_READINGS = 0.5
 TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 25
@@ -47,7 +48,7 @@ class PedometerThread(threading.Thread):
         print 'Exited {} thread'.format(self.threadName)
 
 def init_test_queue():
-    with open('backup.txt') as f:
+    with open('b.txt') as f:
         for line in f:
             test_queue.put(qm.IMUData(int(line), 0, 0, 0))
 

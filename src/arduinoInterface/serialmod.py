@@ -4,8 +4,6 @@ import sprotpkt as sprotpkt
 import threading
 import src.communication.queueManager as qm # Don't take this out
 import Queue
-import time
-#from matrix_keypad import RPi_GPIO as GPIO
 import RPi.GPIO as GPIO
 
 DATA_SIZE = 16
@@ -27,7 +25,7 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
-LIMIT_DATA_RATE = 1
+LIMIT_DATA_RATE = 8
 #
 # GPIO.setmode(GPIO.BOARD)
 # GPIO.setup(21,GPIO.OUT)
@@ -98,8 +96,8 @@ def read_packet(limit, imuQueue):
                             z = int(xyz[3])
 
                             imuQueue.put(qm.IMUData(x, y, z, heading))
-                            with open(ACC_X_DATA_FILE, "a") as myfile:
-                                myfile.write(xyz[1] + '\n')
+                            #with open(ACC_X_DATA_FILE, "a") as myfile:
+                            #    myfile.write(xyz[1] + '\n')
                             #with open(ACC_Y_DATA_FILE, "a") as myfile:
                             #    myfile.write(xyz[2] + '\n')
                             #with open(ACC_Z_DATA_FILE, "a") as myfile:
