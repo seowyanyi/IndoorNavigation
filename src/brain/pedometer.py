@@ -8,16 +8,19 @@ Types of steps:
 import numpy as np
 import Queue
 import os
-import src.communication.queueManager as qm
 import timeit
 import time
+#import sys
+#sys.path.insert(0, '/home/seowyanyi/school/cg3002/IndoorNavigation/src')
+#import communication.queueManager as qm
+import src.communication.queueManager as qm
 
 test_queue = Queue.Queue()
 
-WINDOW_SIZE = 5
-AT_REST_LIMIT = 1
+WINDOW_SIZE = 10
+AT_REST_LIMIT = 25
 AT_REST_LIMIT_LONG = 50
-SWING_LIMIT = 2
+SWING_LIMIT = 5
 SECS_BETW_BEARING_READINGS = 0.5
 TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 25
@@ -44,7 +47,7 @@ class PedometerThread(threading.Thread):
         print 'Exited {} thread'.format(self.threadName)
 
 def init_test_queue():
-    with open('acc_x.txt') as f:
+    with open('backup.txt') as f:
         for line in f:
             test_queue.put(qm.IMUData(int(line), 0, 0, 0))
 
@@ -132,14 +135,14 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         # User is at rest
         if at_rest_count_long > AT_REST_LIMIT_LONG:
-            print 'User currently at rest. {} deg'.format(heading)
+            #print 'User currently at rest. {} deg'.format(heading)
             pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
-	    at_rest_count_long = 0
-	    continue
+            at_rest_count_long = 0
+            continue
 
         # User took a step forward
         if previouslyAtRest and swing_count > swingLimit:
-            print 'Step taken {} deg'.format(heading)
+            #print 'Step taken {} deg'.format(heading)
             steps += 1
             pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': heading})
             swing_count = 0
@@ -149,6 +152,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
                 write_to_step_file('1')
         elif debug:
             write_to_step_file('0')
+    print 'steps: {}'.format(steps)
 
 def write_to_gradient_file(data):
     with open("gradient.txt", "a") as myfile:
@@ -187,4 +191,4 @@ def clean_up():
 if __name__ == "__main__":
     clean_up()
     init_test_queue()
-    start_pedometer_processing(test_queue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True)
+    start_pedometer_processing(test_queue,Queue.Queue(), WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True, Queue.Queue(), Queue.Queue())
