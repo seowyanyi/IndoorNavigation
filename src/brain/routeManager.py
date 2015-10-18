@@ -32,8 +32,8 @@ def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, th
     while abs(target_bearing - data['actual_bearing']) > threshold:
         guide_user(data['actual_bearing'], target_bearing, audioQueue)
         time.sleep(8)
-	pedometerQueue.queue.clear()
-    	data = pedometerQueue.get(True)
+        pedometerQueue.queue.clear()
+        data = pedometerQueue.get(True)
 
 def guide_user(actual_bearing, target_bearing, audioQueue):
     difference = target_bearing - actual_bearing

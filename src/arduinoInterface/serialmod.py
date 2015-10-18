@@ -92,7 +92,7 @@ def read_packet(limit, imuQueue):
                         if counter == 1:
                             #print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
                             heading = int(xyz[0])
-			    #print 'arduino heading: {}'.format(heading)
+                            #print 'arduino heading: {}'.format(heading)
                             x = int(xyz[1])
                             y = int(xyz[2])
                             z = int(xyz[3])
