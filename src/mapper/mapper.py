@@ -56,10 +56,10 @@ def get_start_and_end_locations(audioQueue):
     # while not is_confirm(keypad.get_user_input()):
     #     startLevel = get_starting_level(audioQueue)
     
-    startNode = get_starting_nodeID(audioQueue)
-    while not is_confirm(keypad.get_user_input()):
-        startNode = get_starting_nodeID(audioQueue)
-
+  #  startNode = get_starting_nodeID(audioQueue)
+  #  while not is_confirm(keypad.get_user_input()):
+  #      startNode = get_starting_nodeID(audioQueue)
+    startNode = 18
     # NOTE: HARDCODED FOR TESTING
     destBuilding = startBuilding
     destLevel = startLevel

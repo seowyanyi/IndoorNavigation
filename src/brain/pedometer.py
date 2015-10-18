@@ -16,11 +16,11 @@ test_queue = Queue.Queue()
 
 WINDOW_SIZE = 5
 AT_REST_LIMIT = 1
-AT_REST_LIMIT_LONG = 5
+AT_REST_LIMIT_LONG = 50
 SWING_LIMIT = 2
 SECS_BETW_BEARING_READINGS = 0.5
 TURNING_THRESHOLD = 40
-FOOT_OFFSET_ANGLE = 8
+FOOT_OFFSET_ANGLE = 25
 #todo: minus ~5 degrees from bearing due to angle of foot
 
 import threading
@@ -56,6 +56,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
     swing_count = 0
     at_rest_count = 0
+    at_rest_count_long = 0
     previouslyAtRest = True
 
     pause_pedo = False
@@ -114,8 +115,10 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         if is_at_rest(data):
             at_rest_count += 1
+            at_rest_count_long += 1
         else:
             at_rest_count = 0
+            at_rest_count_long = 0
 
         if debug:
             line = get_equation_of_line(data)
@@ -128,9 +131,11 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             at_rest_count = 0
 
         # User is at rest
-        if at_rest_count > AT_REST_LIMIT_LONG:
+        if at_rest_count_long > AT_REST_LIMIT_LONG:
             print 'User currently at rest. {} deg'.format(heading)
             pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
+	    at_rest_count_long = 0
+	    continue
 
         # User took a step forward
         if previouslyAtRest and swing_count > swingLimit:

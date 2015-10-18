@@ -27,7 +27,7 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
-LIMIT_DATA_RATE = 10
+LIMIT_DATA_RATE = 1
 #
 # GPIO.setmode(GPIO.BOARD)
 # GPIO.setup(21,GPIO.OUT)
@@ -92,19 +92,20 @@ def read_packet(limit, imuQueue):
                         if counter == 1:
                             #print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
                             heading = int(xyz[0])
+			    #print 'arduino heading: {}'.format(heading)
                             x = int(xyz[1])
                             y = int(xyz[2])
                             z = int(xyz[3])
 
                             imuQueue.put(qm.IMUData(x, y, z, heading))
-                            # with open(ACC_X_DATA_FILE, "a") as myfile:
-                            #     myfile.write(xyz[1] + '\n')
-                            # with open(ACC_Y_DATA_FILE, "a") as myfile:
-                            #     myfile.write(xyz[2] + '\n')
-                            # with open(ACC_Z_DATA_FILE, "a") as myfile:
-                            #     myfile.write(xyz[3] + '\n')
-                            # with open(COMPASS_DATA_FILE, "a") as myfile:
-                            #     myfile.write(xyz[0] + '\n')
+                            with open(ACC_X_DATA_FILE, "a") as myfile:
+                                myfile.write(xyz[1] + '\n')
+                            #with open(ACC_Y_DATA_FILE, "a") as myfile:
+                            #    myfile.write(xyz[2] + '\n')
+                            #with open(ACC_Z_DATA_FILE, "a") as myfile:
+                            #    myfile.write(xyz[3] + '\n')
+                            #with open(COMPASS_DATA_FILE, "a") as myfile:
+                            #    myfile.write(xyz[0] + '\n')
                         if counter == limit:
                             counter = 0
                         counter += 1
@@ -116,7 +117,6 @@ def read_packet(limit, imuQueue):
                     elif (strpkt[0] == b'C') :
                         compassData = strpkt[2:5]
                                    
-                time.sleep(0.05)
         except:
             sprotapi.SPROTClose()
             sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)

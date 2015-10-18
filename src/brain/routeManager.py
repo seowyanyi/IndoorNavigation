@@ -23,15 +23,17 @@ DISTANCE_LEFT_STEPS = '{} steps left'
 
 # Constants
 CM_PER_STEP = 80
-ACCEPTABLE_BEARING_ERROR_STAIONARY = 4 # degrees
-ACCEPTABLE_BEARING_ERROR_MOVING = 8 # degrees
+ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
+ACCEPTABLE_BEARING_ERROR_MOVING = 20 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 3
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     data = pedometerQueue.get(True)
     while abs(target_bearing - data['actual_bearing']) > threshold:
         guide_user(data['actual_bearing'], target_bearing, audioQueue)
-        time.sleep(15)
+        time.sleep(8)
+	pedometerQueue.queue.clear()
+    	data = pedometerQueue.get(True)
 
 def guide_user(actual_bearing, target_bearing, audioQueue):
     difference = target_bearing - actual_bearing

@@ -24,25 +24,25 @@ def start():
         threadName='audio Dispatcher', audioQueue=audioQueue).start()
 
 
-    precomputedData = mapper.init_mapper(audioQueue)
-
-    # Thread 2
-    serialmod.SensorManagerThread(
-        threadName='sensor Manager', imuQueue=imuQueue,
-        middleSonarQueue=middleSonarQueue, leftSonarQueue=leftSonarQueue,
-        rightSonarQueue=rightSonarQueue).start()
+    #precomputedData = mapper.init_mapper(audioQueue)
 
     # Thread 3
     pedometer.PedometerThread(
         threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue,
         keypressQueue=keypadQueue, audioQueue=audioQueue).start()
 
-
+    """
     # Thread 4
     routeManager.RouteManagerThread(
         threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
         precomputedCheckpointData=precomputedData
     ).start()
+    """
+    # Thread 2
+    serialmod.SensorManagerThread(
+        threadName='sensor Manager', imuQueue=imuQueue,
+        middleSonarQueue=middleSonarQueue, leftSonarQueue=leftSonarQueue,
+        rightSonarQueue=rightSonarQueue).start()
 
     # Thread 5
-    KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue).start()
+    #KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue).start()
