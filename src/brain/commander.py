@@ -7,7 +7,7 @@ from src.arduinoInterface import serialmod
 import routeManager
 import src.mapper.mapper as mapper
 import pedometer
-
+import time
 
 def start():
     imuQueue = queueManager.IMU_QUEUE
@@ -16,27 +16,38 @@ def start():
     keypadQueue = queueManager.KEYPAD_QUEUE
 
     # Thread 1
-    audio.AudioDispatcherThread(
-        threadName='audio Dispatcher', audioQueue=audioQueue).start()
-
+    audio_thread = audio.AudioDispatcherThread(
+        threadName='audio Dispatcher', audioQueue=audioQueue)
+    audio_thread.daemon = True
+    audio_thread.start()
 
     precomputedData = mapper.init_mapper(audioQueue)
 
     # Thread 2
-    pedometer.PedometerThread(
+    pedometer_thread = pedometer.PedometerThread(
         threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue,
-        keypressQueue=keypadQueue, audioQueue=audioQueue).start()
+        keypressQueue=keypadQueue, audioQueue=audioQueue)
+    pedometer_thread.daemon = True
+    pedometer_thread.start()
 
-    
     # Thread 3
-    routeManager.RouteManagerThread(
+    route_manager_thread = routeManager.RouteManagerThread(
         threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
         precomputedCheckpointData=precomputedData
-    ).start()
-    
+    )
+    route_manager_thread.daemon = True
+    route_manager_thread.start()
+
     # Thread 4
-    serialmod.SensorManagerThread(
-        threadName='sensor Manager', imuQueue=imuQueue).start()
+    sensor_thread = serialmod.SensorManagerThread(
+        threadName='sensor Manager', imuQueue=imuQueue)
+    sensor_thread.daemon = True
+    sensor_thread.start()
 
     # Thread 5
-    #KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue).start()
+    #kp_thread = KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue)
+    #kp_thread.daemon = True
+    #kp_thread.start()
+
+    while True:
+        time.sleep(1000)
