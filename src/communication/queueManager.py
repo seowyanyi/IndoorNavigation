@@ -1,8 +1,5 @@
 import Queue
 
-LEFT_SONAR_QUEUE = Queue.Queue()
-RIGHT_SONAR_QUEUE = Queue.Queue()
-MIDDLE_SONAR_QUEUE = Queue.Queue()
 IMU_QUEUE = Queue.Queue()       # IMUData
 AUDIO_QUEUE = Queue.Queue()     # {'type': AudioCommands.SOME_COMMAND, 'data': 60}
 PEDOMETER_QUEUE = Queue.Queue() # {'type': Step.SOME_STEP, 'actual_bearing': 120}

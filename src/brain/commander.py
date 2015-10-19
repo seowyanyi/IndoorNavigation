@@ -10,14 +10,10 @@ import pedometer
 
 
 def start():
-    
-    # leftSonarQueue = queueManager.LEFT_SONAR_QUEUE
-    # rightSonarQueue = queueManager.RIGHT_SONAR_QUEUE
-    # middleSonarQueue = queueManager.MIDDLE_SONAR_QUEUE
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
-    # keypadQueue = queueManager.KEYPAD_QUEUE
+    keypadQueue = queueManager.KEYPAD_QUEUE
 
     # Thread 1
     audio.AudioDispatcherThread(
@@ -40,9 +36,7 @@ def start():
     
     # Thread 4
     serialmod.SensorManagerThread(
-        threadName='sensor Manager', imuQueue=imuQueue,
-        middleSonarQueue=middleSonarQueue, leftSonarQueue=leftSonarQueue,
-        rightSonarQueue=rightSonarQueue).start()
+        threadName='sensor Manager', imuQueue=imuQueue).start()
 
     # Thread 5
     #KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue).start()

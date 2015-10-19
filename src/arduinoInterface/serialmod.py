@@ -35,13 +35,10 @@ LIMIT_DATA_RATE = 8
 # GPIO.output(21,GPIO.LOW)
 
 class SensorManagerThread(threading.Thread):
-    def __init__(self, threadName, imuQueue, middleSonarQueue, leftSonarQueue, rightSonarQueue):
+    def __init__(self, threadName, imuQueue):
         threading.Thread.__init__(self)
         self.threadName = threadName
         self.imuQueue = imuQueue
-        self.middleSonarQueue = middleSonarQueue
-        self.leftSonarQueue = leftSonarQueue
-        self.rightSonarQueue = rightSonarQueue
 
     def run(self):
         print 'Starting {} thread'.format(self.threadName)
