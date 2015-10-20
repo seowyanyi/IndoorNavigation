@@ -16,6 +16,9 @@ ACC_X_DATA_FILE = "acc_x.txt"
 ACC_Y_DATA_FILE = "acc_y.txt"
 ACC_Z_DATA_FILE = "acc_z.txt"
 COMPASS_DATA_FILE = "compass.txt"
+DATA_RATE_FILE = "data_rate.txt"
+WRITE_FILE_BUFFER = 35 # only write to file every x data points for efficiency
+
 
 sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)
 
@@ -46,6 +49,14 @@ class SensorManagerThread(threading.Thread):
         print 'Exited {} thread'.format(self.threadName)
 
 
+def append_list_to_file(data, filename):
+    with open(filename, 'a') as myfile:
+        for item in data:
+            if not isinstance(item, str):
+                item = str(item)
+            myfile.write(item + '\n')
+
+
 # Extract sonar data from generic packet
 def convertPacketToSonarData(strpkt):
     sonarData = { strpkt[0] : strpkt[2:5] }
@@ -63,6 +74,11 @@ def removeNullChars(str):
 def read_packet(limit, imuQueue):
     counter = 1
     prev_time = timeit.default_timer()
+    # buffer for writing to files
+    acc_x_buffer = []
+    time_diff_buffer = []
+    compass_buffer = []
+
     while True :
 
         # Read a packet
@@ -93,17 +109,28 @@ def read_packet(limit, imuQueue):
                             x = int(xyz[1])
                             y = int(xyz[2])
                             z = int(xyz[3])
+
                             curr_time = timeit.default_timer()
-                            imuQueue.put(qm.IMUData(x, y, z, heading, curr_time - prev_time))
+                            diff = curr_time - prev_time
+                            imuQueue.put(qm.IMUData(x, y, z, heading, diff))
                             prev_time = curr_time
-                            #with open(ACC_X_DATA_FILE, "a") as myfile:
-                            #    myfile.write(xyz[1] + '\n')
-                            #with open(ACC_Y_DATA_FILE, "a") as myfile:
-                            #    myfile.write(xyz[2] + '\n')
-                            #with open(ACC_Z_DATA_FILE, "a") as myfile:
-                            #    myfile.write(xyz[3] + '\n')
-                            #with open(COMPASS_DATA_FILE, "a") as myfile:
-                            #    myfile.write(xyz[0] + '\n')
+
+                            if len(acc_x_buffer) == WRITE_FILE_BUFFER:
+                                append_list_to_file(acc_x_buffer, ACC_X_DATA_FILE)
+                                acc_x_buffer = []
+
+                            if len(time_diff_buffer) == WRITE_FILE_BUFFER:
+                                append_list_to_file(time_diff_buffer, DATA_RATE_FILE)
+                                time_diff_buffer = []
+
+                            if len(compass_buffer) == WRITE_FILE_BUFFER:
+                                append_list_to_file(compass_buffer, COMPASS_DATA_FILE)
+                                compass_buffer = []
+
+                            acc_x_buffer.append(x)
+                            time_diff_buffer.append(diff)
+                            compass_buffer.append(heading)
+
                         if counter == limit:
                             counter = 0
                         counter += 1
