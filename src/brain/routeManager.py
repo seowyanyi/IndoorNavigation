@@ -15,7 +15,7 @@ import time
 # Audio commands
 TURN_X_DEG_CW = 'Turn {} degrees clockwise'
 TURN_X_DEG_ACW = 'Turn {} degrees anti clockwise'
-METERS_LEFT = 'Good to go. {} meters to next checkpoint'
+GOOD_TO_GO = 'Good to go. {} steps to next checkpoint'
 DESTINATION_REACHED = 'Destination reached'
 CHECKPOINT_REACHED = 'Checkpoint {} reached'
 DISTANCE_LEFT_METERS = '{} meters left'
@@ -101,7 +101,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 print 'Current checkpoint: {}'.format(currNodeId)
                 audioQueue.put('Current checkpoint is {}'.format(currNodeId))
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
-                audioQueue.put(METERS_LEFT.format(round(distance_to_next/100,1)))
+                audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
                 print 'Distance to node {}: {} cm Bearing to {}: {} deg'.format(checkpoint, distance_to_next, checkpoint, bearing_to_next)
 
         else:
