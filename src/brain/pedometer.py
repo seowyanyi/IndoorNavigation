@@ -56,6 +56,11 @@ def init_test_queue():
         for line in f:
             test_queue.put(qm.IMUData(int(line), 0, 0, 0, 0))
 
+def init_compass_test_queue():
+    with open('compass.txt') as f:
+        for line in f:
+            test_queue.put(qm.IMUData(0, 0, 0, int(line), 0))
+
 def is_two_seconds_passed(prev_two_seconds):
     curr = int(time.time())
     if curr % 2 == 0 and curr > prev_two_seconds:
@@ -230,5 +235,6 @@ def clean_up():
 
 if __name__ == "__main__":
     clean_up()
-    init_test_queue()
+    #init_test_queue()
+    init_compass_test_queue()
     start_pedometer_processing(test_queue,Queue.Queue(), WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True, Queue.Queue(), Queue.Queue())
