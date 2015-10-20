@@ -138,9 +138,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             medianHeading = np.median(headingData)
             headingData = []
 
-        if len(headingData) < HEADING_WINDOW_SIZE:
-            continue
-
         # check whether we are making a turn
         # if timeit.default_timer() - time_bearing_taken >= SECS_BETW_BEARING_READINGS:
         #     time_bearing_taken = timeit.default_timer()
