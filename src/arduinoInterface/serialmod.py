@@ -4,9 +4,8 @@ import sprotpkt as sprotpkt
 import threading
 import src.communication.queueManager as qm # Don't take this out
 import Queue
-import time
-#from matrix_keypad import RPi_GPIO as GPIO
 import RPi.GPIO as GPIO
+import timeit
 
 DATA_SIZE = 16
 DEST_PORT_CRUNCHER = 9003
@@ -27,7 +26,7 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
-LIMIT_DATA_RATE = 10
+LIMIT_DATA_RATE = 8
 #
 # GPIO.setmode(GPIO.BOARD)
 # GPIO.setup(21,GPIO.OUT)
@@ -36,13 +35,10 @@ LIMIT_DATA_RATE = 10
 # GPIO.output(21,GPIO.LOW)
 
 class SensorManagerThread(threading.Thread):
-    def __init__(self, threadName, imuQueue, middleSonarQueue, leftSonarQueue, rightSonarQueue):
+    def __init__(self, threadName, imuQueue):
         threading.Thread.__init__(self)
         self.threadName = threadName
         self.imuQueue = imuQueue
-        self.middleSonarQueue = middleSonarQueue
-        self.leftSonarQueue = leftSonarQueue
-        self.rightSonarQueue = rightSonarQueue
 
     def run(self):
         print 'Starting {} thread'.format(self.threadName)
@@ -66,6 +62,7 @@ def removeNullChars(str):
     
 def read_packet(limit, imuQueue):
     counter = 1
+    prev_time = timeit.default_timer()
     while True :
 
         # Read a packet
@@ -92,19 +89,21 @@ def read_packet(limit, imuQueue):
                         if counter == 1:
                             #print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
                             heading = int(xyz[0])
+                            #print 'arduino heading: {}'.format(heading)
                             x = int(xyz[1])
                             y = int(xyz[2])
                             z = int(xyz[3])
-
-                            imuQueue.put(qm.IMUData(x, y, z, heading))
-                            # with open(ACC_X_DATA_FILE, "a") as myfile:
-                            #     myfile.write(xyz[1] + '\n')
-                            # with open(ACC_Y_DATA_FILE, "a") as myfile:
-                            #     myfile.write(xyz[2] + '\n')
-                            # with open(ACC_Z_DATA_FILE, "a") as myfile:
-                            #     myfile.write(xyz[3] + '\n')
-                            # with open(COMPASS_DATA_FILE, "a") as myfile:
-                            #     myfile.write(xyz[0] + '\n')
+                            curr_time = timeit.default_timer()
+                            imuQueue.put(qm.IMUData(x, y, z, heading, curr_time - prev_time))
+                            prev_time = curr_time
+                            #with open(ACC_X_DATA_FILE, "a") as myfile:
+                            #    myfile.write(xyz[1] + '\n')
+                            #with open(ACC_Y_DATA_FILE, "a") as myfile:
+                            #    myfile.write(xyz[2] + '\n')
+                            #with open(ACC_Z_DATA_FILE, "a") as myfile:
+                            #    myfile.write(xyz[3] + '\n')
+                            #with open(COMPASS_DATA_FILE, "a") as myfile:
+                            #    myfile.write(xyz[0] + '\n')
                         if counter == limit:
                             counter = 0
                         counter += 1
@@ -116,7 +115,6 @@ def read_packet(limit, imuQueue):
                     elif (strpkt[0] == b'C') :
                         compassData = strpkt[2:5]
                                    
-                time.sleep(0.05)
         except:
             sprotapi.SPROTClose()
             sprotapi.SPROTInit("/dev/ttyAMA0", baudrate=SERIALMOD_BAUDRATE)

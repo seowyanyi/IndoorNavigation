@@ -8,20 +8,27 @@ Types of steps:
 import numpy as np
 import Queue
 import os
-import src.communication.queueManager as qm
 import timeit
 import time
+#import sys
+#sys.path.insert(0, '/home/seowyanyi/school/cg3002/IndoorNavigation/src')
+#import communication.queueManager as qm
+
+import src.communication.queueManager as qm
 
 test_queue = Queue.Queue()
 
-WINDOW_SIZE = 5
-AT_REST_LIMIT = 1
-AT_REST_LIMIT_LONG = 5
-SWING_LIMIT = 2
+WINDOW_SIZE = 20
+AT_REST_LIMIT = 5
+AT_REST_LIMIT_LONG = 10
+SWING_LIMIT = 1
 SECS_BETW_BEARING_READINGS = 0.5
 TURNING_THRESHOLD = 40
-FOOT_OFFSET_ANGLE = 8
-#todo: minus ~5 degrees from bearing due to angle of foot
+FOOT_OFFSET_ANGLE = 25
+
+AVG_DATA_RATE = 0.04
+DATA_RATE_ERROR_MARGIN = 0.02
+DATA_RATE_WINDOW_SIZE = 50
 
 import threading
 
@@ -44,9 +51,19 @@ class PedometerThread(threading.Thread):
         print 'Exited {} thread'.format(self.threadName)
 
 def init_test_queue():
-    with open('acc_x.txt') as f:
+    with open('b.txt') as f:
         for line in f:
             test_queue.put(qm.IMUData(int(line), 0, 0, 0))
+
+def is_two_seconds_passed(prev_two_seconds):
+    curr = int(time.time())
+    if curr % 2 == 0 and curr > prev_two_seconds:
+        return {'status':True, 'curr': curr}
+    return {'status':False, 'curr': curr}
+
+def isWithinRange(expected, actual, errorMargin):
+    return abs(expected - actual) <= errorMargin
+
 
 def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug, keypressQueue, audioQueue):
     steps = 0
@@ -56,9 +73,14 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
     swing_count = 0
     at_rest_count = 0
+    at_rest_count_long = 0
     previouslyAtRest = True
 
     pause_pedo = False
+
+    # data rate stuff
+    dataRateList = []
+    prev_two_seconds = int(time.time())
 
     while True:
         if debug and dataQueue.qsize() <= 1:
@@ -85,6 +107,18 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         imuData = dataQueue.get(True)
         x = imuData.xAxis
         heading = imuData.heading - FOOT_OFFSET_ANGLE
+
+        # keeps track of a list of data rates. Compare with the expected average every two seconds
+        if len(dataRateList) > DATA_RATE_WINDOW_SIZE:
+            dataRateList.pop(0)
+        dataRateList.append(imuData.dataRate)
+        checkTwoSecs = is_two_seconds_passed(prev_two_seconds)
+        if checkTwoSecs['status']:
+            prev_two_seconds = checkTwoSecs['curr']
+            actual_rate = np.mean(dataRateList)
+            if not isWithinRange(actual_rate, AVG_DATA_RATE, DATA_RATE_ERROR_MARGIN):
+                print 'Data rate is off. Actual: {} s'.format(actual_rate)
+
 
         if previous_bearing is None:
             previous_bearing = heading
@@ -114,8 +148,10 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         if is_at_rest(data):
             at_rest_count += 1
+            at_rest_count_long += 1
         else:
             at_rest_count = 0
+            at_rest_count_long = 0
 
         if debug:
             line = get_equation_of_line(data)
@@ -128,9 +164,11 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             at_rest_count = 0
 
         # User is at rest
-        if at_rest_count > AT_REST_LIMIT_LONG:
+        if at_rest_count_long > AT_REST_LIMIT_LONG:
             print 'User currently at rest. {} deg'.format(heading)
             pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
+            at_rest_count_long = 0
+            continue
 
         # User took a step forward
         if previouslyAtRest and swing_count > swingLimit:
@@ -144,6 +182,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
                 write_to_step_file('1')
         elif debug:
             write_to_step_file('0')
+    print 'steps: {}'.format(steps)
 
 def write_to_gradient_file(data):
     with open("gradient.txt", "a") as myfile:
@@ -182,4 +221,4 @@ def clean_up():
 if __name__ == "__main__":
     clean_up()
     init_test_queue()
-    start_pedometer_processing(test_queue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True)
+    start_pedometer_processing(test_queue,Queue.Queue(), WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True, Queue.Queue(), Queue.Queue())
