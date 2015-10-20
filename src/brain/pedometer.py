@@ -110,6 +110,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         imuData = dataQueue.get(True)
         x = imuData.xAxis
         heading = imuData.heading - FOOT_OFFSET_ANGLE
+        medianHeading = heading
 
         # keeps track of a list of data rates. Compare with the expected average every two seconds
         if len(dataRateList) > DATA_RATE_WINDOW_SIZE:
