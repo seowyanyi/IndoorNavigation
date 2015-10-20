@@ -23,15 +23,17 @@ DISTANCE_LEFT_STEPS = '{} steps left'
 
 # Constants
 CM_PER_STEP = 84
-ACCEPTABLE_BEARING_ERROR_STAIONARY = 15 # degrees
+ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 3
+COUNTDOWN_X_STEPS_LEFT = 4
+SECS_BETW_REPEATS = 4
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     data = pedometerQueue.get(True)
     while abs(target_bearing - data['actual_bearing']) > threshold:
         guide_user(data['actual_bearing'], target_bearing, audioQueue)
-        time.sleep(8)
+        time.sleep(10)
         pedometerQueue.queue.clear()
         data = pedometerQueue.get(True)
 
@@ -84,6 +86,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
     distance_to_next = 0
     steps = 0
 
+    prev_time= int(time.time())
+
     while True:
         if reached_checkpoint:
             curr_index += 1
@@ -114,14 +118,15 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     steps = 0
                     if abs(bearing_to_next - data['actual_bearing']) > ACCEPTABLE_BEARING_ERROR_MOVING:
                         guide_user_while_walking(data['actual_bearing'], bearing_to_next, audioQueue)
-            elif data['type'] == pedometer.Step.AT_REST:
-                audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
-            elif data['type'] == pedometer.Step.TURN:
-                pass
 
-            if distance_to_next <= 5 * CM_PER_STEP:
-                # start counting down 5 steps before reaching next checkpoint
-                audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
+                # start counting down a few steps before reaching next checkpoint
+                if distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
+                    audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
+            elif data['type'] == pedometer.Step.AT_REST and int(time.time()) - prev_time >= 4:
+                # User somehow stopped in between checkpoints
+                audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
+                prev_time = int(time.time())
+
 
             if distance_to_next <= 0:
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
