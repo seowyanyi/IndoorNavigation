@@ -19,6 +19,7 @@ import src.communication.queueManager as qm
 test_queue = Queue.Queue()
 
 WINDOW_SIZE = 10
+HEADING_WINDOW_SIZE = 30
 AT_REST_LIMIT = 2
 AT_REST_LIMIT_LONG = 30
 SWING_LIMIT = 1
@@ -68,6 +69,8 @@ def isWithinRange(expected, actual, errorMargin):
 def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug, keypressQueue, audioQueue):
     steps = 0
     data = []
+    headingData = []
+
     # previous_bearing = None
     # time_bearing_taken = None
 
@@ -107,6 +110,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         imuData = dataQueue.get(True)
         x = imuData.xAxis
         heading = imuData.heading - FOOT_OFFSET_ANGLE
+        headingData.append(heading)
 
         # keeps track of a list of data rates. Compare with the expected average every two seconds
         if len(dataRateList) > DATA_RATE_WINDOW_SIZE:
@@ -130,6 +134,12 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         if len(data) < windowSize:
             continue
 
+        if len(headingData) == HEADING_WINDOW_SIZE:
+            medianHeading = np.median(headingData)
+            headingData = []
+
+        if len(headingData) < HEADING_WINDOW_SIZE:
+            continue
 
         # check whether we are making a turn
         # if timeit.default_timer() - time_bearing_taken >= SECS_BETW_BEARING_READINGS:
@@ -165,9 +175,9 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         # User took a step forward
         if previouslyAtRest and swing_count > swingLimit:
-            print 'Step taken {} deg'.format(heading)
+            print 'Step taken {} deg'.format(medianHeading)
             steps += 1
-            pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': heading})
+            pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': medianHeading})
             swing_count = 0
             previouslyAtRest = False
             at_rest_count = 0
@@ -178,8 +188,8 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         # User is at rest
         if at_rest_count_long > AT_REST_LIMIT_LONG:
-            print 'User currently at rest. {} deg'.format(heading)
-            pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
+            print 'User currently at rest. {} deg'.format(medianHeading)
+            pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': medianHeading})
             at_rest_count_long = 0
             continue
 
