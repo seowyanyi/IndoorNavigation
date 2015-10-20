@@ -81,7 +81,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
     print 'start managing routes'
     curr_index = -1
     reached_checkpoint = True
-    
+    distance_to_next = 0
     steps = 0
 
     while True:
@@ -115,7 +115,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     if abs(bearing_to_next - data['actual_bearing']) > ACCEPTABLE_BEARING_ERROR_MOVING:
                         guide_user_while_walking(data['actual_bearing'], bearing_to_next, audioQueue)
             elif data['type'] == pedometer.Step.AT_REST:
-                pass
+                audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
             elif data['type'] == pedometer.Step.TURN:
                 pass
 
