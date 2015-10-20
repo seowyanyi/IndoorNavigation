@@ -110,7 +110,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         imuData = dataQueue.get(True)
         x = imuData.xAxis
         heading = imuData.heading - FOOT_OFFSET_ANGLE
-        headingData.append(heading)
 
         # keeps track of a list of data rates. Compare with the expected average every two seconds
         if len(dataRateList) > DATA_RATE_WINDOW_SIZE:
@@ -134,9 +133,11 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         if len(data) < windowSize:
             continue
 
-        if len(headingData) == HEADING_WINDOW_SIZE:
+        if len(headingData) > HEADING_WINDOW_SIZE:
+            headingData.pop(0)
             medianHeading = np.median(headingData)
-            headingData = []
+        headingData.append(heading)
+
 
         # check whether we are making a turn
         # if timeit.default_timer() - time_bearing_taken >= SECS_BETW_BEARING_READINGS:
