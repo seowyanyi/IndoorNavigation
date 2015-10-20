@@ -8,26 +8,26 @@ Types of steps:
 import numpy as np
 import Queue
 import os
-import timeit
+# import timeit
 import time
-#import sys
-#sys.path.insert(0, '/home/seowyanyi/school/cg3002/IndoorNavigation/src')
-#import communication.queueManager as qm
+# import sys
+# sys.path.insert(0, '/home/seowyanyi/school/cg3002/IndoorNavigation/src')
+# import communication.queueManager as qm
 
 import src.communication.queueManager as qm
 
 test_queue = Queue.Queue()
 
-WINDOW_SIZE = 20
-AT_REST_LIMIT = 5
-AT_REST_LIMIT_LONG = 10
+WINDOW_SIZE = 10
+AT_REST_LIMIT = 2
+AT_REST_LIMIT_LONG = 30
 SWING_LIMIT = 1
 SECS_BETW_BEARING_READINGS = 0.5
 TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 25
 
 AVG_DATA_RATE = 0.04
-DATA_RATE_ERROR_MARGIN = 0.02
+DATA_RATE_ERROR_MARGIN = 0.005
 DATA_RATE_WINDOW_SIZE = 50
 
 import threading
@@ -53,7 +53,7 @@ class PedometerThread(threading.Thread):
 def init_test_queue():
     with open('b.txt') as f:
         for line in f:
-            test_queue.put(qm.IMUData(int(line), 0, 0, 0))
+            test_queue.put(qm.IMUData(int(line), 0, 0, 0, 0))
 
 def is_two_seconds_passed(prev_two_seconds):
     curr = int(time.time())
@@ -68,8 +68,8 @@ def isWithinRange(expected, actual, errorMargin):
 def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug, keypressQueue, audioQueue):
     steps = 0
     data = []
-    previous_bearing = None
-    time_bearing_taken = None
+    # previous_bearing = None
+    # time_bearing_taken = None
 
     swing_count = 0
     at_rest_count = 0
@@ -120,9 +120,9 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
                 print 'Data rate is off. Actual: {} s'.format(actual_rate)
 
 
-        if previous_bearing is None:
-            previous_bearing = heading
-            time_bearing_taken = timeit.default_timer()
+        # if previous_bearing is None:
+        #     previous_bearing = heading
+        #     time_bearing_taken = timeit.default_timer()
 
         if len(data) > windowSize:
             data.pop(0)
@@ -132,13 +132,13 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
 
         # check whether we are making a turn
-        if timeit.default_timer() - time_bearing_taken >= SECS_BETW_BEARING_READINGS:
-            time_bearing_taken = timeit.default_timer()
-            if abs(heading - previous_bearing) > TURNING_THRESHOLD:
-                previous_bearing = heading
-                print 'User made a turn to {} deg'.format(heading)
-                pedometerQueue.put({'type': Step.TURN, 'actual_bearing': heading})
-                continue
+        # if timeit.default_timer() - time_bearing_taken >= SECS_BETW_BEARING_READINGS:
+        #     time_bearing_taken = timeit.default_timer()
+        #     if abs(heading - previous_bearing) > TURNING_THRESHOLD:
+        #         previous_bearing = heading
+        #         print 'User made a turn to {} deg'.format(heading)
+        #         pedometerQueue.put({'type': Step.TURN, 'actual_bearing': heading})
+        #         continue
 
         # detect the movement type
         if is_downward_swing(data):
@@ -163,13 +163,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             previouslyAtRest = True
             at_rest_count = 0
 
-        # User is at rest
-        if at_rest_count_long > AT_REST_LIMIT_LONG:
-            print 'User currently at rest. {} deg'.format(heading)
-            pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
-            at_rest_count_long = 0
-            continue
-
         # User took a step forward
         if previouslyAtRest and swing_count > swingLimit:
             print 'Step taken {} deg'.format(heading)
@@ -182,6 +175,14 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
                 write_to_step_file('1')
         elif debug:
             write_to_step_file('0')
+
+        # User is at rest
+        if at_rest_count_long > AT_REST_LIMIT_LONG:
+            print 'User currently at rest. {} deg'.format(heading)
+            pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': heading})
+            at_rest_count_long = 0
+            continue
+
     print 'steps: {}'.format(steps)
 
 def write_to_gradient_file(data):
@@ -206,7 +207,7 @@ def is_downward_swing(data):
 def is_at_rest(data):
     line = get_equation_of_line(data)
     gradient = abs(line[0])
-    return gradient <= 0.15
+    return gradient <= 0.1
 
 def clean_up():
     try:
