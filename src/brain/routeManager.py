@@ -99,6 +99,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
     while True:
         if pause_step_counting and int(time.time()) - pedometer_pause_time > PEDOMETER_PAUSE_SECONDS:
             audioQueue.put(PEDOMETER_RESTARTED + '. ' + DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
+            print 'pedometer restarted'
             pause_step_counting = False
 
         if reached_checkpoint:
@@ -134,7 +135,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                         guide_user_while_walking(data['actual_bearing'], bearing_to_next, audioQueue)
 
                 # start counting down a few steps before reaching next checkpoint
-                if distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
+                if 0 < distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
 
             elif data['type'] == pedometer.Step.AT_REST and int(time.time()) - prev_time >= CHECK_AT_REST_INVERVAL:
@@ -146,9 +147,9 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     # Case 2: User stopped in between checkpoints (probably obstacle).
                     # Pause counting of steps
                     audioQueue.put(PEDOMETER_PAUSED_TEN_SECS)
+                    print 'pedometer paused for ten seconds'
                     pause_step_counting = True
                     pedometer_pause_time = int(time.time())
-
 
             if distance_to_next <= 0:
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']

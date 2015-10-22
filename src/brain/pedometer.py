@@ -35,18 +35,15 @@ class Step:
     FORWARD, AT_REST = range(2)
 
 class PedometerThread(threading.Thread):
-    def __init__(self, threadName, imuQueue, pedometerQueue, keypressQueue, audioQueue):
+    def __init__(self, threadName, imuQueue, pedometerQueue):
         threading.Thread.__init__(self)
         self.threadName = threadName
         self.imuQueue = imuQueue
         self.pedometerQueue = pedometerQueue
-        self.keypressQueue = keypressQueue
-        self.audioQueue = audioQueue
 
     def run(self):
         print 'Starting {} thread'.format(self.threadName)
-        start_pedometer_processing(self.imuQueue, self.pedometerQueue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, False,
-                                   self.keypressQueue, self.audioQueue)
+        start_pedometer_processing(self.imuQueue, self.pedometerQueue, WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, False)
         print 'Exited {} thread'.format(self.threadName)
 
 def init_test_queue():
@@ -69,7 +66,7 @@ def isWithinRange(expected, actual, errorMargin):
     return abs(expected - actual) <= errorMargin
 
 
-def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug, keypressQueue, audioQueue):
+def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug):
     steps = 0
     data = []
     headingData = []
@@ -79,8 +76,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
     at_rest_count_long = 0
     previouslyAtRest = True
 
-    pause_pedo = False
-
     # data rate stuff
     dataRateList = []
     prev_two_seconds = int(time.time())
@@ -88,23 +83,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
     while True:
         if debug and dataQueue.qsize() <= 1:
             break
-
-        try:
-            pause_pedo = keypressQueue.get(False)
-            if pause_pedo:
-                print '     ***   PEDOMETER PAUSED      ***'
-                audioQueue.put('Pedometer paused')
-            else:
-                print '     ***   PEDOMETER RESTARTED      ***'
-                audioQueue.put('Pedometer restarted')
-
-        except Queue.Empty:
-            pass
-
-        if pause_pedo:
-            time.sleep(0.5)
-            continue
-
 
         # Get data from imu and populate the relevant lists
         imuData = dataQueue.get(True)
@@ -219,4 +197,4 @@ if __name__ == "__main__":
     clean_up()
     init_test_queue()
     # init_compass_test_queue()
-    start_pedometer_processing(test_queue,Queue.Queue(), WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True, Queue.Queue(), Queue.Queue())
+    start_pedometer_processing(test_queue,Queue.Queue(), WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True)
