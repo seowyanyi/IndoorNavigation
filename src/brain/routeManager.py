@@ -177,6 +177,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     audioQueue.put(PEDOMETER_RESTARTED)
                     pedometerQueue.queue.clear()
                     total_distance_off_center = 0
+                    pedometer_pause_time = int(time.time())
                 elif steps == NUM_STEPS_BEFORE_CORRECTING:
                     steps = 0
                     if abs(bearing_error) > ACCEPTABLE_BEARING_ERROR_MOVING:
