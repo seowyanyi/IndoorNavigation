@@ -190,6 +190,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     audioQueue.put(PEDOMETER_RESTARTED + '. ' + DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
                     print 'pedometer restarted'
                     pause_step_counting = False
+                    prev_time = int(time.time())
             elif data['type'] == pedometer.Step.AT_REST and int(time.time()) - prev_time >= CHECK_AT_REST_INVERVAL:
                 prev_time = int(time.time())
                 if steps_between_checkpoints == 0:
