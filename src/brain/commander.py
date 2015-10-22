@@ -8,6 +8,7 @@ import routeManager
 import src.mapper.mapper as mapper
 import pedometer
 import time
+import RPi.GPIO as GPIO
 
 def start():
     imuQueue = queueManager.IMU_QUEUE
@@ -40,6 +41,11 @@ def start():
     sensor_thread = serialmod.SensorManagerThread(
         threadName='sensor Manager', imuQueue=imuQueue)
     sensor_thread.daemon = True
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(13,GPIO.OUT)
+    GPIO.output(13,False)
+    time.sleep(1)
+    GPIO.output(13,True)
     sensor_thread.start()
 
     # Thread 5
