@@ -34,7 +34,13 @@ CHECK_AT_REST_INVERVAL = 4
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     data = pedometerQueue.get(True)
-    while abs(target_bearing - data['actual_bearing']) > threshold:
+    while True:
+        if data['type'] != pedometer.Step.AT_REST:
+            pedometerQueue.queue.clear()
+            data = pedometerQueue.get(True)
+            continue
+        if abs(target_bearing - data['actual_bearing']) < threshold:
+            break
         guide_user(data['actual_bearing'], target_bearing, audioQueue)
         time.sleep(10)
         pedometerQueue.queue.clear()
