@@ -13,7 +13,6 @@ def start():
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
-    keypadQueue = queueManager.KEYPAD_QUEUE
 
     # Thread 1
     audio_thread = audio.AudioDispatcherThread(
@@ -25,8 +24,7 @@ def start():
 
     # Thread 2
     pedometer_thread = pedometer.PedometerThread(
-        threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue,
-        keypressQueue=keypadQueue, audioQueue=audioQueue)
+        threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue)
     pedometer_thread.daemon = True
     pedometer_thread.start()
 
