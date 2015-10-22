@@ -89,7 +89,7 @@ def download_map(buildingName, levelNum):
     else:
         print "NO INTERNET"
         if (buildingName == 1 and levelNum == 2):
-            with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
+            with open('/Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
                 mapJsonData = json.load(json_file)
         elif (buildingName == 2 and levelNum == 2):
             with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
@@ -436,8 +436,8 @@ def begin_test():
     test_path_finding()
 
 def test_path_finding():
-    buildingName = 'COM1'
-    levelNum = '2'
+    buildingName = 1
+    levelNum = 2
     while True:
         startNode = raw_input('start node id: ')
         endNode  = raw_input('end node id: ')
