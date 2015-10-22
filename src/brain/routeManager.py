@@ -190,6 +190,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 prev_time = int(time.time())
                 if steps_between_checkpoints == 0:
                     # Case 1: User still at checkpoint. Maybe he missed the command to go
+                    audioQueue.put('Current checkpoint is {}'.format(precomputedCheckpointData[curr_index]['curr_checkpoint']))
+                    time.sleep(6)
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
                 elif pause_step_counting and int(time.time()) - pedometer_pause_time > PEDOMETER_PAUSE_SECONDS:
                     # Case 2: User finished avoiding obstacle and is ready to go
