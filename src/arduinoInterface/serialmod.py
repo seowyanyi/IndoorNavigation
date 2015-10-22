@@ -87,7 +87,7 @@ def read_packet(limit, imuQueue):
         try :
                 # Check for error
                 if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
-                    print "recv error"
+                    #print "recv error"
                     sprotapi.SPROTFlush()
                     pass
                     # time.sleep(2)

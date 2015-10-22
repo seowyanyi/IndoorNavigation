@@ -27,8 +27,8 @@ TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 25
 SECS_BETWEEN_STEPS = 1
 
-MAX_DATA_RATE = 0.045
-MIN_DATA_RATE = 0.025
+MAX_DATA_RATE = 0.05
+MIN_DATA_RATE = 0.02
 DATA_RATE_WINDOW_SIZE = 50
 
 import threading
@@ -133,7 +133,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             if not MIN_DATA_RATE <= actual_rate <= MAX_DATA_RATE:
                 print 'Data rate is off. Actual: {} s'.format(actual_rate)
             if np.amax(headingData) - np.amin(headingData) < AT_REST_HEADING_MARGIN:
-                print 'User currently at rest. {} deg'.format(medianHeading)
+                print 'User currently at rest. Heading: {} deg'.format(medianHeading)
                 pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': medianHeading})
                 continue
 
@@ -160,7 +160,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         # User took a step forward
         if previouslyAtRest and swing_count > swingLimit and time_between_steps >= SECS_BETWEEN_STEPS:
-            print 'Step taken {} deg'.format(medianHeading)
             time_between_steps = 0
             steps += 1
             pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': medianHeading})
