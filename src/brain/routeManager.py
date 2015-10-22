@@ -135,7 +135,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                         guide_user_while_walking(data['actual_bearing'], bearing_to_next, audioQueue)
 
                 # start counting down a few steps before reaching next checkpoint
-                if distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
+                if 0 < distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
 
             elif data['type'] == pedometer.Step.AT_REST and int(time.time()) - prev_time >= CHECK_AT_REST_INVERVAL:
