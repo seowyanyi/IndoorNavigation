@@ -41,11 +41,10 @@ def start():
     sensor_thread = serialmod.SensorManagerThread(
         threadName='sensor Manager', imuQueue=imuQueue)
     sensor_thread.daemon = True
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setup(13,GPIO.OUT)
-    GPIO.output(13,False)
+    GPIO.setup(7, GPIO.OUT)
+    GPIO.output(7, False)
     time.sleep(1)
-    GPIO.output(13,True)
+    GPIO.output(7, True)
     sensor_thread.start()
 
     # Thread 5
