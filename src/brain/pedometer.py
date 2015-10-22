@@ -50,12 +50,12 @@ class PedometerThread(threading.Thread):
 def init_test_queue():
     with open('acc_x_with_sensors.txt') as f:
         for line in f:
-            test_queue.put(qm.IMUData(int(line), 0, 0, 0, 0))
+            test_queue.put(qm.IMUData(int(line), 0, 0))
 
 def init_compass_test_queue():
     with open('compass.txt') as f:
         for line in f:
-            test_queue.put(qm.IMUData(0, 0, 0, int(line), 0))
+            test_queue.put(qm.IMUData(0, int(line), 0))
 
 def is_two_seconds_passed(prev_two_seconds):
     curr = int(time.time())
@@ -108,7 +108,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         if len(data) < windowSize:
             continue
-        
+
         # keeps track of a list of data rates. Compare with the expected average every two seconds
         # Also check whether user is at rest every two seconds
         checkTwoSecs = is_two_seconds_passed(prev_two_seconds)

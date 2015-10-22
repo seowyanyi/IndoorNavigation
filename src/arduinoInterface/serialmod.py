@@ -88,7 +88,7 @@ def read_packet(limit, imuQueue):
                 # Check for error
                 if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
                     print "recv error"
-		    sprotapi.SPROTFlush()
+                    sprotapi.SPROTFlush()
                     pass
                     # time.sleep(2)
                     # GPIO.output(21,True)
@@ -104,16 +104,14 @@ def read_packet(limit, imuQueue):
                         xyz = data[1].split(",")
 
                         if counter == 1:
-                            #print "c:" + xyz[0] + " x:" + xyz[1] + " y:" + xyz[2] + "z:" + xyz[3]
+                            #print "c:" + xyz[0] + " x:" + xyz[1]
                             heading = int(xyz[0])
                             #print 'arduino heading: {}'.format(heading)
                             x = int(xyz[1])
-                            #y = int(xyz[2])
-                            #z = int(xyz[3])
 
                             curr_time = timeit.default_timer()
                             diff = curr_time - prev_time
-                            imuQueue.put(qm.IMUData(x, y, z, heading, diff))
+                            imuQueue.put(qm.IMUData(xAxis=x, heading=heading, dataRate=diff))
                             prev_time = curr_time
 
                             if len(acc_x_buffer) == WRITE_FILE_BUFFER:

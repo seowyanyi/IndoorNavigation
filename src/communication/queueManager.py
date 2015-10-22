@@ -9,9 +9,7 @@ class Sonar:
     LEFT, RIGHT, FRONT, UPPER_SHIN, LOWER_SHIN, GLOVE = range(6)
 
 class IMUData:
-    def __init__(self, xAxis, yAxis, zAxis, heading, dataRate):
+    def __init__(self, xAxis, heading, dataRate):
         self.xAxis = xAxis
-        self.yAxis = yAxis
-        self.zAxis = zAxis
         self.heading = heading
         self.dataRate = dataRate
