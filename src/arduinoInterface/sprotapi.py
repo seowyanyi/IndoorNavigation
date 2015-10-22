@@ -44,3 +44,4 @@ def SPROTSend(data, timeout=sprotcfg.SPROT_SEND_TIMEOUT):
 
 def SPROTFlush():
     serialPort.flush()	
+    serialPort.flushInput()
