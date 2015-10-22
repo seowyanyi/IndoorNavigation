@@ -87,6 +87,7 @@ def download_map(buildingName, levelNum):
         url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName,levelNum)
         mapJsonData = json.load(urllib2.urlopen(url))
     else:
+        print "NO INTERNET"
         if (buildingName == "COM1" and levelNum == 2):
             with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
                 mapJsonData = json.load(json_file)
