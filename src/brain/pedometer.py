@@ -79,8 +79,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
     at_rest_count_long = 0
     previouslyAtRest = True
 
-    pause_pedo = False
-
     # data rate stuff
     dataRateList = []
     prev_two_seconds = int(time.time())
@@ -88,23 +86,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
     while True:
         if debug and dataQueue.qsize() <= 1:
             break
-
-        try:
-            pause_pedo = keypressQueue.get(False)
-            if pause_pedo:
-                print '     ***   PEDOMETER PAUSED      ***'
-                audioQueue.put('Pedometer paused')
-            else:
-                print '     ***   PEDOMETER RESTARTED      ***'
-                audioQueue.put('Pedometer restarted')
-
-        except Queue.Empty:
-            pass
-
-        if pause_pedo:
-            time.sleep(0.5)
-            continue
-
 
         # Get data from imu and populate the relevant lists
         imuData = dataQueue.get(True)
