@@ -168,17 +168,17 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
 
                 print 'Step taken. Heading: {} deg. {} cm off center'.format(data['actual_bearing'], total_distance_off_center)
 
-                if abs(total_distance_off_center) >= DIST_OFF_CENTER_LIMIT_CM:
-                    audioQueue.put(OFF_CENTER_WARNING)
-                    guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
-                    guide_user_to_center(total_distance_off_center, audioQueue)
-                    time.sleep(6)
-                    # Clear pedo queue
-                    audioQueue.put(PEDOMETER_RESTARTED)
-                    pedometerQueue.queue.clear()
-                    total_distance_off_center = 0
-                    pedometer_pause_time = int(time.time())
-                elif steps == NUM_STEPS_BEFORE_CORRECTING:
+                # if abs(total_distance_off_center) >= DIST_OFF_CENTER_LIMIT_CM:
+                #     audioQueue.put(OFF_CENTER_WARNING)
+                #     guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
+                #     guide_user_to_center(total_distance_off_center, audioQueue)
+                #     time.sleep(6)
+                #     # Clear pedo queue
+                #     audioQueue.put(PEDOMETER_RESTARTED)
+                #     pedometerQueue.queue.clear()
+                #     total_distance_off_center = 0
+                #     pedometer_pause_time = int(time.time())
+                if steps == NUM_STEPS_BEFORE_CORRECTING:
                     steps = 0
                     if abs(bearing_error) > ACCEPTABLE_BEARING_ERROR_MOVING:
                         guide_user_while_walking(data['actual_bearing'], bearing_to_next, audioQueue)
