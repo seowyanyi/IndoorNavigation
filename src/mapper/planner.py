@@ -88,13 +88,13 @@ def download_map(buildingName, levelNum):
         mapJsonData = json.load(urllib2.urlopen(url))
     else:
         print "NO INTERNET"
-        if (buildingName == "COM1" and levelNum == 2):
+        if (buildingName == 1 and levelNum == 2):
             with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
                 mapJsonData = json.load(json_file)
-        elif (buildingName == "COM2" and levelNum == 2):
+        elif (buildingName == 2 and levelNum == 2):
             with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
                 mapJsonData = json.load(json_file)
-        elif (buildingName == "COM2" and levelNum == 3):
+        elif (buildingName == 2 and levelNum == 3):
             with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl3.json') as json_file:
                 mapJsonData = json.load(json_file)
 
