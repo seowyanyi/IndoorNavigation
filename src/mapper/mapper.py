@@ -31,17 +31,17 @@ def init_mapper(audioQueue):
 
 def get_start_and_end_locations(audioQueue):
     # NOTE: HARD CODED FOR TESTING
-    startBuilding = "COM1"
-    startLevel = 2
+#    startBuilding = "COM1"
+#    startLevel = 2
 
     # start = get_start(audioQueue)
     # while not is_confirm(keypad.get_user_input()):
     #     start = get_start(audioQueue)
     #
     # if start == 1:
-    #     startBuilding = get_starting_building(audioQueue)
-    #     while not is_confirm(keypad.get_user_input()):
-    #         startBuilding = get_starting_building(audioQueue)
+    startBuilding = get_starting_building(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        startBuilding = get_starting_building(audioQueue)
     #     if startBuilding == 1:
     #         startBuilding = "COM1"
     #     elif startBuilding == 2:
@@ -52,15 +52,14 @@ def get_start_and_end_locations(audioQueue):
     #     while not is_confirm(keypad.get_user_input()):
     #         startBuilding = get_starting_building(audioQueue)
     #
-    # startLevel = get_starting_level(audioQueue)
-    # while not is_confirm(keypad.get_user_input()):
-    #     startLevel = get_starting_level(audioQueue)
-    
-  #  startNode = get_starting_nodeID(audioQueue)
-  #  while not is_confirm(keypad.get_user_input()):
-  #      startNode = get_starting_nodeID(audioQueue)
-    startNode = 18
-    # NOTE: HARDCODED FOR TESTING
+    startLevel = get_starting_level(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        startLevel = get_starting_level(audioQueue)
+
+    startNode = get_starting_nodeID(audioQueue)
+    while not is_confirm(keypad.get_user_input()):
+        startNode = get_starting_nodeID(audioQueue)
+
     destBuilding = startBuilding
     destLevel = startLevel
 
