@@ -30,7 +30,7 @@ ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 3
 COUNTDOWN_X_STEPS_LEFT = 4
 PEDOMETER_PAUSE_SECONDS = 8
-CHECK_AT_REST_INVERVAL = 6
+CHECK_AT_REST_INVERVAL = 9
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     data = pedometerQueue.get(True)
@@ -127,6 +127,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
             data = pedometerQueue.get(True)
 
             if data['type'] == pedometer.Step.FORWARD and not pause_step_counting:
+                prev_time = int(time.time())
                 steps += 1
                 steps_between_checkpoints += 1
                 distance_to_next -= CM_PER_STEP
