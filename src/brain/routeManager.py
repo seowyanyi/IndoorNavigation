@@ -158,7 +158,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 prev_time = int(time.time())
                 steps += 1
                 steps_between_checkpoints += 1
-                distance_to_next -= actual_distance_travelled(bearing_error, CM_PER_STEP)
+                distance_to_next -= CM_PER_STEP
                 dist_off = distance_off_center(bearing_error, CM_PER_STEP)
 
                 if bearing_error > 0:
