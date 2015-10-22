@@ -36,7 +36,7 @@ COUNTDOWN_X_STEPS_LEFT = 4
 PEDOMETER_PAUSE_SECONDS = 10
 CHECK_AT_REST_INVERVAL = 9
 RADIANS_PER_DEGREE = 0.0174533
-DIST_OFF_CENTER_LIMIT_CM = 60
+DIST_OFF_CENTER_LIMIT_CM = 80
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     data = pedometerQueue.get(True)
@@ -172,7 +172,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     audioQueue.put(OFF_CENTER_WARNING)
                     guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                     guide_user_to_center(total_distance_off_center, audioQueue)
-                    time.sleep(10) # ten seconds for user to adjust
+                    time.sleep(6)
                     # Clear pedo queue
                     audioQueue.put(PEDOMETER_RESTARTED)
                     pedometerQueue.queue.clear()
