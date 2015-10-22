@@ -20,7 +20,8 @@ test_queue = Queue.Queue()
 WINDOW_SIZE = 10
 HEADING_WINDOW_SIZE = 30
 AT_REST_LIMIT = 2
-AT_REST_LIMIT_LONG = 40
+AT_REST_HEADING_MARGIN = 8
+
 SWING_LIMIT = 1
 TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 25
@@ -73,7 +74,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
     swing_count = 0
     at_rest_count = 0
-    at_rest_count_long = 0
+
     previouslyAtRest = True
 
     # data rate stuff
@@ -92,30 +93,37 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             heading += 360
         medianHeading = heading
 
-        # keeps track of a list of data rates. Compare with the expected average every two seconds
-        if len(dataRateList) > DATA_RATE_WINDOW_SIZE:
-            dataRateList.pop(0)
-        dataRateList.append(imuData.dataRate)
-        checkTwoSecs = is_two_seconds_passed(prev_two_seconds)
-        if checkTwoSecs['status']:
-            prev_two_seconds = checkTwoSecs['curr']
-            actual_rate = np.mean(dataRateList)
-            if not isWithinRange(actual_rate, AVG_DATA_RATE, DATA_RATE_ERROR_MARGIN):
-                print 'Data rate is off. Actual: {} s'.format(actual_rate)
-
-
         if len(data) > windowSize:
             data.pop(0)
         data.append(x)
-        if len(data) < windowSize:
-            continue
 
         if len(headingData) > HEADING_WINDOW_SIZE:
             headingData.pop(0)
             medianHeading = np.median(headingData)
         headingData.append(heading)
 
-        # detect the movement type
+        if len(dataRateList) > DATA_RATE_WINDOW_SIZE:
+            dataRateList.pop(0)
+        dataRateList.append(imuData.dataRate)
+
+        if len(data) < windowSize:
+            continue
+        
+        # keeps track of a list of data rates. Compare with the expected average every two seconds
+        # Also check whether user is at rest every two seconds
+        checkTwoSecs = is_two_seconds_passed(prev_two_seconds)
+
+        if checkTwoSecs['status']:
+            prev_two_seconds = checkTwoSecs['curr']
+            actual_rate = np.mean(dataRateList)
+            if not isWithinRange(actual_rate, AVG_DATA_RATE, DATA_RATE_ERROR_MARGIN):
+                print 'Data rate is off. Actual: {} s'.format(actual_rate)
+            if np.amax(headingData) - np.amin(headingData) < AT_REST_HEADING_MARGIN:
+                print 'User currently at rest. {} deg'.format(medianHeading)
+                pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': medianHeading})
+                continue
+
+        # Check whether a step is taken
         if is_downward_swing(data):
             swing_count += 1
         else:
@@ -123,10 +131,8 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
 
         if is_at_rest(data):
             at_rest_count += 1
-            at_rest_count_long += 1
         else:
             at_rest_count = 0
-            at_rest_count_long = 0
 
         if debug:
             line = get_equation_of_line(data)
@@ -150,12 +156,6 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
                 write_to_step_file('1')
         elif debug:
             write_to_step_file('0')
-
-        # User is at rest
-        if at_rest_count_long > AT_REST_LIMIT_LONG:
-            print 'User currently at rest. {} deg'.format(medianHeading)
-            pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': medianHeading})
-            at_rest_count_long = 0
 
     print 'steps: {}'.format(steps)
 
@@ -195,6 +195,6 @@ def clean_up():
 
 if __name__ == "__main__":
     clean_up()
-    init_test_queue()
-    # init_compass_test_queue()
+    # init_test_queue()
+    init_compass_test_queue()
     start_pedometer_processing(test_queue,Queue.Queue(), WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True)
