@@ -29,7 +29,7 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
-LIMIT_DATA_RATE = 8
+LIMIT_DATA_RATE = 2
 #
 # GPIO.setmode(GPIO.BOARD)
 # GPIO.setup(21,GPIO.OUT)

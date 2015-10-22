@@ -11,23 +11,24 @@ import os
 import time
 # import sys
 # sys.path.insert(0, '/home/seowyanyi/school/cg3002/IndoorNavigation/src')
-# import communication.queueManager as qm
+#import communication.queueManager as qm
 
 import src.communication.queueManager as qm
 
 test_queue = Queue.Queue()
 
-WINDOW_SIZE = 10
+WINDOW_SIZE = 4
 HEADING_WINDOW_SIZE = 30
 AT_REST_LIMIT = 2
 AT_REST_HEADING_MARGIN = 8
 
-SWING_LIMIT = 1
+SWING_LIMIT = 3
 TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 25
+SECS_BETWEEN_STEPS = 1
 
-AVG_DATA_RATE = 0.04
-DATA_RATE_ERROR_MARGIN = 0.005
+MAX_DATA_RATE = 0.045
+MIN_DATA_RATE = 0.025
 DATA_RATE_WINDOW_SIZE = 50
 
 import threading
@@ -48,9 +49,23 @@ class PedometerThread(threading.Thread):
         print 'Exited {} thread'.format(self.threadName)
 
 def init_test_queue():
-    with open('acc_x_with_sensors.txt') as f:
+    mock_acc_x = []
+    mocK_data_rate = []
+    with open('THUS_acc_x.txt') as f:
         for line in f:
-            test_queue.put(qm.IMUData(int(line), 0, 0))
+            mock_acc_x.append(int(line))
+
+    with open('THUS_data_rate.txt') as f:
+        for line in f:
+            mocK_data_rate.append(float(line))
+
+    minLength = len(mock_acc_x)
+    if len(mocK_data_rate) < len(mock_acc_x):
+        minLength = len(mocK_data_rate)
+
+    for i in range(0, minLength):
+        test_queue.put(qm.IMUData(xAxis=mock_acc_x[i], heading=0, dataRate=mocK_data_rate[i]))
+
 
 def init_compass_test_queue():
     with open('compass.txt') as f:
@@ -63,10 +78,6 @@ def is_two_seconds_passed(prev_two_seconds):
         return {'status':True, 'curr': curr}
     return {'status':False, 'curr': curr}
 
-def isWithinRange(expected, actual, errorMargin):
-    return abs(expected - actual) <= errorMargin
-
-
 def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimit, swingLimit, debug):
     steps = 0
     data = []
@@ -76,6 +87,8 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
     at_rest_count = 0
 
     previouslyAtRest = True
+
+    time_between_steps = 0
 
     # data rate stuff
     dataRateList = []
@@ -105,6 +118,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         if len(dataRateList) > DATA_RATE_WINDOW_SIZE:
             dataRateList.pop(0)
         dataRateList.append(imuData.dataRate)
+        time_between_steps += imuData.dataRate
 
         if len(data) < windowSize:
             continue
@@ -116,7 +130,7 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         if checkTwoSecs['status']:
             prev_two_seconds = checkTwoSecs['curr']
             actual_rate = np.mean(dataRateList)
-            if not isWithinRange(actual_rate, AVG_DATA_RATE, DATA_RATE_ERROR_MARGIN):
+            if not MIN_DATA_RATE <= actual_rate <= MAX_DATA_RATE:
                 print 'Data rate is off. Actual: {} s'.format(actual_rate)
             if np.amax(headingData) - np.amin(headingData) < AT_REST_HEADING_MARGIN:
                 print 'User currently at rest. {} deg'.format(medianHeading)
@@ -145,8 +159,9 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             at_rest_count = 0
 
         # User took a step forward
-        if previouslyAtRest and swing_count > swingLimit:
+        if previouslyAtRest and swing_count > swingLimit and time_between_steps >= SECS_BETWEEN_STEPS:
             print 'Step taken {} deg'.format(medianHeading)
+            time_between_steps = 0
             steps += 1
             pedometerQueue.put({'type': Step.FORWARD, 'actual_bearing': medianHeading})
             swing_count = 0
@@ -195,6 +210,6 @@ def clean_up():
 
 if __name__ == "__main__":
     clean_up()
-    # init_test_queue()
-    init_compass_test_queue()
+    init_test_queue()
+    # init_compass_test_queue()
     start_pedometer_processing(test_queue,Queue.Queue(), WINDOW_SIZE, AT_REST_LIMIT, SWING_LIMIT, True)
