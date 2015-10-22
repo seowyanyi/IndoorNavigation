@@ -20,7 +20,7 @@ DESTINATION_REACHED = 'Destination reached'
 CHECKPOINT_REACHED = 'Checkpoint {} reached'
 DISTANCE_LEFT_METERS = '{} meters left'
 DISTANCE_LEFT_STEPS = '{} steps left'
-PEDOMETER_PAUSED_TEN_SECS = 'Pedometer paused. 10. 9. 8. 7. 6. 5. 4. 3. 2. 1'
+PEDOMETER_PAUSED_SECS = 'Pedometer paused. 8. 7. 6. 5. 4. 3. 2. 1'
 PEDOMETER_RESTARTED = 'Pedometer restarted'
 
 # Constants
@@ -29,8 +29,8 @@ ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 3
 COUNTDOWN_X_STEPS_LEFT = 4
-PEDOMETER_PAUSE_SECONDS = 10
-CHECK_AT_REST_INVERVAL = 4
+PEDOMETER_PAUSE_SECONDS = 8
+CHECK_AT_REST_INVERVAL = 6
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     data = pedometerQueue.get(True)
@@ -103,11 +103,6 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
     pedometer_pause_time = int(time.time())
 
     while True:
-        if pause_step_counting and int(time.time()) - pedometer_pause_time > PEDOMETER_PAUSE_SECONDS:
-            audioQueue.put(PEDOMETER_RESTARTED + '. ' + DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
-            print 'pedometer restarted'
-            pause_step_counting = False
-
         if reached_checkpoint:
             curr_index += 1
             reached_checkpoint = False
@@ -149,11 +144,16 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 if steps_between_checkpoints == 0:
                     # Case 1: User still at checkpoint. Maybe he missed the command to go
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
-                else:
-                    # Case 2: User stopped in between checkpoints (probably obstacle).
+                elif pause_step_counting and int(time.time()) - pedometer_pause_time > PEDOMETER_PAUSE_SECONDS:
+                    # Case 2: User finished avoiding obstacle and is ready to go
+                    audioQueue.put(PEDOMETER_RESTARTED + '. ' + DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
+                    print 'pedometer restarted'
+                    pause_step_counting = False
+                elif not pause_step_counting:
+                    # Case 3: User stopped in between checkpoints (probably obstacle).
                     # Pause counting of steps
-                    audioQueue.put(PEDOMETER_PAUSED_TEN_SECS)
-                    print 'pedometer paused for ten seconds'
+                    audioQueue.put(PEDOMETER_PAUSED_SECS)
+                    print 'pedometer paused'
                     pause_step_counting = True
                     pedometer_pause_time = int(time.time())
 
