@@ -28,7 +28,7 @@ WALK_X_CM_LEFT = 'Side step {} cm left'
 WALK_X_CM_RIGHT = 'Side step {} cm right'
 
 # Constants
-CM_PER_STEP = 69
+CM_PER_STEP = 73
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 2
@@ -205,10 +205,11 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 elif not pause_step_counting:
                     # Case 3: User stopped in between checkpoints (probably obstacle).
                     # Pause counting of steps
-                    audioQueue.put(PEDOMETER_PAUSED_SECS)
-                    print 'pedometer paused'
-                    pause_step_counting = True
-                    pedometer_pause_time = int(time.time())
+                    # audioQueue.put(PEDOMETER_PAUSED_SECS)
+                    # print 'pedometer paused'
+                    # pause_step_counting = True
+                    # pedometer_pause_time = int(time.time())
+                    pass
 
             if distance_to_next <= 0:
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
