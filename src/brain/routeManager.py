@@ -12,6 +12,7 @@ import threading
 import pedometer
 import time
 import math
+import numpy as np
 
 # Audio commands
 TURN_X_DEG_CW = 'Turn {} degrees clockwise' 
@@ -127,6 +128,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
 
     good_to_go_time = int(time.time())
 
+    recent_bearings = []
+
     # pausing step counting to avoid obstacles
     pause_step_counting = False
     pedometer_pause_time = int(time.time())
@@ -163,7 +166,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
 
             if data['type'] == pedometer.Step.FORWARD and not pause_step_counting:
                 steps_before_center_correction += 1
-                bearing_error = data['actual_bearing'] - bearing_to_next
+                recent_bearings.append(data['actual_bearing'])
+                bearing_error = np.average(recent_bearings) - bearing_to_next
 
                 prev_time = int(time.time())
                 steps += 1
@@ -191,7 +195,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 if steps == NUM_STEPS_BEFORE_CORRECTING:
                     steps = 0
                     if abs(bearing_error) > ACCEPTABLE_BEARING_ERROR_MOVING:
-                        guide_user_while_walking(data['actual_bearing'], bearing_to_next, audioQueue)
+                        guide_user_while_walking(np.average(recent_bearings), bearing_to_next, audioQueue)
+                        recent_bearings = []
                 # start counting down a few steps before reaching next checkpoint
                 elif 0 < distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
