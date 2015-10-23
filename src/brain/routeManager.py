@@ -24,14 +24,16 @@ DISTANCE_LEFT_STEPS = '{} steps left'
 PEDOMETER_PAUSED_SECS = 'Pedometer paused. 5. 4. 3. 2. 1'
 PEDOMETER_RESTARTED = 'Pedometer restarted'
 OFF_CENTER_WARNING = 'Pedometer paused. You are off center'
-WALK_X_CM_LEFT = 'Side step {} cm left'
-WALK_X_CM_RIGHT = 'Side step {} cm right'
+# WALK_X_CM_LEFT = 'Side step {} cm left'
+# WALK_X_CM_RIGHT = 'Side step {} cm right'
+WALK_X_DEG_LEFT = 'Walk {} degrees left'
+WALK_X_DEG_RIGHT = 'Walk {} degrees right'
 
 # Constants
 CM_PER_STEP = 73
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
-NUM_STEPS_BEFORE_CORRECTING = 2
+NUM_STEPS_BEFORE_CORRECTING = 1
 COUNTDOWN_X_STEPS_LEFT = 4
 PEDOMETER_PAUSE_SECONDS = 5
 CHECK_AT_REST_INVERVAL = 10
@@ -73,13 +75,15 @@ def guide_user_while_walking(actual_bearing, target_bearing, audioQueue):
     # check how much to turn, and whether CW or CCW
     print 'guiding user. target: {} deg, actual: {} deg'.format(target_bearing, actual_bearing)
     if 0 < difference <= 180:
-        audioQueue.put('walk slightly right')
+        audioQueue.put(WALK_X_DEG_RIGHT.format(difference))
     elif difference > 180:
-        audioQueue.put('walk slightly left')
+        difference = 360 - difference
+        audioQueue.put(WALK_X_DEG_LEFT.format(difference))
     elif -180 <= difference < 0 :
-        audioQueue.put('walk slightly left')
+        audioQueue.put(WALK_X_DEG_LEFT.format(abs(difference)))
     else:
-        audioQueue.put('walk slightly right')
+        difference += 360
+        audioQueue.put(WALK_X_DEG_RIGHT.format(difference))
 
 def actual_distance_travelled(bearingError, recordedDist):
     bearingErrorRadians = abs(bearingError) * RADIANS_PER_DEGREE
@@ -89,14 +93,14 @@ def distance_off_center(bearingError, recordedDist):
     bearingErrorRadians = abs(bearingError) * RADIANS_PER_DEGREE
     return math.sin(bearingErrorRadians) * recordedDist
 
-def guide_user_to_center(distOff, audioQueue):
-    if distOff < 0:
-        # user needs to side step right
-        audioQueue.put(WALK_X_CM_RIGHT.format(abs(int(distOff))))
-    else:
-        # user needs to side step left
-        audioQueue.put(WALK_X_CM_LEFT.format(abs(int(distOff))))
-
+# def guide_user_to_center(distOff, audioQueue):
+#     if distOff < 0:
+#         # user needs to side step right
+#         audioQueue.put(WALK_X_CM_RIGHT.format(abs(int(distOff))))
+#     else:
+#         # user needs to side step left
+#         audioQueue.put(WALK_X_CM_LEFT.format(abs(int(distOff))))
+#
 
 class RouteManagerThread(threading.Thread):
     def __init__(self, threadName, pedometerQueue, audioQueue, precomputedCheckpointData):
@@ -204,14 +208,13 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     audioQueue.put('Current checkpoint is {}'.format(precomputedCheckpointData[curr_index]['curr_checkpoint']))
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
                 elif not pause_step_counting:
+                    pass
                     # Case 3: User stopped in between checkpoints (probably obstacle).
                     # Pause counting of steps
                     # audioQueue.put(PEDOMETER_PAUSED_SECS)
                     # print 'pedometer paused'
                     # pause_step_counting = True
                     # pedometer_pause_time = int(time.time())
-                    pass
-
             if distance_to_next <= 0:
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 reached_checkpoint = True
