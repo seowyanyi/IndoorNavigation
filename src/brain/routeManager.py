@@ -139,6 +139,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
             curr_index += 1
             reached_checkpoint = False
             steps_between_checkpoints = 0
+            total_distance_off_center = 0
 
             if curr_index == len(precomputedCheckpointData):
                 #reached destination
