@@ -22,6 +22,10 @@ def start():
     audio_thread.start()
 
     precomputedData = mapper.init_mapper(audioQueue)
+    while not precomputedData:
+        print 'map not found'
+        audioQueue.put('map not found.')
+        precomputedData = mapper.init_mapper(audioQueue)
 
     # Thread 2
     pedometer_thread = pedometer.PedometerThread(

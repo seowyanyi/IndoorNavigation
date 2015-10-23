@@ -429,22 +429,28 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
 # -------------------------------------------------------------------------------------------------------------------
 
 def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId):
-    graph = build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel)
-    path = find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNodeId,
-                                          destBuilding, destLevel, destNodeId)
-    return find_dist_bearing_to_next_node(path, graph)
+    try:
+        graph = build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel)
+        path = find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNodeId,
+                                              destBuilding, destLevel, destNodeId)
+        return find_dist_bearing_to_next_node(path, graph)
+    except DestinationNotFound:
+        return False
 
 def begin_test():
     test_path_finding()
 
 def test_path_finding():
-    buildingName = 1
-    levelNum = 2
+    buildingName = 3
+    levelNum = 99
     while True:
         startNode = raw_input('start node id: ')
         endNode  = raw_input('end node id: ')
-
-        graph = build_graph(buildingName, int(levelNum), buildingName, int(levelNum))
+        try:
+            graph = build_graph(buildingName, int(levelNum), buildingName, int(levelNum))
+            print 'graph built'
+        except DestinationNotFound:
+            print 'blah'
         path = find_shortest_path_given_graph(graph, buildingName, int(levelNum), int(startNode),
                                           buildingName, int(levelNum), int(endNode))
 

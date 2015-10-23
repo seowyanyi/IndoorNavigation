@@ -21,11 +21,11 @@ DESTINATION_REACHED = 'Destination reached'
 CHECKPOINT_REACHED = 'Checkpoint {} reached'
 DISTANCE_LEFT_METERS = '{} meters left'
 DISTANCE_LEFT_STEPS = '{} steps left'
-# PEDOMETER_PAUSED_SECS = 'Pedometer paused. 5. 4. 3. 2. 1'
-# PEDOMETER_RESTARTED = 'Pedometer restarted'
-# OFF_CENTER_WARNING = 'Pedometer paused. You are off center'
-# WALK_X_CM_LEFT = 'Side step {} cm left'
-# WALK_X_CM_RIGHT = 'Side step {} cm right'
+PEDOMETER_PAUSED_SECS = 'Pedometer paused. 5. 4. 3. 2. 1'
+PEDOMETER_RESTARTED = 'Pedometer restarted'
+OFF_CENTER_WARNING = 'Pedometer paused. You are off center'
+WALK_X_CM_LEFT = 'Side step {} cm left'
+WALK_X_CM_RIGHT = 'Side step {} cm right'
 
 # Constants
 CM_PER_STEP = 73
