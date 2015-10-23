@@ -1,11 +1,11 @@
 """
 The commander module coordinates all threads and components
 """
-from src.communication import queueManager
-from src.peripherals import audio, KeyPad
-from src.arduinoInterface import serialmod
+from communication import queueManager
+from peripherals import audio, KeyPad
+from arduinoInterface import serialmod
 import routeManager
-import src.mapper.mapper as mapper
+import mapper.mapper as mapper
 import pedometer
 import time
 import RPi.GPIO as GPIO
