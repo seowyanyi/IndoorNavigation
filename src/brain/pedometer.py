@@ -13,7 +13,7 @@ import time
 # sys.path.insert(0, '/home/seowyanyi/school/cg3002/IndoorNavigation/src')
 #import communication.queueManager as qm
 
-import src.communication.queueManager as qm
+import communication.queueManager as qm
 
 test_queue = Queue.Queue()
 

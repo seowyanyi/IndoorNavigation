@@ -1,6 +1,8 @@
 """ Entry point of navigation system."""
 from brain import commander
 import os
+import sys
+sys.path.insert(0, '/home/pi/IndoorNavigation/src')
 
 ACC_X_DATA_FILE = "acc_x.txt"
 ACC_Y_DATA_FILE = "acc_y.txt"
