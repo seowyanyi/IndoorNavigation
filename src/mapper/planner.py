@@ -89,8 +89,8 @@ def download_map(buildingName, levelNum):
     except urllib2.URLError as err:
         if (buildingName == 1 and levelNum == 2):
         #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
-        with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
-            mapJsonData = json.load(json_file)
+            with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
+                mapJsonData = json.load(json_file)
         elif (buildingName == 2 and levelNum == 2):
             with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
                 mapJsonData = json.load(json_file)
