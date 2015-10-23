@@ -84,9 +84,11 @@ def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY
 
 def download_map(buildingName, levelNum):
     try:
-        response=urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}',timeout=1).format(buildingName,levelNum)
+        response=urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName,levelNum),timeout=20)
+        print "THERE IS INTERNET"
         mapJsonData = json.load(urllib2.urlopen(url))
     except urllib2.URLError as err:
+        print "NO INTERNET"
         if (buildingName == 1 and levelNum == 2):
         #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
             with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
