@@ -37,6 +37,7 @@ PEDOMETER_PAUSE_SECONDS = 5
 CHECK_AT_REST_INVERVAL = 10
 RADIANS_PER_DEGREE = 0.0174533
 DIST_OFF_CENTER_LIMIT_CM = 80
+SECS_BEFORE_GOOD_TO_GO_REPEAT = 20
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     data = pedometerQueue.get(True)
@@ -120,6 +121,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
 
     prev_time= int(time.time())
 
+    good_to_go_time = int(time.time())
+
     # pausing step counting to avoid obstacles
     pause_step_counting = False
     pedometer_pause_time = int(time.time())
@@ -146,6 +149,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 audioQueue.put('Current checkpoint is {}'.format(currNodeId))
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                 audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
+                pedometerQueue.queue.clear()
+                good_to_go_time = int(time.time())
                 print 'Distance to node {}: {} cm Bearing to {}: {} deg'.format(checkpoint, distance_to_next, checkpoint, bearing_to_next)
 
         else:
@@ -193,10 +198,9 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     prev_time = int(time.time())
             elif data['type'] == pedometer.Step.AT_REST and int(time.time()) - prev_time >= CHECK_AT_REST_INVERVAL:
                 prev_time = int(time.time())
-                if steps_between_checkpoints == 0:
+                if steps_between_checkpoints == 0 and int(time.time()) - good_to_go_time >= SECS_BEFORE_GOOD_TO_GO_REPEAT:
                     # Case 1: User still at checkpoint. Maybe he missed the command to go
                     audioQueue.put('Current checkpoint is {}'.format(precomputedCheckpointData[curr_index]['curr_checkpoint']))
-                    time.sleep(6)
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
                 elif not pause_step_counting:
                     # Case 3: User stopped in between checkpoints (probably obstacle).

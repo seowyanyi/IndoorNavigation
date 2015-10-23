@@ -20,7 +20,7 @@ test_queue = Queue.Queue()
 WINDOW_SIZE = 4
 HEADING_WINDOW_SIZE = 30
 AT_REST_LIMIT = 2
-AT_REST_HEADING_MARGIN = 8
+AT_REST_HEADING_MARGIN = 6
 
 SWING_LIMIT = 3
 TURNING_THRESHOLD = 40
@@ -30,6 +30,8 @@ SECS_BETWEEN_STEPS = 1
 MAX_DATA_RATE = 0.05
 MIN_DATA_RATE = 0.02
 DATA_RATE_WINDOW_SIZE = 50
+
+LONG_REST_COUNTER_LIMIT = 5
 
 import threading
 
@@ -94,6 +96,8 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
     dataRateList = []
     prev_two_seconds = int(time.time())
 
+    long_rest_counter = 0
+
     while True:
         if debug and dataQueue.qsize() <= 1:
             break
@@ -133,9 +137,12 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
             if not MIN_DATA_RATE <= actual_rate <= MAX_DATA_RATE:
                 print 'Data rate is off. Actual: {} s'.format(actual_rate)
             if np.amax(headingData) - np.amin(headingData) < AT_REST_HEADING_MARGIN:
-                print 'User currently at rest. Heading: {} deg'.format(medianHeading)
-                pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': medianHeading})
-                continue
+                long_rest_counter += 1
+                if long_rest_counter == LONG_REST_COUNTER_LIMIT:
+                    long_rest_counter = 0
+                    print 'User currently at rest. Heading: {} deg'.format(medianHeading)
+                    pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': medianHeading})
+                    continue
 
         # Check whether a step is taken
         if is_downward_swing(data):
