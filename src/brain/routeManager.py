@@ -14,18 +14,18 @@ import time
 import math
 
 # Audio commands
-TURN_X_DEG_CW = 'Turn {} degrees clockwise'
-TURN_X_DEG_ACW = 'Turn {} degrees anti clockwise'
-GOOD_TO_GO = 'Good to go. {} steps to next checkpoint'
+TURN_X_DEG_CW = 'Turn {} degrees right'
+TURN_X_DEG_ACW = 'Turn {} degrees left'
+GOOD_TO_GO = 'Good to go. {} steps to next'
 DESTINATION_REACHED = 'Destination reached'
 CHECKPOINT_REACHED = 'Checkpoint {} reached'
 DISTANCE_LEFT_METERS = '{} meters left'
 DISTANCE_LEFT_STEPS = '{} steps left'
-PEDOMETER_PAUSED_SECS = 'Pedometer paused. 5. 4. 3. 2. 1'
-PEDOMETER_RESTARTED = 'Pedometer restarted'
-OFF_CENTER_WARNING = 'Pedometer paused. You are off center'
-WALK_X_CM_LEFT = 'Side step {} cm left'
-WALK_X_CM_RIGHT = 'Side step {} cm right'
+# PEDOMETER_PAUSED_SECS = 'Pedometer paused. 5. 4. 3. 2. 1'
+# PEDOMETER_RESTARTED = 'Pedometer restarted'
+# OFF_CENTER_WARNING = 'Pedometer paused. You are off center'
+# WALK_X_CM_LEFT = 'Side step {} cm left'
+# WALK_X_CM_RIGHT = 'Side step {} cm right'
 
 # Constants
 CM_PER_STEP = 73
@@ -146,7 +146,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 currNodeId = precomputedCheckpointData[curr_index]['curr_checkpoint']
                 print 'Current checkpoint: {}'.format(currNodeId)
-                audioQueue.put('Current checkpoint is {}'.format(currNodeId))
+                audioQueue.put('Current checkpoint {} .'.format(currNodeId))
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                 audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
                 pedometerQueue.queue.clear()
@@ -192,10 +192,11 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
             elif pause_step_counting and int(time.time()) - pedometer_pause_time > PEDOMETER_PAUSE_SECONDS:
                     # Case 2: User finished avoiding obstacle and is ready to go
-                    audioQueue.put(PEDOMETER_RESTARTED + '. ' + DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
-                    print 'pedometer restarted'
-                    pause_step_counting = False
-                    prev_time = int(time.time())
+                    # audioQueue.put(PEDOMETER_RESTARTED + '. ' + DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
+                    # print 'pedometer restarted'
+                    # pause_step_counting = False
+                    # prev_time = int(time.time())
+                    pass
             elif data['type'] == pedometer.Step.AT_REST and int(time.time()) - prev_time >= CHECK_AT_REST_INVERVAL:
                 prev_time = int(time.time())
                 if steps_between_checkpoints == 0 and int(time.time()) - good_to_go_time >= SECS_BEFORE_GOOD_TO_GO_REPEAT:

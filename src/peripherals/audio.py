@@ -6,7 +6,7 @@ import time
 # Initialise the pyttsx which is the library used for text to speech conversion
 def init_player():
     eng = pyttsx.init()
-    eng.setProperty('rate', 120)
+    eng.setProperty('rate', 130)
     eng.setProperty('volume', 1.0)
     return eng
 # -----------------------------------------------------------------------------------------
