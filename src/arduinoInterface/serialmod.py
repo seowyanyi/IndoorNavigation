@@ -6,6 +6,7 @@ import src.communication.queueManager as qm # Don't take this out
 import Queue
 import RPi.GPIO as GPIO
 import timeit
+import time
 
 DATA_SIZE = 16
 DEST_PORT_CRUNCHER = 9003
@@ -30,22 +31,27 @@ sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
 LIMIT_DATA_RATE = 2
+PKT_READ_TIMEOUT_SECS = 0.5 # this should be <= timeout set in sprotcfg.py
+RESET_TIMEOUT_SECS = 8 # minimum time between resets
 #
 # GPIO.setmode(GPIO.BOARD)
 # GPIO.setup(21,GPIO.OUT)
 # GPIO.output(21,GPIO.HIGH)
 # time.sleep(0.05)
 # GPIO.output(21,GPIO.LOW)
+ARDUINO_ALIVE = 'Arduino alive. Good to go'
+ARDUINO_DIED = 'Stop now. Arduino died'
 
 class SensorManagerThread(threading.Thread):
-    def __init__(self, threadName, imuQueue):
+    def __init__(self, threadName, imuQueue, audioQueue):
         threading.Thread.__init__(self)
         self.threadName = threadName
         self.imuQueue = imuQueue
+        self.audioQueue = audioQueue
 
     def run(self):
         print 'Starting {} thread'.format(self.threadName)
-        read_packet(LIMIT_DATA_RATE, self.imuQueue)
+        read_packet(LIMIT_DATA_RATE, self.imuQueue, self.audioQueue)
         print 'Exited {} thread'.format(self.threadName)
 
 
@@ -70,8 +76,13 @@ def removeNullChars(str):
             maxIndex = i
 
     return str[0:maxIndex+1]
-    
-def read_packet(limit, imuQueue):
+
+def restart_arduino():
+    GPIO.output(7, False)
+    time.sleep(1)
+    GPIO.output(7, True)
+
+def read_packet(limit, imuQueue, audioQueue):
     counter = 1
     prev_time = timeit.default_timer()
     # buffer for writing to files
@@ -79,14 +90,26 @@ def read_packet(limit, imuQueue):
     time_diff_buffer = []
     compass_buffer = []
 
+    # restarting arduino when data stops
+    prev_reset = timeit.default_timer()
+    is_arduino_dead = False
+
     while True :
 
         # Read a packet
+        pkt_read_start = timeit.default_timer()
         pkt = sprotapi.SPROTReceive()
+        pkt_read_end = timeit.default_timer()
+        if pkt_read_end - pkt_read_start >= PKT_READ_TIMEOUT_SECS and \
+                                pkt_read_end - prev_reset >= RESET_TIMEOUT_SECS :
+            is_arduino_dead = True
+            audioQueue.put(ARDUINO_DIED)
+            restart_arduino()
+            prev_reset = timeit.default_timer()
 
         try :
                 # Check for error
-                if (not isinstance(pkt, sprotpkt.SPROTPacket)) :
+                if not isinstance(pkt, sprotpkt.SPROTPacket):
                     #print "recv error"
                     sprotapi.SPROTFlush()
                     pass
@@ -99,7 +122,11 @@ def read_packet(limit, imuQueue):
                     #print pkt.data
                     strpkt = pkt.data.decode("ascii")
 
-                    if (strpkt[0] == b'a') :
+                    if is_arduino_dead:
+                        is_arduino_dead = False
+                        audioQueue.put(ARDUINO_ALIVE)
+
+                    if strpkt[0] == b'a':
                         data = strpkt.split(":")
                         xyz = data[1].split(",")
 

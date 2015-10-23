@@ -23,8 +23,6 @@ def start():
 
     precomputedData = mapper.init_mapper(audioQueue)
 
-    time.sleep(8) # sleep a few seconds to cater for spinning
-
     # Thread 2
     pedometer_thread = pedometer.PedometerThread(
         threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue)
@@ -39,9 +37,11 @@ def start():
     route_manager_thread.daemon = True
     route_manager_thread.start()
 
+    time.sleep(5) # sleep a few seconds to cater for spinning
+
     # Thread 4
     sensor_thread = serialmod.SensorManagerThread(
-        threadName='sensor Manager', imuQueue=imuQueue)
+        threadName='sensor Manager', imuQueue=imuQueue, audioQueue=audioQueue)
     sensor_thread.daemon = True
     GPIO.setup(7, GPIO.OUT)
     GPIO.output(7, False)
