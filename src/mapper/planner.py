@@ -86,7 +86,7 @@ def download_map(buildingName, levelNum):
     try:
         response=urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName,levelNum),timeout=20)
         print "THERE IS INTERNET"
-        mapJsonData = json.load(urllib2.urlopen(url))
+        mapJsonData = json.load(response)
     except urllib2.URLError as err:
         print "NO INTERNET"
         if (buildingName == 1 and levelNum == 2):
