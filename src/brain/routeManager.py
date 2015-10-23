@@ -14,8 +14,8 @@ import time
 import math
 
 # Audio commands
-TURN_X_DEG_CW = 'Turn {} degrees right'
-TURN_X_DEG_ACW = 'Turn {} degrees left'
+TURN_X_DEG_CW = 'Turn {} degrees clockwise' 
+TURN_X_DEG_ACW = 'Turn {} degrees anti clockwise'
 GOOD_TO_GO = 'Good to go. {} steps to next'
 DESTINATION_REACHED = 'Destination reached'
 CHECKPOINT_REACHED = 'Checkpoint {} reached'
@@ -30,10 +30,10 @@ WALK_X_DEG_LEFT = 'Walk {} degrees left'
 WALK_X_DEG_RIGHT = 'Walk {} degrees right'
 
 # Constants
-CM_PER_STEP = 73
+CM_PER_STEP = 78
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
-NUM_STEPS_BEFORE_CORRECTING = 1
+NUM_STEPS_BEFORE_CORRECTING = 2
 COUNTDOWN_X_STEPS_LEFT = 4
 PEDOMETER_PAUSE_SECONDS = 5
 CHECK_AT_REST_INVERVAL = 10
