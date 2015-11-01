@@ -29,6 +29,7 @@ OFF_CENTER_WARNING = 'Pedometer paused. You are off center'
 # WALK_X_CM_RIGHT = 'Side step {} cm right'
 WALK_X_DEG_LEFT = 'Walk {} degrees left'
 WALK_X_DEG_RIGHT = 'Walk {} degrees right'
+CURRENT_CHECKPOINT = 'Current checkpoint {}. {}'
 
 # Constants
 CM_PER_STEP = 77
@@ -143,23 +144,24 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
             reached_checkpoint = False
             steps_between_checkpoints = 0
             total_distance_off_center = 0
-
+            curr_node = precomputedCheckpointData[curr_index]
             if curr_index == len(precomputedCheckpointData):
                 #reached destination
                 audioQueue.put(DESTINATION_REACHED)
                 break
             else:
+                distance_to_next = curr_node['distance_to_next']
+                bearing_to_next = curr_node['bearing_to_next']
+                checkpoint = curr_node['next_checkpoint']
+                currNodeId = curr_node['curr_checkpoint']
+                curr_node_name = curr_node['curr_node_name']
                 if precomputedCheckpointData[curr_index]['is_linkage']:
                     # put into audio queue what type of linkage
                     # todo: how to know whether user crossed the linkage?
-                    pass
+                    audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
                 else:
-                    distance_to_next = precomputedCheckpointData[curr_index]['distance_to_next']
-                    bearing_to_next = precomputedCheckpointData[curr_index]['bearing_to_next']
-                    checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
-                    currNodeId = precomputedCheckpointData[curr_index]['curr_checkpoint']
-                    print 'Current checkpoint: {}'.format(currNodeId)
-                    audioQueue.put('Current checkpoint {} .'.format(currNodeId))
+                    print CURRENT_CHECKPOINT.format(currNodeId, curr_node_name)
+                    audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
                     guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                     audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
                     pedometerQueue.queue.clear()

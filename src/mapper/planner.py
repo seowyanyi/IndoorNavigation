@@ -414,16 +414,16 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
     checkpointList = convert_global_path_to_checkpoints(global_path, graph)
 
     for i in range(0, len(checkpointList) - 1):
-        if i in linkages:
-            dist_bearing_list.append({'is_linkage': True})
-            continue
         currentNode = checkpointList[i]
+        if i in linkages:
+            dist_bearing_list.append({'is_linkage': True, 'curr_node_name': currentNode.nodeName})
+            continue
         coord_X = currentNode.xCoord
         coord_Y = currentNode.yCoord
         nextNode = checkpointList[i+1]
         dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, nextNode.northAt,
                                            nextNode, currentNode.localNodeId)
-
+        dist_and_bearing['curr_node_name'] = currentNode.nodeName
         dist_bearing_list.append(dist_and_bearing)
     print dist_bearing_list
     return dist_bearing_list
