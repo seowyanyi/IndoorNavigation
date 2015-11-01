@@ -377,8 +377,8 @@ def bearing_to_node(srcX, srcY, destX, destY, northAt, nextNode, currNodeId):
     bearing = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
     bearingToNode = (360 - int(northAt)) + int(bearing)
     
-    return {'bearing_to_next': bearingToNode, 'distance_to_next': distance, 'next_checkpoint': nextNode.localNodeId,
-            'curr_checkpoint': currNodeId}
+    return {'bearing_to_next': bearingToNode, 'distance_to_next': round(distance,2), 'next_checkpoint': nextNode.localNodeId,
+            'curr_checkpoint': currNodeId, 'is_linkage': False}
 
 def is_link_change(curr, nextNode):
     currBuilding = curr.split('-')[0]
@@ -387,14 +387,13 @@ def is_link_change(curr, nextNode):
     nextLevel = int(nextNode.split('-')[1])
     return currBuilding != nextBuilding or currLevel != nextLevel
 
-
-def find_linkages(global_path): # todo: not tested
+def find_linkages(global_path):
     """
-    Given global path like [COM2-1-19, COM2-1-22, COM2-2-1],
+    Given global path like ['COM2-1-19', 'COM2-1-22', 'COM2-2-1'],
     find the linkages to the next map, if any
     Linkages are detected when the building or level changes.
 
-    Returns the index of the linkage start: COM2-1-22 in the above example.
+    Returns the INDEX of the linkage start: COM2-1-22 in the above example.
     COM2-1-22 --- COM2-2-1 is a linkage
     """
     linkages = []
@@ -403,28 +402,31 @@ def find_linkages(global_path): # todo: not tested
             linkages.append(i)
     return linkages
 
-
-
 def find_dist_bearing_to_next_node(global_path, graph): # todo: test across different maps
-    array=[]
-    currentNodeIndex=0
+    """
+    DISTANCE BEARING ACROSS MAPS:
+    A --- B (link start) --- C (link end) --- D
+    B and C are the same node but on different maps
+    We take A - B and C - D pairs
+    """
+    dist_bearing_list=[]
     linkages = find_linkages(global_path)
     checkpointList = convert_global_path_to_checkpoints(global_path, graph)
 
-    while True:
-        if currentNodeIndex == len(checkpointList)-1:
-            break
-        currentNode = checkpointList[currentNodeIndex]
+    for i in range(0, len(checkpointList) - 1):
+        if i in linkages:
+            dist_bearing_list.append({'is_linkage': True})
+            continue
+        currentNode = checkpointList[i]
         coord_X = currentNode.xCoord
         coord_Y = currentNode.yCoord
-        nextNode = checkpointList[currentNodeIndex+1]
+        nextNode = checkpointList[i+1]
         dist_and_bearing = bearing_to_node(coord_X, coord_Y, nextNode.xCoord, nextNode.yCoord, nextNode.northAt,
                                            nextNode, currentNode.localNodeId)
 
-        array.append(dist_and_bearing)
-        currentNodeIndex += 1
-    print array
-    return array
+        dist_bearing_list.append(dist_and_bearing)
+    print dist_bearing_list
+    return dist_bearing_list
 
 # -------------------------------------------------------------------------------------------------------------------
 

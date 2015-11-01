@@ -149,17 +149,22 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 audioQueue.put(DESTINATION_REACHED)
                 break
             else:
-                distance_to_next = precomputedCheckpointData[curr_index]['distance_to_next']
-                bearing_to_next = precomputedCheckpointData[curr_index]['bearing_to_next']
-                checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
-                currNodeId = precomputedCheckpointData[curr_index]['curr_checkpoint']
-                print 'Current checkpoint: {}'.format(currNodeId)
-                audioQueue.put('Current checkpoint {} .'.format(currNodeId))
-                guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
-                audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
-                pedometerQueue.queue.clear()
-                good_to_go_time = int(time.time())
-                print 'Distance to node {}: {} cm Bearing to {}: {} deg'.format(checkpoint, distance_to_next, checkpoint, bearing_to_next)
+                if precomputedCheckpointData[curr_index]['is_linkage']:
+                    # put into audio queue what type of linkage
+                    # todo: how to know whether user crossed the linkage?
+                    pass
+                else:
+                    distance_to_next = precomputedCheckpointData[curr_index]['distance_to_next']
+                    bearing_to_next = precomputedCheckpointData[curr_index]['bearing_to_next']
+                    checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
+                    currNodeId = precomputedCheckpointData[curr_index]['curr_checkpoint']
+                    print 'Current checkpoint: {}'.format(currNodeId)
+                    audioQueue.put('Current checkpoint {} .'.format(currNodeId))
+                    guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
+                    audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
+                    pedometerQueue.queue.clear()
+                    good_to_go_time = int(time.time())
+                    print 'Distance to node {}: {} cm Bearing to {}: {} deg'.format(checkpoint, distance_to_next, checkpoint, bearing_to_next)
 
         else:
             data = pedometerQueue.get(True)

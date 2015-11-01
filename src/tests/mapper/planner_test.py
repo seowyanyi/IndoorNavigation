@@ -4,28 +4,28 @@ import networkx as nx
 import src.mapper.planner as planner
 
 
-class DownloadMap(unittest.TestCase):
-    def test_download_map_positive(self):
-        mapObj = planner.download_map("COM1", 2)
-        # Ensure we have direction of north
-        northAt = abs(int(mapObj.initialBearing))
-        self.assertTrue(0 <= northAt <= 360)
-        # Ensure we have nodes
-        nodes = mapObj.mapJsonData["map"]
-        self.assertTrue(len(nodes) > 0)
-        for node in nodes:
-            nodeId = int(node["nodeId"])
-            x = int(node["x"])
-            y = int(node["y"])
-            nodeName = node["nodeName"].strip()
-            linkTo = node["linkTo"].split(', ')
-            self.assertTrue(nodeId >= 1)
-            self.assertTrue(x >= 0 and y >= 0)
-            self.assertTrue(nodeName)
-            self.assertTrue(len(linkTo) >= 1) # every node must have at least one link
-            for item in linkTo:
-                link = int(item.strip())
-                self.assertTrue(link >= 1)
+# class DownloadMap(unittest.TestCase):
+#     def test_download_map_positive(self):
+#         mapObj = planner.download_map("COM1", 2)
+#         # Ensure we have direction of north
+#         northAt = abs(int(mapObj.initialBearing))
+#         self.assertTrue(0 <= northAt <= 360)
+#         # Ensure we have nodes
+#         nodes = mapObj.mapJsonData["map"]
+#         self.assertTrue(len(nodes) > 0)
+#         for node in nodes:
+#             nodeId = int(node["nodeId"])
+#             x = int(node["x"])
+#             y = int(node["y"])
+#             nodeName = node["nodeName"].strip()
+#             linkTo = node["linkTo"].split(', ')
+#             self.assertTrue(nodeId >= 1)
+#             self.assertTrue(x >= 0 and y >= 0)
+#             self.assertTrue(nodeName)
+#             self.assertTrue(len(linkTo) >= 1) # every node must have at least one link
+#             for item in linkTo:
+#                 link = int(item.strip())
+#                 self.assertTrue(link >= 1)
 
 class ParseNodeNames(unittest.TestCase):
     def test_is_link_to_other_maps(self):
@@ -61,6 +61,13 @@ class PathPlanning(unittest.TestCase):
 
     NUM_EDGES_COM2_3 = 15
     NUM_NODES_COM2_3 = 16
+
+    def test_find_linkages(self):
+        global_path = ['COM1-2-19', 'COM1-2-22', 'COM2-2-1', 'COM2-2-15', 'COM2-3-15', 'COM6-7-15']
+        expected_linkage_start = [1,3,4]
+        self.assertEquals(planner.find_linkages(global_path), expected_linkage_start)
+        no_linkages = ['COM1-2-19', 'COM1-2-16', 'COM1-2-22', 'COM1-2-23']
+        self.assertTrue(len(planner.find_linkages(no_linkages)) == 0)
 
     def test_update_graph(self):
         sourceMap =  planner.download_map('COM2', 3)
@@ -152,5 +159,5 @@ class PathPlanning(unittest.TestCase):
                           self.NUM_NODES_COM1_2 + self.NUM_NODES_COM2_2 + self.NUM_NODES_COM2_3)
 
     def test_get_shortest_path(self):
-        path = planner.get_shortest_path('COM1', 2, 11, 'COM2', 3, 13)
+        path = planner.get_shortest_path('COM1', 2, 29, 'COM2', 2, 17)
         print path
