@@ -425,7 +425,7 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
     for i in range(0, len(checkpointList) - 1):
         currentNode = checkpointList[i]
         if i in linkages:
-            dist_bearing_list.append({'is_linkage': True, 'curr_node_name': currentNode.nodeName})
+            dist_bearing_list.append({'is_linkage': True, 'curr_node_name': currentNode.nodeName, 'curr_checkpoint': currentNode.localNodeId})
             continue
         coord_X = currentNode.xCoord
         coord_Y = currentNode.yCoord
@@ -452,7 +452,7 @@ def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, d
         return False
 
 def begin_test():
-    x = get_shortest_path(1,2,23,2,3,16)
+    x = get_shortest_path(1,2,29,2,2,17)
     print x
     # test_path_finding()
 

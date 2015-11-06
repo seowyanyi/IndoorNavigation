@@ -165,7 +165,7 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 checkpoint = curr_node['next_checkpoint']
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                 if curr_node_name == 'Stairwell':
-                    distance_to_next = 12 * CM_PER_STEP # 12 steps per flight of stairs
+                    distance_to_next = 6 * CM_PER_STEP # 6 steps per flight of stairs
                     # user needs to confirm he is ready to go
                     audioQueue.put(PRESS_TO_START_CLIMBING)
                     if keypressQueue.get(True):
