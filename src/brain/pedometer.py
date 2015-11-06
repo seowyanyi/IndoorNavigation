@@ -11,7 +11,7 @@ import os
 import time
 # import sys
 # sys.path.insert(0, '/home/seowyanyi/school/cg3002/IndoorNavigation/src')
-#import communication.queueManager as qm
+# import communication.queueManager as qm
 
 import communication.queueManager as qm
 
@@ -22,10 +22,10 @@ HEADING_WINDOW_SIZE = 30
 AT_REST_LIMIT = 2
 AT_REST_HEADING_MARGIN = 6
 
-SWING_LIMIT = 2
+SWING_LIMIT = 1
 TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 15
-SECS_BETWEEN_STEPS = 1.8
+SECS_BETWEEN_STEPS = 1.9
 
 MAX_DATA_RATE = 0.05
 MIN_DATA_RATE = 0.02
