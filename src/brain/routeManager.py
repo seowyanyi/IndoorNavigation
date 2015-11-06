@@ -159,15 +159,15 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 curr_node_name = curr_node['curr_node_name']
                 print CURRENT_CHECKPOINT.format(currNodeId, curr_node_name)
                 audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
+                guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                 if curr_node_name == 'Stairwell':
+                    distance_to_next = 12 * CM_PER_STEP # 12 steps per flight of stairs
                     # user needs to confirm he is ready to go
                     audioQueue.put(PRESS_TO_START_CLIMBING)
                     if keypressQueue.get(True):
-                        # todo: measure exact steps taken for stairs
                         audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
 
                 else :
-                    guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                     audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
                     pedometerQueue.queue.clear()
                     good_to_go_time = int(time.time())
