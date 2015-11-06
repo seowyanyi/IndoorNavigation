@@ -54,7 +54,7 @@ def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, th
         if abs(target_bearing - data['actual_bearing']) < threshold:
             break
         guide_user(data['actual_bearing'], target_bearing, audioQueue)
-        time.sleep(10)
+        time.sleep(5)
         pedometerQueue.queue.clear()
         data = pedometerQueue.get(True)
 
