@@ -152,13 +152,17 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 audioQueue.put(DESTINATION_REACHED)
                 break
             else:
-                distance_to_next = curr_node['distance_to_next']
-                bearing_to_next = curr_node['bearing_to_next']
-                checkpoint = curr_node['next_checkpoint']
                 currNodeId = curr_node['curr_checkpoint']
                 curr_node_name = curr_node['curr_node_name']
                 print CURRENT_CHECKPOINT.format(currNodeId, curr_node_name)
                 audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
+                if curr_node['is_linkage']:
+                    audioQueue.put('linking to next map')
+                    reached_checkpoint = True
+                    continue
+                distance_to_next = curr_node['distance_to_next']
+                bearing_to_next = curr_node['bearing_to_next']
+                checkpoint = curr_node['next_checkpoint']
                 guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                 if curr_node_name == 'Stairwell':
                     distance_to_next = 12 * CM_PER_STEP # 12 steps per flight of stairs
