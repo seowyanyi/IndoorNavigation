@@ -1,7 +1,6 @@
 import planner as planner
 import sys
 sys.path.insert(0, '/home/pi/IndoorNavigation/src/')
-from peripherals import audio
 from peripherals import KeyPad
 
 keypad = KeyPad.keypad()
@@ -21,7 +20,6 @@ CONFIRM_INPUT = 'Your input is building {}, level {}, node {}. Press 1 to confir
 
 def init_mapper(audioQueue):
     locations = get_start_and_end_locations(audioQueue)
-    print locations
     return planner.get_shortest_path(sourceBuilding=locations[START_BUILDING], sourceLevel=locations[START_LEVEL], sourceNodeId=locations[START_NODE], destBuilding=locations[DESTINATION_BUILDING],destLevel=locations[DESTINATION_LEVEL], destNodeId=locations[DESTINATION_NODE])
 
 def get_start_and_end_locations(audioQueue):
