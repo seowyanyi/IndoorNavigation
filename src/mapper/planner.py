@@ -85,7 +85,7 @@ def download_map(buildingName, levelNum):
     elif buildingName == 2 and levelNum == 3:
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl3.json') as json_file:
             mapJsonData = json.load(json_file)
-    else
+    else:
         print 'cannot find this map: {}-{}'.format(buildingName, levelNum)
         raise ValueError(MapError)
     initialBearing = mapJsonData["info"]["northAt"]
