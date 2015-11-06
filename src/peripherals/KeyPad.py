@@ -15,11 +15,10 @@ class KeypadThread(threading.Thread):
 def start_checking_for_keypresses(keypressQueue):
     while True:
         keyPad = keypad()
-        inp = keyPad.get_user_input()
-        if inp == 1 or inp == 4 or inp == 7:
-            keypressQueue.put(True)
-        elif inp == 3 or inp == 6 or inp == 9:
-            keypressQueue.put(False)
+        keyPad.get_user_input()
+        keypressQueue.put(True)
+        # elif inp == 3 or inp == 6 or inp == 9:
+        #     keypressQueue.put(False)
 
 
 class keypad:

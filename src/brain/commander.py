@@ -14,6 +14,7 @@ def start():
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
+    keypadQueue = queueManager.KEYPAD_QUEUE
 
     # Thread 1
     audio_thread = audio.AudioDispatcherThread(
@@ -36,7 +37,7 @@ def start():
     # Thread 3
     route_manager_thread = routeManager.RouteManagerThread(
         threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
-        precomputedCheckpointData=precomputedData
+        keypressQueue=keypadQueue, precomputedCheckpointData=precomputedData
     )
     route_manager_thread.daemon = True
     route_manager_thread.start()
@@ -54,9 +55,9 @@ def start():
     sensor_thread.start()
 
     # Thread 5
-    #kp_thread = KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue)
-    #kp_thread.daemon = True
-    #kp_thread.start()
+    kp_thread = KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue)
+    kp_thread.daemon = True
+    kp_thread.start()
 
     while True:
         time.sleep(1000)
