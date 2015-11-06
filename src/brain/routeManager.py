@@ -30,9 +30,10 @@ OFF_CENTER_WARNING = 'Pedometer paused. You are off center'
 WALK_X_DEG_LEFT = 'Walk {} degrees left'
 WALK_X_DEG_RIGHT = 'Walk {} degrees right'
 CURRENT_CHECKPOINT = 'Current checkpoint {}. {}'
+PRESS_TO_START_CLIMBING = 'Press any button to start climbing'
 
 # Constants
-CM_PER_STEP = 77
+CM_PER_STEP = 79.5
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 2
@@ -105,19 +106,20 @@ def distance_off_center(bearingError, recordedDist):
 #
 
 class RouteManagerThread(threading.Thread):
-    def __init__(self, threadName, pedometerQueue, audioQueue, precomputedCheckpointData):
+    def __init__(self, threadName, pedometerQueue, audioQueue, keypressQueue, precomputedCheckpointData):
         threading.Thread.__init__(self)
         self.threadName = threadName
         self.pedometerQueue = pedometerQueue
         self.audioQueue = audioQueue
+        self.keypressQueue = keypressQueue
         self.precomputedCheckpointData = precomputedCheckpointData
 
     def run(self):
         print  'Starting {} thread'.format(self.threadName)
-        start_managing_routes(self.pedometerQueue, self.audioQueue, self.precomputedCheckpointData)
+        start_managing_routes(self.pedometerQueue, self.audioQueue, self.keypressQueue, self.precomputedCheckpointData)
         print 'Exited {} thread'.format(self.threadName)
 
-def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData):
+def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputedCheckpointData):
     print 'start managing routes'
     curr_index = -1
     reached_checkpoint = True
@@ -155,13 +157,16 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 checkpoint = curr_node['next_checkpoint']
                 currNodeId = curr_node['curr_checkpoint']
                 curr_node_name = curr_node['curr_node_name']
-                if precomputedCheckpointData[curr_index]['is_linkage']:
-                    # put into audio queue what type of linkage
-                    # todo: how to know whether user crossed the linkage?
-                    audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
-                else:
-                    print CURRENT_CHECKPOINT.format(currNodeId, curr_node_name)
-                    audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
+                print CURRENT_CHECKPOINT.format(currNodeId, curr_node_name)
+                audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
+                if curr_node_name == 'Stairwell':
+                    # user needs to confirm he is ready to go
+                    audioQueue.put(PRESS_TO_START_CLIMBING)
+                    if keypressQueue.get(True):
+                        # todo: measure exact steps taken for stairs
+                        audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
+
+                else :
                     guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                     audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
                     pedometerQueue.queue.clear()
