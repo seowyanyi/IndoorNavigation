@@ -81,6 +81,8 @@ def download_map(buildingName, levelNum):
 
 
     if buildingName == 1 and levelNum == 2:
+        #/home/seowyanyi/school/cg3002/IndoorNavigation/src/mapper/PreLoadedMaps/
+        #/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/
     #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
@@ -160,9 +162,7 @@ def get_checkpoints(mapInfo):
 
 
 def build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel):
-    graph = nx.Graph()
-    explore_and_build(sourceBuilding, sourceLevel, destBuilding, destLevel, graph, [], [])
-    return graph
+    return build_preloaded_graphs()
 
 def explore_unexplored_maps(destBuilding, destLevel, graph, unexplored, explored):
     if len(unexplored) == 0:
@@ -179,6 +179,24 @@ def explore_unexplored_maps(destBuilding, destLevel, graph, unexplored, explored
     explore_and_build(unexploredBuilding, unexploredLevel,
                       destBuilding, destLevel, graph, unexplored, explored)
 
+def build_preloaded_graphs():
+    graph = nx.Graph()
+    com1_2_map =  download_map(1, 2)
+    com2_2_map =  download_map(2, 2)
+    com2_3_map =  download_map(2, 3)
+
+    com1_2_checkpoints = get_checkpoints(com1_2_map)
+    com2_2_checkpoints = get_checkpoints(com2_2_map)
+    com2_3_checkpoints = get_checkpoints(com2_3_map)
+
+    update_graph(com1_2_checkpoints, graph)
+    update_graph(com2_2_checkpoints, graph)
+    update_graph(com2_3_checkpoints, graph)
+
+    graph.add_edge('1-2-31', '2-2-1', weight=1)
+    graph.add_edge('2-2-16', '2-3-11', weight=1)
+
+    return graph
 
 def explore_and_build(nextBuilding, nextLevel, destBuilding, destLevel, graph, unexplored, explored):
     """
@@ -425,17 +443,17 @@ def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, d
     try:
         print 'Finding shortest path from {}-{}-{} to {}-{}-{}'.format(sourceBuilding, sourceLevel, sourceNodeId,
                                             destBuilding, destLevel, destNodeId)
-        graph = build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel)
+        graph = build_preloaded_graphs()
         path = find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNodeId,
                                               destBuilding, destLevel, destNodeId)
+        print path
         return find_dist_bearing_to_next_node(path, graph)
     except DestinationNotFound:
         return False
 
 def begin_test():
-    x = download_map(2, 2)
-    print x.mapJsonData
-    print x.initialBearing
+    x = get_shortest_path(1,2,23,2,3,16)
+    print x
     # test_path_finding()
 
 def test_path_finding():
