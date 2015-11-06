@@ -88,6 +88,7 @@ def download_map(buildingName, levelNum):
             mapJsonData = json.load(json_file)
 
     if mapJsonData["info"] is None:
+        print 'cannot find this map: {}-{}'.format(buildingName, levelNum)
         raise ValueError(MapError)
     initialBearing = mapJsonData["info"]["northAt"]
     return MapInfoObj(buildingName, levelNum, mapJsonData, initialBearing)
