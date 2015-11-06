@@ -1,5 +1,4 @@
 import json
-import urllib2
 import requests
 import networkx as nx
 import math
@@ -75,12 +74,18 @@ def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY
 
 # -------------------------------------------------------------------------------------------------------------------
 def download_map(buildingName, levelNum):
+    if isinstance(buildingName, basestring):
+        buildingName = int(buildingName)
+    if isinstance(levelNum, basestring):
+        levelNum = int(levelNum)
+
+
     if buildingName == 1 and levelNum == 2:
     #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
     elif buildingName == 2 and levelNum == 2:
-        with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
+        with open('/home/seowyanyi/school/cg3002/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
     elif buildingName == 2 and levelNum == 3:
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl3.json') as json_file:
@@ -428,7 +433,10 @@ def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, d
         return False
 
 def begin_test():
-    test_path_finding()
+    x = download_map(2, 2)
+    print x.mapJsonData
+    print x.initialBearing
+    # test_path_finding()
 
 def test_path_finding():
     buildingName = 3
