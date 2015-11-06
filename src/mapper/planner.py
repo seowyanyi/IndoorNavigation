@@ -75,19 +75,17 @@ def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY
 
 # -------------------------------------------------------------------------------------------------------------------
 def download_map(buildingName, levelNum):
-
-    if (buildingName == 1 and levelNum == 2):
+    if buildingName == 1 and levelNum == 2:
     #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
-    elif (buildingName == 2 and levelNum == 2):
+    elif buildingName == 2 and levelNum == 2:
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
-    elif (buildingName == 2 and levelNum == 3):
+    elif buildingName == 2 and levelNum == 3:
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl3.json') as json_file:
             mapJsonData = json.load(json_file)
-
-    if mapJsonData["info"] is None:
+    else
         print 'cannot find this map: {}-{}'.format(buildingName, levelNum)
         raise ValueError(MapError)
     initialBearing = mapJsonData["info"]["northAt"]
