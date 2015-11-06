@@ -42,8 +42,6 @@ def start():
     route_manager_thread.daemon = True
     route_manager_thread.start()
 
-    time.sleep(5) # sleep a few seconds to cater for spinning
-
     # Thread 4
     sensor_thread = serialmod.SensorManagerThread(
         threadName='sensor Manager', imuQueue=imuQueue, audioQueue=audioQueue)
