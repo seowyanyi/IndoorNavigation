@@ -1,5 +1,4 @@
 import json
-import urllib2
 import requests
 import networkx as nx
 import math
@@ -75,19 +74,26 @@ def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY
 
 # -------------------------------------------------------------------------------------------------------------------
 def download_map(buildingName, levelNum):
+    if isinstance(buildingName, basestring):
+        buildingName = int(buildingName)
+    if isinstance(levelNum, basestring):
+        levelNum = int(levelNum)
 
-    if (buildingName == 1 and levelNum == 2):
+
+    if buildingName == 1 and levelNum == 2:
+        #/home/seowyanyi/school/cg3002/IndoorNavigation/src/mapper/PreLoadedMaps/
+        #/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/
     #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
-    elif (buildingName == 2 and levelNum == 2):
+    elif buildingName == 2 and levelNum == 2:
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
-    elif (buildingName == 2 and levelNum == 3):
+    elif buildingName == 2 and levelNum == 3:
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl3.json') as json_file:
             mapJsonData = json.load(json_file)
-
-    if mapJsonData["info"] is None:
+    else:
+        print 'cannot find this map: {}-{}'.format(buildingName, levelNum)
         raise ValueError(MapError)
     initialBearing = mapJsonData["info"]["northAt"]
     return MapInfoObj(buildingName, levelNum, mapJsonData, initialBearing)
@@ -156,9 +162,7 @@ def get_checkpoints(mapInfo):
 
 
 def build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel):
-    graph = nx.Graph()
-    explore_and_build(sourceBuilding, sourceLevel, destBuilding, destLevel, graph, [], [])
-    return graph
+    return build_preloaded_graphs()
 
 def explore_unexplored_maps(destBuilding, destLevel, graph, unexplored, explored):
     if len(unexplored) == 0:
@@ -175,6 +179,24 @@ def explore_unexplored_maps(destBuilding, destLevel, graph, unexplored, explored
     explore_and_build(unexploredBuilding, unexploredLevel,
                       destBuilding, destLevel, graph, unexplored, explored)
 
+def build_preloaded_graphs():
+    graph = nx.Graph()
+    com1_2_map =  download_map(1, 2)
+    com2_2_map =  download_map(2, 2)
+    com2_3_map =  download_map(2, 3)
+
+    com1_2_checkpoints = get_checkpoints(com1_2_map)
+    com2_2_checkpoints = get_checkpoints(com2_2_map)
+    com2_3_checkpoints = get_checkpoints(com2_3_map)
+
+    update_graph(com1_2_checkpoints, graph)
+    update_graph(com2_2_checkpoints, graph)
+    update_graph(com2_3_checkpoints, graph)
+
+    graph.add_edge('1-2-31', '2-2-1', weight=1)
+    graph.add_edge('2-2-16', '2-3-11', weight=1)
+
+    return graph
 
 def explore_and_build(nextBuilding, nextLevel, destBuilding, destLevel, graph, unexplored, explored):
     """
@@ -419,15 +441,20 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
 
 def get_shortest_path(sourceBuilding, sourceLevel, sourceNodeId, destBuilding, destLevel, destNodeId):
     try:
-        graph = build_graph(sourceBuilding, sourceLevel, destBuilding, destLevel)
+        print 'Finding shortest path from {}-{}-{} to {}-{}-{}'.format(sourceBuilding, sourceLevel, sourceNodeId,
+                                            destBuilding, destLevel, destNodeId)
+        graph = build_preloaded_graphs()
         path = find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNodeId,
                                               destBuilding, destLevel, destNodeId)
+        print path
         return find_dist_bearing_to_next_node(path, graph)
     except DestinationNotFound:
         return False
 
 def begin_test():
-    test_path_finding()
+    x = get_shortest_path(1,2,23,2,3,16)
+    print x
+    # test_path_finding()
 
 def test_path_finding():
     buildingName = 3
@@ -454,110 +481,6 @@ def test_path_finding():
             print 'visualize: {}'.format(res.json()["transaction_id"])
         except requests.exceptions.RequestException as e:
             pass
-
-
-# def orientate_user(srcX, srcY, destX, destY, currBearing):
-#     """
-#     :param currBearing: user's compass heading w.r.t north of map.
-#     :return: {'turning_angle': a, 'distance_to_node': b}
-#     if a < 0, turn CCW. If a > 0, turn CW
-#
-#     the NorthAt of the map should be taken into consideration given that the
-#     current bearing is based on the north of the map and not the true north
-#     """
-#     # make sure bearing is positive to simplify calculations:
-#     if currBearing < 0:
-#         currBearing += 360
-#     distance = calculate_distance(srcX, srcY, destX, destY)
-#     bearingToNode = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
-#     if bearingToNode == 0:
-#         turningAngle = 0
-#     else:
-#         turningAngle = bearingToNode - currBearing
-#
-#     if abs(turningAngle) < 180:
-#         return {'turning_angle': turningAngle, 'distance_to_node': distance}
-#     if turningAngle < 0:
-#         return {'turning_angle': turningAngle+360, 'distance_to_node': distance}
-#     # Turning angle > 0, and abs(angle) > 180
-#     return {'turning_angle': - (360 - turningAngle), 'distance_to_node': distance}
-
-# def convert_path_to_checkpoints(local_path, graph, buildingName, levelNum):
-#     """
-#     :param path: list of local node ids along the path (int)
-#     :param graph: the networkx graph
-#     :param buildingName: building the path belongs to
-#     :param levelName: level the path belongs to
-#     :return: list of Checkpoint objects
-#     """
-#     listOfCheckpoints = []
-#     for point in local_path:
-#         for nxNode,data in graph.nodes_iter(data=True):
-#             node = data['checkpoint']
-#             if node.buildingName != buildingName or node.levelNum != levelNum:
-#                 continue
-#             if int(node.localNodeId) == int(point):
-#                 listOfCheckpoints.append(node)
-#                 break
-#
-#     return listOfCheckpoints
-
-# def find_nearest_node_in_graph(graph, coord_X, coord_Y):
-#     """
-#     Finds nearest node in the graph from the current location
-#     This only works for a single map
-#     :param graph: the network x graph
-#     """
-#     currShortestDist = None
-#     currNearestNode = None
-#     for nxNode,data in graph.nodes_iter(data=True):
-#         node = data['checkpoint']
-#         x = node.xCoord
-#         y = node.yCoord
-#         if x == coord_X and y == coord_Y:
-#             # same node
-#             return {'nearest_node_on_path': node, 'distance_to_node': 0}
-#         distance = calculate_distance(coord_X, coord_Y, x, y)
-#         if currShortestDist is None or distance < currShortestDist:
-#             currShortestDist = distance
-#             currNearestNode = node
-#     return {'nearest_node_on_path': currNearestNode, 'distance_to_node': currShortestDist}
-
-# def find_nearest_next_node(checkpointList, coord_X, coord_Y):
-#     """
-#     Finds nearest next node in the path from the current location
-#     This only works for a single map
-#     e.g. A -> B -> C
-#     If user not on the path but nearest to B, nearest next node is B
-#     If user is on B, the nearest next node is C
-#     If user is on C (destination), return None
-#     :param checkpointList: list of checkpoints along the path
-#     """
-#     currShortestDist = None
-#     currNearestNode = None
-#     length = len(checkpointList)
-#     counter = 0
-#     go_next = False
-#
-#     for node in checkpointList:
-#         counter += 1
-#         x = node.xCoord
-#         y = node.yCoord
-#         if x == coord_X and y == coord_Y:
-#             if counter == length:
-#                 # already at destination
-#                 return None
-#             else:
-#                 go_next = True
-#                 continue
-#
-#         distance = calculate_distance(coord_X, coord_Y, x, y)
-#         if go_next:
-#             return node
-#         if currShortestDist is None or distance < currShortestDist:
-#             currShortestDist = distance
-#             currNearestNode = node
-#     return currNearestNode
 
 if __name__ == "__main__":
     begin_test()

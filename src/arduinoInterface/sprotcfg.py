@@ -15,8 +15,8 @@ FIELD_CHECKSUM_OFFSET =              PACKET_SIZE - 1              # CHECKSUM fie
 FIELD_DATA_OFFSET =                  HEADER_LENGTH                # DATA field offset in bytes
 
 # Timeout Parameters in secs
-SPROT_SEND_TIMEOUT =                 5                            # Default send timeout in ms
-SPROT_RECV_TIMEOUT =                 0.6                             # Default receive timeout ms
+SPROT_SEND_TIMEOUT =                 5                            # Default send timeout in s
+SPROT_RECV_TIMEOUT =                 1                             # Default receive timeout s
 
 # Generic error constant
 SPROT_ERROR =                        -1

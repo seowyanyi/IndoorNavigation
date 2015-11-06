@@ -44,4 +44,5 @@ class keypad:
         #Reset current user input if user input #
         if digit == "#":
             userInput = self.get_user_input()
+        print '{} entered into keypad: '.format(int(userInput))
         return int(userInput)
