@@ -74,31 +74,18 @@ def calculate_bearing_from_vertical(coordSrcX, coordSrcY, coordDestX, coordDestY
     return  bearingDeg
 
 # -------------------------------------------------------------------------------------------------------------------
-#def internet_on():
-#    try:
-#        response=urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=COM1&Level=2',timeout=1)
-#        return True
-#    except urllib2.URLError as err:
-#        pass
-#    return False
-
 def download_map(buildingName, levelNum):
-    try:
-        response=urllib2.urlopen('http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building={}&Level={}'.format(buildingName,levelNum),timeout=20)
-        print "THERE IS INTERNET"
-        mapJsonData = json.load(response)
-    except urllib2.URLError as err:
-        print "NO INTERNET"
-        if (buildingName == 1 and levelNum == 2):
-        #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
-            with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
-                mapJsonData = json.load(json_file)
-        elif (buildingName == 2 and levelNum == 2):
-            with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
-                mapJsonData = json.load(json_file)
-        elif (buildingName == 2 and levelNum == 3):
-            with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl3.json') as json_file:
-                mapJsonData = json.load(json_file)
+
+    if (buildingName == 1 and levelNum == 2):
+    #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
+        with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
+            mapJsonData = json.load(json_file)
+    elif (buildingName == 2 and levelNum == 2):
+        with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
+            mapJsonData = json.load(json_file)
+    elif (buildingName == 2 and levelNum == 3):
+        with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl3.json') as json_file:
+            mapJsonData = json.load(json_file)
 
     if mapJsonData["info"] is None:
         raise ValueError(MapError)
