@@ -144,14 +144,15 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
             reached_checkpoint = False
             steps_between_checkpoints = 0
             total_distance_off_center = 0
-            if curr_index == len(precomputedCheckpointData):
+            curr_node = precomputedCheckpointData[curr_index]
+            currNodeId = curr_node['curr_checkpoint']
+            curr_node_name = curr_node['curr_node_name']
+            if curr_index == len(precomputedCheckpointData) - 1:
                 #reached destination
+                audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
                 audioQueue.put(DESTINATION_REACHED)
                 break
             else:
-                curr_node = precomputedCheckpointData[curr_index]
-                currNodeId = curr_node['curr_checkpoint']
-                curr_node_name = curr_node['curr_node_name']
                 audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
                 if curr_node['is_linkage']:
                     audioQueue.put('linking to next map')

@@ -434,7 +434,8 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
                                            nextNode, currentNode.localNodeId)
         dist_and_bearing['curr_node_name'] = currentNode.nodeName
         dist_bearing_list.append(dist_and_bearing)
-    print dist_bearing_list
+    dest = checkpointList[len(checkpointList) -1]
+    dist_bearing_list.append({'is_linkage': False, 'curr_node_name': dest.nodeName, 'curr_checkpoint': dest.localNodeId})
     return dist_bearing_list
 
 # -------------------------------------------------------------------------------------------------------------------
