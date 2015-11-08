@@ -31,7 +31,7 @@ sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
 LIMIT_DATA_RATE = 2
-PKT_READ_TIMEOUT_SECS = 2 # this should be <= recv timeout set in sprotcfg.py
+PKT_READ_TIMEOUT_SECS = 3 # this should be <= recv timeout set in sprotcfg.py
 RESET_TIMEOUT_SECS = 8 # minimum time between resets
 #
 # GPIO.setmode(GPIO.BOARD)
