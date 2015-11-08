@@ -33,7 +33,7 @@ CURRENT_CHECKPOINT = 'Current checkpoint {}. {}'
 PRESS_TO_START_CLIMBING = 'Press any button to start climbing'
 
 # Constants
-CM_PER_STEP = 79.5
+CM_PER_STEP = 80
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 2
@@ -106,20 +106,19 @@ def distance_off_center(bearingError, recordedDist):
 #
 
 class RouteManagerThread(threading.Thread):
-    def __init__(self, threadName, pedometerQueue, audioQueue, keypressQueue, precomputedCheckpointData):
+    def __init__(self, threadName, pedometerQueue, audioQueue, precomputedCheckpointData):
         threading.Thread.__init__(self)
         self.threadName = threadName
         self.pedometerQueue = pedometerQueue
         self.audioQueue = audioQueue
-        self.keypressQueue = keypressQueue
         self.precomputedCheckpointData = precomputedCheckpointData
 
     def run(self):
         print  'Starting {} thread'.format(self.threadName)
-        start_managing_routes(self.pedometerQueue, self.audioQueue, self.keypressQueue, self.precomputedCheckpointData)
+        start_managing_routes(self.pedometerQueue, self.audioQueue, self.precomputedCheckpointData)
         print 'Exited {} thread'.format(self.threadName)
 
-def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputedCheckpointData):
+def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData):
     print 'start managing routes'
     curr_index = -1
     reached_checkpoint = True
@@ -135,7 +134,6 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
 
     # pausing step counting to avoid obstacles
     pause_step_counting = False
-    pedometer_pause_time = int(time.time())
 
     steps_before_center_correction = 0
     total_distance_off_center = 0
@@ -146,12 +144,12 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
             reached_checkpoint = False
             steps_between_checkpoints = 0
             total_distance_off_center = 0
-            curr_node = precomputedCheckpointData[curr_index]
             if curr_index == len(precomputedCheckpointData):
                 #reached destination
                 audioQueue.put(DESTINATION_REACHED)
                 break
             else:
+                curr_node = precomputedCheckpointData[curr_index]
                 currNodeId = curr_node['curr_checkpoint']
                 curr_node_name = curr_node['curr_node_name']
                 audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
@@ -162,7 +160,9 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 distance_to_next = curr_node['distance_to_next']
                 bearing_to_next = curr_node['bearing_to_next']
                 checkpoint = curr_node['next_checkpoint']
-                if curr_node_name.lower() == 'stairwell' or curr_node_name.lower() == 'halfway':
+                if (curr_node_name.lower() == 'stairwell' and currNodeId == 14) or \
+                    (curr_node_name.lower() == 'to 2-2-16' and currNodeId == 11) or \
+                    (curr_node_name.lower() == 'to com2-2-16' and currNodeId == 11):
                     distance_to_next = 6 * CM_PER_STEP # 6 steps per flight of stairs
                     audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
                 else :
@@ -192,17 +192,6 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                     total_distance_off_center -= dist_off
 
                 print 'Step taken. Heading: {} deg. {} cm off center'.format(data['actual_bearing'], total_distance_off_center)
-
-                # if abs(total_distance_off_center) >= DIST_OFF_CENTER_LIMIT_CM:
-                #     audioQueue.put(OFF_CENTER_WARNING)
-                #     guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
-                #     guide_user_to_center(total_distance_off_center, audioQueue)
-                #     time.sleep(6)
-                #     # Clear pedo queue
-                #     audioQueue.put(PEDOMETER_RESTARTED)
-                #     pedometerQueue.queue.clear()
-                #     total_distance_off_center = 0
-                #     pedometer_pause_time = int(time.time())
                 if steps == NUM_STEPS_BEFORE_CORRECTING:
                     steps = 0
                     if abs(bearing_error) > ACCEPTABLE_BEARING_ERROR_MOVING:
@@ -211,27 +200,12 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 # start counting down a few steps before reaching next checkpoint
                 elif 0 < distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
-            elif pause_step_counting and int(time.time()) - pedometer_pause_time > PEDOMETER_PAUSE_SECONDS:
-                    # Case 2: User finished avoiding obstacle and is ready to go
-                    # audioQueue.put(PEDOMETER_RESTARTED + '. ' + DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
-                    # print 'pedometer restarted'
-                    # pause_step_counting = False
-                    # prev_time = int(time.time())
-                    pass
             elif data['type'] == pedometer.Step.AT_REST and int(time.time()) - prev_time >= CHECK_AT_REST_INVERVAL:
                 prev_time = int(time.time())
                 if steps_between_checkpoints == 0 and int(time.time()) - good_to_go_time >= SECS_BEFORE_GOOD_TO_GO_REPEAT:
                     # Case 1: User still at checkpoint. Maybe he missed the command to go
                     audioQueue.put('Current checkpoint is {}'.format(precomputedCheckpointData[curr_index]['curr_checkpoint']))
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
-                elif not pause_step_counting:
-                    pass
-                    # Case 3: User stopped in between checkpoints (probably obstacle).
-                    # Pause counting of steps
-                    # audioQueue.put(PEDOMETER_PAUSED_SECS)
-                    # print 'pedometer paused'
-                    # pause_step_counting = True
-                    # pedometer_pause_time = int(time.time())
             if distance_to_next <= 0:
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 reached_checkpoint = True

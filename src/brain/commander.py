@@ -14,7 +14,6 @@ def start():
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
-    keypadQueue = queueManager.KEYPAD_QUEUE
 
     # Thread 1
     audio_thread = audio.AudioDispatcherThread(
@@ -37,7 +36,7 @@ def start():
     # Thread 3
     route_manager_thread = routeManager.RouteManagerThread(
         threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
-        keypressQueue=keypadQueue, precomputedCheckpointData=precomputedData
+        precomputedCheckpointData=precomputedData
     )
     route_manager_thread.daemon = True
     route_manager_thread.start()
