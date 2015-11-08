@@ -53,9 +53,9 @@ def start():
     sensor_thread.start()
 
     # Thread 5
-    kp_thread = KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue)
-    kp_thread.daemon = True
-    kp_thread.start()
+    # kp_thread = KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypadQueue)
+    # kp_thread.daemon = True
+    # kp_thread.start()
 
     while True:
         time.sleep(1000)
