@@ -10,7 +10,7 @@ import pedometer
 import time
 import RPi.GPIO as GPIO
 
-def start():
+def start(debug):
     imuQueue = queueManager.IMU_QUEUE
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
@@ -20,26 +20,25 @@ def start():
     pedometer_thread.daemon = True
     pedometer_thread.start()
 
+    if not debug:
+        audio_thread = audio.AudioDispatcherThread(
+            threadName='audio Dispatcher', audioQueue=audioQueue)
+        audio_thread.daemon = True
+        audio_thread.start()
 
-    audio_thread = audio.AudioDispatcherThread(
-        threadName='audio Dispatcher', audioQueue=audioQueue)
-    audio_thread.daemon = True
-    audio_thread.start()
-
-
-    precomputedData = mapper.init_mapper(audioQueue)
-    while not precomputedData:
-        print 'map not found'
-        audioQueue.put('map not found.')
         precomputedData = mapper.init_mapper(audioQueue)
+        while not precomputedData:
+            print 'map not found'
+            audioQueue.put('map not found.')
+            precomputedData = mapper.init_mapper(audioQueue)
 
 
-    route_manager_thread = routeManager.RouteManagerThread(
-        threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
-        precomputedCheckpointData=precomputedData
-    )
-    route_manager_thread.daemon = True
-    route_manager_thread.start()
+        route_manager_thread = routeManager.RouteManagerThread(
+            threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
+            precomputedCheckpointData=precomputedData
+        )
+        route_manager_thread.daemon = True
+        route_manager_thread.start()
 
 
     sensor_thread = serialmod.SensorManagerThread(
@@ -58,3 +57,6 @@ def start():
 
     while True:
         time.sleep(1000)
+
+if __name__ == "__main__":
+    start(True)

@@ -36,4 +36,4 @@ def remove_previous_data_files():
 
 if __name__ == "__main__":
     remove_previous_data_files()
-    commander.start()
+    commander.start(False)
