@@ -15,11 +15,17 @@ def start():
     audioQueue = queueManager.AUDIO_QUEUE
     pedometerQueue = queueManager.PEDOMETER_QUEUE
 
-    # Thread 1
+    pedometer_thread = pedometer.PedometerThread(
+        threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue)
+    pedometer_thread.daemon = True
+    pedometer_thread.start()
+
+
     audio_thread = audio.AudioDispatcherThread(
         threadName='audio Dispatcher', audioQueue=audioQueue)
     audio_thread.daemon = True
     audio_thread.start()
+
 
     precomputedData = mapper.init_mapper(audioQueue)
     while not precomputedData:
@@ -27,13 +33,7 @@ def start():
         audioQueue.put('map not found.')
         precomputedData = mapper.init_mapper(audioQueue)
 
-    # Thread 2
-    pedometer_thread = pedometer.PedometerThread(
-        threadName='pedometer', imuQueue=imuQueue, pedometerQueue=pedometerQueue)
-    pedometer_thread.daemon = True
-    pedometer_thread.start()
 
-    # Thread 3
     route_manager_thread = routeManager.RouteManagerThread(
         threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
         precomputedCheckpointData=precomputedData
@@ -41,7 +41,7 @@ def start():
     route_manager_thread.daemon = True
     route_manager_thread.start()
 
-    # Thread 4
+
     sensor_thread = serialmod.SensorManagerThread(
         threadName='sensor Manager', imuQueue=imuQueue, audioQueue=audioQueue)
     sensor_thread.daemon = True
