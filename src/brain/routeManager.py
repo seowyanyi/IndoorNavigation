@@ -33,7 +33,7 @@ CURRENT_CHECKPOINT = 'Current checkpoint {}. {}'
 PRESS_TO_START_CLIMBING = 'Press any button to start climbing'
 
 # Constants
-CM_PER_STEP = 80
+CM_PER_STEP = 60.5
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 2
