@@ -11,7 +11,6 @@ Keeps track, and saves to disk, the current location in the following format:
 import threading
 import pedometer
 import time
-import math
 import numpy as np
 
 # Audio commands
@@ -21,14 +20,9 @@ GOOD_TO_GO = 'Good to go. {} steps to next'
 DESTINATION_REACHED = 'Destination reached'
 CHECKPOINT_REACHED = 'Checkpoint {} reached'
 COUNTDOWN_X_LEFT = '{} left'
-PEDOMETER_PAUSED_SECS = 'Pedometer paused. 5. 4. 3. 2. 1'
-PEDOMETER_RESTARTED = 'Pedometer restarted'
-# WALK_X_CM_LEFT = 'Side step {} cm left'
-# WALK_X_CM_RIGHT = 'Side step {} cm right'
 WALK_X_DEG_LEFT = 'Walk {} degrees left'
 WALK_X_DEG_RIGHT = 'Walk {} degrees right'
 CURRENT_CHECKPOINT = 'Current checkpoint {}. {}'
-PRESS_TO_START_CLIMBING = 'Press any button to start climbing'
 
 # Constants
 CM_PER_STEP = 60.5
@@ -36,7 +30,6 @@ ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 2
 COUNTDOWN_FROM_X_STEPS = 10
-PEDOMETER_PAUSE_SECONDS = 5
 RADIANS_PER_DEGREE = 0.0174533
 SECS_BEFORE_GOOD_TO_GO_REPEAT = 15
 
@@ -111,10 +104,6 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
 
     recent_bearings = []
 
-    # pausing step counting to avoid obstacles
-    pause_step_counting = False
-
-
     while True:
         if reached_checkpoint:
             curr_index += 1
@@ -151,7 +140,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
         else:
             data = pedometerQueue.get(True)
 
-            if data['type'] == pedometer.Step.FORWARD and not pause_step_counting:
+            if data['type'] == pedometer.Step.FORWARD:
                 recent_bearings.append(data['actual_bearing'])
                 bearing_error = np.average(recent_bearings) - bearing_to_next
                 steps += 1
