@@ -34,18 +34,15 @@ RADIANS_PER_DEGREE = 0.0174533
 SECS_BEFORE_GOOD_TO_GO_REPEAT = 15
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
-    data = pedometerQueue.get(True)
     while True:
+        data = pedometerQueue.get(True)
         if data['type'] != pedometer.Step.AT_REST:
-            pedometerQueue.queue.clear()
-            data = pedometerQueue.get(True)
             continue
         if abs(target_bearing - data['actual_bearing']) < threshold:
             break
         guide_user(data['actual_bearing'], target_bearing, audioQueue)
         time.sleep(5)
         pedometerQueue.queue.clear()
-        data = pedometerQueue.get(True)
 
 def guide_user(actual_bearing, target_bearing, audioQueue):
     difference = int(target_bearing - actual_bearing)
