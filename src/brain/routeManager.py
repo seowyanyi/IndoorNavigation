@@ -57,7 +57,7 @@ def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, th
         data = pedometerQueue.get(True)
 
 def guide_user(actual_bearing, target_bearing, audioQueue):
-    difference = target_bearing - actual_bearing
+    difference = int(target_bearing - actual_bearing)
     # check how much to turn, and whether CW or CCW
     print 'guiding user. target: {} deg, actual: {} deg'.format(target_bearing, actual_bearing)
     if 0 < difference <= 180:
@@ -72,7 +72,7 @@ def guide_user(actual_bearing, target_bearing, audioQueue):
         audioQueue.put(TURN_X_DEG_CW.format(difference))
 
 def guide_user_while_walking(actual_bearing, target_bearing, audioQueue):
-    difference = target_bearing - actual_bearing
+    difference = int(target_bearing - actual_bearing)
     # check how much to turn, and whether CW or CCW
     print 'guiding user. target: {} deg, actual: {} deg'.format(target_bearing, actual_bearing)
     if 0 < difference <= 180:
@@ -85,6 +85,8 @@ def guide_user_while_walking(actual_bearing, target_bearing, audioQueue):
     else:
         difference += 360
         audioQueue.put(WALK_X_DEG_RIGHT.format(difference))
+
+
 
 class RouteManagerThread(threading.Thread):
     def __init__(self, threadName, pedometerQueue, audioQueue, precomputedCheckpointData):
