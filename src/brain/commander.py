@@ -9,6 +9,8 @@ import mapper.mapper as mapper
 import pedometer
 import time
 import RPi.GPIO as GPIO
+import sys
+
 imuQueue = queueManager.IMU_QUEUE
 audioQueue = queueManager.AUDIO_QUEUE
 pedometerQueue = queueManager.PEDOMETER_QUEUE
@@ -19,15 +21,15 @@ def pedometer_check():
     steps_taken = 0
     start_time = int(time.time())
 
-    while int(time.time()) - start_time < 40 and steps_taken < 5:
+    while int(time.time()) - start_time < 50 and steps_taken < 5:
         data = pedometerQueue.get(True)
         if data['type'] == pedometer.Step.FORWARD:
             audioQueue.put('{} step'.format(steps_taken))
             steps_taken += 1
 
     if steps_taken < 5:
-        audioQueue.put('You took less than five steps within the given time')
-
+        audioQueue.put('You took less than five steps. Exiting program...')
+        sys.exit()
 
 def start(debug):
 
