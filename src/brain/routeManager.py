@@ -20,7 +20,6 @@ TURN_X_DEG_ACW = 'Turn {} degrees anti clockwise'
 GOOD_TO_GO = 'Good to go. {} steps to next'
 DESTINATION_REACHED = 'Destination reached'
 CHECKPOINT_REACHED = 'Checkpoint {} reached'
-DISTANCE_LEFT_STEPS = '{} steps left'
 COUNTDOWN_X_LEFT = '{} left'
 PEDOMETER_PAUSED_SECS = 'Pedometer paused. 5. 4. 3. 2. 1'
 PEDOMETER_RESTARTED = 'Pedometer restarted'
@@ -39,7 +38,7 @@ NUM_STEPS_BEFORE_CORRECTING = 2
 COUNTDOWN_FROM_X_STEPS = 10
 PEDOMETER_PAUSE_SECONDS = 5
 RADIANS_PER_DEGREE = 0.0174533
-SECS_BEFORE_GOOD_TO_GO_REPEAT = 20
+SECS_BEFORE_GOOD_TO_GO_REPEAT = 15
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     data = pedometerQueue.get(True)
@@ -173,7 +172,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 if steps_between_checkpoints == 0 and int(time.time()) - good_to_go_time >= SECS_BEFORE_GOOD_TO_GO_REPEAT:
                     # Case 1: User still at checkpoint. Maybe he missed the command to go
                     audioQueue.put('Current checkpoint is {}'.format(precomputedCheckpointData[curr_index]['curr_checkpoint']))
-                    audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next/CM_PER_STEP,1)))
+                    audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
+                    good_to_go_time = int(time.time())
             if distance_to_next <= 0:
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 reached_checkpoint = True
