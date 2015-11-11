@@ -93,16 +93,16 @@ class RouteManagerThread(threading.Thread):
         print 'Exited {} thread'.format(self.threadName)
 
 def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData):
-    print 'start managing routes'
     curr_index = -1
     reached_checkpoint = True
     distance_to_next = 0
     steps = 0
     steps_between_checkpoints = 0
-
     good_to_go_time = int(time.time())
-
     recent_bearings = []
+
+    # Get rid of unnecessary stuff in queue to speed up processing.
+    pedometerQueue.queue.clear()
 
     while True:
         if reached_checkpoint:
