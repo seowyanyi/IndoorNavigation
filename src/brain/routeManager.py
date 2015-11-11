@@ -20,8 +20,8 @@ TURN_X_DEG_ACW = 'Turn {} degrees anti clockwise'
 GOOD_TO_GO = 'Good to go. {} steps to next'
 DESTINATION_REACHED = 'Destination reached'
 CHECKPOINT_REACHED = 'Checkpoint {} reached'
-DISTANCE_LEFT_METERS = '{} meters left'
 DISTANCE_LEFT_STEPS = '{} steps left'
+COUNTDOWN_X_LEFT = '{} left'
 PEDOMETER_PAUSED_SECS = 'Pedometer paused. 5. 4. 3. 2. 1'
 PEDOMETER_RESTARTED = 'Pedometer restarted'
 # WALK_X_CM_LEFT = 'Side step {} cm left'
@@ -36,7 +36,7 @@ CM_PER_STEP = 60.5
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 2
-COUNTDOWN_X_STEPS_LEFT = 4
+COUNTDOWN_FROM_X_STEPS = 10
 PEDOMETER_PAUSE_SECONDS = 5
 RADIANS_PER_DEGREE = 0.0174533
 SECS_BEFORE_GOOD_TO_GO_REPEAT = 20
@@ -160,14 +160,15 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 distance_to_next -= CM_PER_STEP
 
                 print 'Step taken. Heading: {} deg.'.format(data['actual_bearing'])
+                # start counting down a few steps before reaching next checkpoint
+                if 0 < distance_to_next <= COUNTDOWN_FROM_X_STEPS * CM_PER_STEP:
+                    audioQueue.put(COUNTDOWN_X_LEFT.format(round(distance_to_next / CM_PER_STEP,1)))
+
                 if steps == NUM_STEPS_BEFORE_CORRECTING:
                     steps = 0
                     if abs(bearing_error) > ACCEPTABLE_BEARING_ERROR_MOVING:
                         guide_user_while_walking(np.average(recent_bearings), bearing_to_next, audioQueue)
                         recent_bearings = []
-                # start counting down a few steps before reaching next checkpoint
-                if 0 < distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
-                    audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
             elif data['type'] == pedometer.Step.AT_REST:
                 if steps_between_checkpoints == 0 and int(time.time()) - good_to_go_time >= SECS_BEFORE_GOOD_TO_GO_REPEAT:
                     # Case 1: User still at checkpoint. Maybe he missed the command to go
