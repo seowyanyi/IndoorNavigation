@@ -38,7 +38,6 @@ ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 2
 COUNTDOWN_X_STEPS_LEFT = 4
 PEDOMETER_PAUSE_SECONDS = 5
-CHECK_AT_REST_INVERVAL = 10
 RADIANS_PER_DEGREE = 0.0174533
 SECS_BEFORE_GOOD_TO_GO_REPEAT = 20
 
@@ -109,8 +108,6 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
     steps = 0
     steps_between_checkpoints = 0
 
-    prev_time= int(time.time())
-
     good_to_go_time = int(time.time())
 
     recent_bearings = []
@@ -158,8 +155,6 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
             if data['type'] == pedometer.Step.FORWARD and not pause_step_counting:
                 recent_bearings.append(data['actual_bearing'])
                 bearing_error = np.average(recent_bearings) - bearing_to_next
-
-                prev_time = int(time.time())
                 steps += 1
                 steps_between_checkpoints += 1
                 distance_to_next -= CM_PER_STEP
@@ -171,10 +166,9 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                         guide_user_while_walking(np.average(recent_bearings), bearing_to_next, audioQueue)
                         recent_bearings = []
                 # start counting down a few steps before reaching next checkpoint
-                elif 0 < distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
+                if 0 < distance_to_next <= COUNTDOWN_X_STEPS_LEFT * CM_PER_STEP:
                     audioQueue.put(DISTANCE_LEFT_STEPS.format(round(distance_to_next / CM_PER_STEP,1)))
-            elif data['type'] == pedometer.Step.AT_REST and int(time.time()) - prev_time >= CHECK_AT_REST_INVERVAL:
-                prev_time = int(time.time())
+            elif data['type'] == pedometer.Step.AT_REST:
                 if steps_between_checkpoints == 0 and int(time.time()) - good_to_go_time >= SECS_BEFORE_GOOD_TO_GO_REPEAT:
                     # Case 1: User still at checkpoint. Maybe he missed the command to go
                     audioQueue.put('Current checkpoint is {}'.format(precomputedCheckpointData[curr_index]['curr_checkpoint']))
