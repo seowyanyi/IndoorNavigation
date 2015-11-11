@@ -3,7 +3,7 @@ Gets type of step an bearing after each step from pedometer
 Keeps track, and saves to disk, the current location in the following format:
  - building, level,
  - start and end nodes of current edge
- - distance to next node, distance off center
+ - distance to next node
  - current bearing
 
  Notifies the user (through audioQueue) when he is approaching the next checkpoint.
@@ -24,7 +24,6 @@ DISTANCE_LEFT_METERS = '{} meters left'
 DISTANCE_LEFT_STEPS = '{} steps left'
 PEDOMETER_PAUSED_SECS = 'Pedometer paused. 5. 4. 3. 2. 1'
 PEDOMETER_RESTARTED = 'Pedometer restarted'
-OFF_CENTER_WARNING = 'Pedometer paused. You are off center'
 # WALK_X_CM_LEFT = 'Side step {} cm left'
 # WALK_X_CM_RIGHT = 'Side step {} cm right'
 WALK_X_DEG_LEFT = 'Walk {} degrees left'
@@ -41,7 +40,6 @@ COUNTDOWN_X_STEPS_LEFT = 4
 PEDOMETER_PAUSE_SECONDS = 5
 CHECK_AT_REST_INVERVAL = 10
 RADIANS_PER_DEGREE = 0.0174533
-DIST_OFF_CENTER_LIMIT_CM = 80
 SECS_BEFORE_GOOD_TO_GO_REPEAT = 20
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
@@ -88,23 +86,6 @@ def guide_user_while_walking(actual_bearing, target_bearing, audioQueue):
         difference += 360
         audioQueue.put(WALK_X_DEG_RIGHT.format(difference))
 
-def actual_distance_travelled(bearingError, recordedDist):
-    bearingErrorRadians = abs(bearingError) * RADIANS_PER_DEGREE
-    return math.cos(bearingErrorRadians) * recordedDist
-
-def distance_off_center(bearingError, recordedDist):
-    bearingErrorRadians = abs(bearingError) * RADIANS_PER_DEGREE
-    return math.sin(bearingErrorRadians) * recordedDist
-
-# def guide_user_to_center(distOff, audioQueue):
-#     if distOff < 0:
-#         # user needs to side step right
-#         audioQueue.put(WALK_X_CM_RIGHT.format(abs(int(distOff))))
-#     else:
-#         # user needs to side step left
-#         audioQueue.put(WALK_X_CM_LEFT.format(abs(int(distOff))))
-#
-
 class RouteManagerThread(threading.Thread):
     def __init__(self, threadName, pedometerQueue, audioQueue, precomputedCheckpointData):
         threading.Thread.__init__(self)
@@ -135,15 +116,12 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
     # pausing step counting to avoid obstacles
     pause_step_counting = False
 
-    steps_before_center_correction = 0
-    total_distance_off_center = 0
 
     while True:
         if reached_checkpoint:
             curr_index += 1
             reached_checkpoint = False
             steps_between_checkpoints = 0
-            total_distance_off_center = 0
             curr_node = precomputedCheckpointData[curr_index]
             currNodeId = curr_node['curr_checkpoint']
             curr_node_name = curr_node['curr_node_name']
@@ -178,7 +156,6 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
             data = pedometerQueue.get(True)
 
             if data['type'] == pedometer.Step.FORWARD and not pause_step_counting:
-                steps_before_center_correction += 1
                 recent_bearings.append(data['actual_bearing'])
                 bearing_error = np.average(recent_bearings) - bearing_to_next
 
@@ -186,14 +163,8 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 steps += 1
                 steps_between_checkpoints += 1
                 distance_to_next -= CM_PER_STEP
-                dist_off = distance_off_center(bearing_error, CM_PER_STEP)
 
-                if bearing_error > 0:
-                    total_distance_off_center += dist_off
-                elif bearing_error < 0:
-                    total_distance_off_center -= dist_off
-
-                print 'Step taken. Heading: {} deg. {} cm off center'.format(data['actual_bearing'], total_distance_off_center)
+                print 'Step taken. Heading: {} deg.'.format(data['actual_bearing'])
                 if steps == NUM_STEPS_BEFORE_CORRECTING:
                     steps = 0
                     if abs(bearing_error) > ACCEPTABLE_BEARING_ERROR_MOVING:
