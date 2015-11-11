@@ -142,9 +142,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 bearing_to_next = curr_node['bearing_to_next']
                 checkpoint = curr_node['next_checkpoint']
 
-                if (curr_node_name.lower() == 'stairwell' and currNodeId == '14') or \
-                    (curr_node_name.lower() == 'to 2-2-16' and currNodeId == '11') or \
-                    (curr_node_name.lower() == 'to com2-2-16' and currNodeId == '11'):
+                if curr_node['is_staircase']:
                     distance_to_next = 6 * CM_PER_STEP # 6 steps per flight of stairs
                     audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
                 else :

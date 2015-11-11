@@ -411,6 +411,29 @@ def find_linkages(global_path):
             linkages.append(i)
     return linkages
 
+def is_staircase_next(currNodeName, nextNodeName):
+    return (currNodeName == 'Stairwell' and nextNodeName == 'Halfway') or \
+           (currNodeName == 'Halfway' and nextNodeName == 'Stairwell') or \
+           (currNodeName == 'TO 2-2-16' and nextNodeName == 'Stairwell') or \
+           (currNodeName == 'Stairwell' and nextNodeName == 'TO 2-2-16') or \
+           (currNodeName == 'TO COM2-2-16' and nextNodeName == 'Stairwell') or \
+           (currNodeName == 'Stairwell' and nextNodeName == 'TO COM2-2-16')
+
+def add_staircase_information(distBearingList):
+    if len(distBearingList) <= 1:
+        return distBearingList
+
+    for i in range(0, len(distBearingList) - 1):
+        curr_node_name = distBearingList[i]['curr_node_name']
+        next_node_name = distBearingList[i+1]['curr_node_name']
+        if is_staircase_next(curr_node_name, next_node_name):
+            distBearingList[i]['is_staircase'] = True
+        else:
+            distBearingList[i]['is_staircase'] = False
+
+    # last node does not have staircase
+    distBearingList[len(distBearingList)-1]['is_staircase'] = False
+
 def find_dist_bearing_to_next_node(global_path, graph): # todo: test across different maps
     """
     DISTANCE BEARING ACROSS MAPS:
@@ -436,6 +459,8 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
         dist_bearing_list.append(dist_and_bearing)
     dest = checkpointList[len(checkpointList) -1]
     dist_bearing_list.append({'is_linkage': False, 'curr_node_name': dest.nodeName, 'curr_checkpoint': dest.localNodeId})
+
+    add_staircase_information(dist_bearing_list)
     return dist_bearing_list
 
 # -------------------------------------------------------------------------------------------------------------------
