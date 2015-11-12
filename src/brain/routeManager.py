@@ -142,10 +142,12 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 if keypress == 'overshot':
                     audioQueue.put('Overshot. Calibrating to next checkpoint')
                     reached_checkpoint = True
+                    continue
                 elif keypress == 'undershot':
                     audioQueue.put('Undershot. Pedometer paused for 8 seconds')
                     time.sleep(8)
                     audioQueue.put('Pedometer restarted')
+                    pedometerQueue.queue.clear()
 
             except Queue.Empty:
                 pass
