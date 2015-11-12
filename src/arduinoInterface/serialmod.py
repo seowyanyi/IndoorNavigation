@@ -32,7 +32,7 @@ compassData = 0
 footsensData = 0
 LIMIT_DATA_RATE_DEFAULT = 3 # 67%
 LIMIT_DATA_RATE_LOW = 2 # 50%
-LIMIT_DATA_RATE_LOWEST = 3 # 33%
+LIMIT_DATA_RATE_LOWEST = 4 # 25%
 
 PKT_READ_TIMEOUT_SECS = 3 # this should be <= recv timeout set in sprotcfg.py
 RESET_TIMEOUT_SECS = 15 # minimum time between resets
@@ -138,14 +138,14 @@ def read_packet(limit, imuQueue, audioQueue):
                         low_counter += 1
 
                         if imuQueue.qsize() > 25:
-                            print '33% DR. imu queue size: {}'.format(imuQueue.qsize())
+                            #print '33% DR. imu queue size: {}'.format(imuQueue.qsize())
                             low_mode = True
                         elif imuQueue.qsize() > 10:
                             low_mode = False
-                            print '50% DR. imu queue size: {}'.format(imuQueue.qsize())
+                            #print '50% DR. imu queue size: {}'.format(imuQueue.qsize())
                             limit = LIMIT_DATA_RATE_LOW
                         elif imuQueue.qsize() <= 10:
-                            print '67% DR. imu queue size: {}'.format(imuQueue.qsize())
+                            #print '67% DR. imu queue size: {}'.format(imuQueue.qsize())
                             low_mode = False
                             limit = LIMIT_DATA_RATE_DEFAULT
 
