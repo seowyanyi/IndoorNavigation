@@ -142,6 +142,8 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
                     long_rest_counter = 0
                     print 'User currently at rest. Heading: {} deg'.format(medianHeading)
                     pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': medianHeading})
+            if np.amax(data) == np.amin(data):
+                print 'acc x constant value {}'.format(np.amax(data))
 
         # Check whether a step is taken
         if is_downward_swing(data):
