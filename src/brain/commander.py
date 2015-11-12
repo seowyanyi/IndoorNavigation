@@ -14,6 +14,7 @@ import sys
 imuQueue = queueManager.IMU_QUEUE
 audioQueue = queueManager.AUDIO_QUEUE
 pedometerQueue = queueManager.PEDOMETER_QUEUE
+keypressQueue = queueManager.KEYPRESS_QUEUE
 
 def pedometer_check():
     # check whether pedometer functioning correctly
@@ -66,10 +67,16 @@ def start(debug):
 
         route_manager_thread = routeManager.RouteManagerThread(
             threadName='route Manager', pedometerQueue=pedometerQueue, audioQueue=audioQueue,
-            precomputedCheckpointData=precomputedData
+            keypressQueue=keypressQueue, precomputedCheckpointData=precomputedData
         )
         route_manager_thread.daemon = True
         route_manager_thread.start()
+
+
+        kp_thread = KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypressQueue)
+        kp_thread.daemon = True
+        kp_thread.start()
+
 
     while True:
         time.sleep(2000)

@@ -12,6 +12,7 @@ import threading
 import pedometer
 import time
 import numpy as np
+import Queue
 
 # Audio commands
 TURN_X_DEG_CW = 'Turn {} degrees clockwise' 
@@ -77,19 +78,20 @@ def guide_user_while_walking(actual_bearing, target_bearing, audioQueue):
 
 
 class RouteManagerThread(threading.Thread):
-    def __init__(self, threadName, pedometerQueue, audioQueue, precomputedCheckpointData):
+    def __init__(self, threadName, pedometerQueue, audioQueue, keypressQueue, precomputedCheckpointData):
         threading.Thread.__init__(self)
         self.threadName = threadName
         self.pedometerQueue = pedometerQueue
         self.audioQueue = audioQueue
         self.precomputedCheckpointData = precomputedCheckpointData
+        self.keypressQueue = keypressQueue
 
     def run(self):
         print  'Starting {} thread'.format(self.threadName)
-        start_managing_routes(self.pedometerQueue, self.audioQueue, self.precomputedCheckpointData)
+        start_managing_routes(self.pedometerQueue, self.audioQueue, self.keypressQueue, self.precomputedCheckpointData)
         print 'Exited {} thread'.format(self.threadName)
 
-def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData):
+def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputedCheckpointData):
     curr_index = -1
     reached_checkpoint = True
     distance_to_next = 0
@@ -135,6 +137,18 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                     print 'Distance to node {}: {} cm Bearing to {}: {} deg'.format(checkpoint, distance_to_next, checkpoint, bearing_to_next)
 
         else:
+            try:
+                keypress = keypressQueue.get(False)
+                if keypress == 'overshot':
+                    audioQueue.put('Overshot. Calibrating to next checkpoint')
+                    reached_checkpoint = True
+                elif keypress == 'undershot':
+                    audioQueue.put('Undershot. Pedometer paused for 8 seconds')
+                    time.sleep(8)
+                    audioQueue.put('Pedometer restarted')
+
+            except Queue.Empty:
+                pass
             data = pedometerQueue.get(True)
 
             if data['type'] == pedometer.Step.FORWARD:

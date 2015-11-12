@@ -15,10 +15,13 @@ class KeypadThread(threading.Thread):
 def start_checking_for_keypresses(keypressQueue):
     while True:
         keyPad = keypad()
-        keyPad.get_user_input()
-        keypressQueue.put(True)
-        # elif inp == 3 or inp == 6 or inp == 9:
-        #     keypressQueue.put(False)
+        inp = keyPad.get_user_input()
+        if inp == 1 or inp == 4 or inp == 7:
+            print 'undershot key pressed'
+            keypressQueue.put('undershot')
+        elif inp == 3 or inp == 6 or inp == 9:
+            print 'overshot key pressed'
+            keypressQueue.put('overshot')
 
 
 class keypad:
