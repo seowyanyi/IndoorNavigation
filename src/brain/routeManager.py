@@ -164,3 +164,7 @@ def start_managing_routes(pedometerQueue, audioQueue, precomputedCheckpointData)
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 reached_checkpoint = True
                 audioQueue.put(CHECKPOINT_REACHED.format(checkpoint))
+
+            if pedometerQueue.qsize() > 1:
+                print 'pedo queue size: {}'.format(pedometerQueue.qsize())
+
