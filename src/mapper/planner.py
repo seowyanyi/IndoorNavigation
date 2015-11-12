@@ -266,6 +266,8 @@ def bearing_to_node(srcX, srcY, destX, destY, northAt, nextNode, currNodeId):
     distance = calculate_distance(srcX, srcY, destX, destY)
     bearing = calculate_bearing_from_vertical(srcX, srcY, destX, destY)
     bearingToNode = (360 - int(northAt)) + int(bearing)
+    if bearingToNode > 360:
+        bearingToNode -= 360
     
     return {'bearing_to_next': bearingToNode, 'distance_to_next': round(distance,2), 'next_checkpoint': nextNode.localNodeId,
             'curr_checkpoint': currNodeId, 'is_linkage': False}

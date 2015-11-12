@@ -28,6 +28,12 @@ class Direction(unittest.TestCase):
         bearing = planner.calculate_bearing_from_vertical(2,10,10,2)
         self.assertEquals(round(bearing,2), 135)
 
+        bearing = planner.calculate_bearing_from_vertical(3475,1646,2988,1098) # glass door to P6
+        self.assertEquals(round(bearing,2), 221.63)
+        bearing = planner.calculate_bearing_from_vertical(2988,1098,3475,1646) # P6 to glass door
+        self.assertEquals(round(bearing,2), 41.63)
+
+
 class PathPlanning(unittest.TestCase):
     NUM_EDGES_COM1_2 = 41
     NUM_NODES_COM1_2 = 40
@@ -55,7 +61,7 @@ class PathPlanning(unittest.TestCase):
 
 
     def test_get_shortest_path(self):
-        path = planner.get_shortest_path('1', 2, 29, '2', 2, 17)
+        path = planner.get_shortest_path('2', 2, 6, '2', 2, 19)
         print path
 
     def test_add_staircase_information(self):
