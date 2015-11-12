@@ -24,8 +24,8 @@ def pedometer_check():
     while int(time.time()) - start_time < 50 and steps_taken < 5:
         data = pedometerQueue.get(True)
         if data['type'] == pedometer.Step.FORWARD:
-            audioQueue.put('{} step'.format(steps_taken))
             steps_taken += 1
+            audioQueue.put('{} step'.format(steps_taken))
 
     if steps_taken < 5:
         audioQueue.put('You took less than five steps. Exiting program...')
