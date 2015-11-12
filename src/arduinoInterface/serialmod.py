@@ -30,9 +30,9 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
-LIMIT_DATA_RATE = 2
+LIMIT_DATA_RATE = 5
 PKT_READ_TIMEOUT_SECS = 3 # this should be <= recv timeout set in sprotcfg.py
-RESET_TIMEOUT_SECS = 8 # minimum time between resets
+RESET_TIMEOUT_SECS = 15 # minimum time between resets
 #
 # GPIO.setmode(GPIO.BOARD)
 # GPIO.setup(21,GPIO.OUT)
@@ -129,37 +129,38 @@ def read_packet(limit, imuQueue, audioQueue):
                     if strpkt[0] == b'a':
                         data = strpkt.split(":")
                         xyz = data[1].split(",")
-
-                        if counter == 1:
-                            #print "c:" + xyz[0] + " x:" + xyz[1]
-                            heading = int(xyz[0])
-                            #print 'arduino heading: {}'.format(heading)
-                            x = int(xyz[1])
-
-                            curr_time = timeit.default_timer()
-                            diff = curr_time - prev_time
-                            imuQueue.put(qm.IMUData(xAxis=x, heading=heading, dataRate=diff))
-                            prev_time = curr_time
-
-                            # if len(acc_x_buffer) == WRITE_FILE_BUFFER:
-                            #     append_list_to_file(acc_x_buffer, ACC_X_DATA_FILE)
-                            #     acc_x_buffer = []
-                            #
-                            # if len(time_diff_buffer) == WRITE_FILE_BUFFER:
-                            #     append_list_to_file(time_diff_buffer, DATA_RATE_FILE)
-                            #     time_diff_buffer = []
-                            #
-                            # if len(compass_buffer) == WRITE_FILE_BUFFER:
-                            #     append_list_to_file(compass_buffer, COMPASS_DATA_FILE)
-                            #     compass_buffer = []
-                            #
-                            # acc_x_buffer.append(x)
-                            # time_diff_buffer.append(diff)
-                            # compass_buffer.append(heading)
+                        counter += 1
 
                         if counter == limit:
                             counter = 0
-                        counter += 1
+                            continue
+
+                        #print "c:" + xyz[0] + " x:" + xyz[1]
+                        heading = int(xyz[0])
+                        #print 'arduino heading: {}'.format(heading)
+                        x = int(xyz[1])
+
+                        curr_time = timeit.default_timer()
+                        diff = curr_time - prev_time
+                        imuQueue.put(qm.IMUData(xAxis=x, heading=heading, dataRate=diff))
+                        prev_time = curr_time
+
+                        # if len(acc_x_buffer) == WRITE_FILE_BUFFER:
+                        #     append_list_to_file(acc_x_buffer, ACC_X_DATA_FILE)
+                        #     acc_x_buffer = []
+                        #
+                        # if len(time_diff_buffer) == WRITE_FILE_BUFFER:
+                        #     append_list_to_file(time_diff_buffer, DATA_RATE_FILE)
+                        #     time_diff_buffer = []
+                        #
+                        # if len(compass_buffer) == WRITE_FILE_BUFFER:
+                        #     append_list_to_file(compass_buffer, COMPASS_DATA_FILE)
+                        #     compass_buffer = []
+                        #
+                        # acc_x_buffer.append(x)
+                        # time_diff_buffer.append(diff)
+                        # compass_buffer.append(heading)
+
 
                     elif (strpkt[0] == b'2') :
                         sonar2Data = convertPacketToSonarData(strpkt)
