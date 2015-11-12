@@ -30,8 +30,9 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
-LIMIT_DATA_RATE_DEFAULT = 3
-LIMIT_DATA_RATE_LOW = 2
+LIMIT_DATA_RATE_DEFAULT = 3 # 67%
+LIMIT_DATA_RATE_LOW = 2 # 50%
+LIMIT_DATA_RATE_LOWEST = 3 # 33%
 
 PKT_READ_TIMEOUT_SECS = 3 # this should be <= recv timeout set in sprotcfg.py
 RESET_TIMEOUT_SECS = 15 # minimum time between resets
@@ -86,6 +87,8 @@ def restart_arduino():
 
 def read_packet(limit, imuQueue, audioQueue):
     counter = 0
+    low_counter = 0
+    low_mode = False
     prev_time = timeit.default_timer()
     # buffer for writing to files
     acc_x_buffer = []
@@ -132,43 +135,51 @@ def read_packet(limit, imuQueue, audioQueue):
                         data = strpkt.split(":")
                         xyz = data[1].split(",")
                         counter += 1
+                        low_counter += 1
 
-                        if counter >= limit:
+                        if imuQueue.qsize() > 25:
+                            print '33% DR. imu queue size: {}'.format(imuQueue.qsize())
+                            low_mode = True
+                        elif imuQueue.qsize() > 10:
+                            low_mode = False
+                            print '50% DR. imu queue size: {}'.format(imuQueue.qsize())
+                            limit = LIMIT_DATA_RATE_LOW
+                        elif imuQueue.qsize() <= 10:
+                            print '67% DR. imu queue size: {}'.format(imuQueue.qsize())
+                            low_mode = False
+                            limit = LIMIT_DATA_RATE_DEFAULT
+
+                        if not low_mode and counter >= limit:
                             counter = 0
                             continue
 
-                        if imuQueue.qsize() > 50:
-                            print 'imu queue size: {}'.format(imuQueue.qsize())
-                            limit = LIMIT_DATA_RATE_LOW
+                        if (not low_mode) or (low_mode and low_counter >= LIMIT_DATA_RATE_LOWEST):
+                            low_counter = 0
+                            #print "c:" + xyz[0] + " x:" + xyz[1]
+                            heading = int(xyz[0])
+                            #print 'arduino heading: {}'.format(heading)
+                            x = int(xyz[1])
 
-                        if imuQueue.qsize() < 5:
-                            limit = LIMIT_DATA_RATE_DEFAULT
+                            curr_time = timeit.default_timer()
+                            diff = curr_time - prev_time
+                            imuQueue.put(qm.IMUData(xAxis=x, heading=heading, dataRate=diff))
+                            prev_time = curr_time
 
-                        #print "c:" + xyz[0] + " x:" + xyz[1]
-                        heading = int(xyz[0])
-                        #print 'arduino heading: {}'.format(heading)
-                        x = int(xyz[1])
-
-                        curr_time = timeit.default_timer()
-                        diff = curr_time - prev_time
-                        imuQueue.put(qm.IMUData(xAxis=x, heading=heading, dataRate=diff))
-                        prev_time = curr_time
-
-                        # if len(acc_x_buffer) == WRITE_FILE_BUFFER:
-                        #     append_list_to_file(acc_x_buffer, ACC_X_DATA_FILE)
-                        #     acc_x_buffer = []
-                        #
-                        # if len(time_diff_buffer) == WRITE_FILE_BUFFER:
-                        #     append_list_to_file(time_diff_buffer, DATA_RATE_FILE)
-                        #     time_diff_buffer = []
-                        #
-                        # if len(compass_buffer) == WRITE_FILE_BUFFER:
-                        #     append_list_to_file(compass_buffer, COMPASS_DATA_FILE)
-                        #     compass_buffer = []
-                        #
-                        # acc_x_buffer.append(x)
-                        # time_diff_buffer.append(diff)
-                        # compass_buffer.append(heading)
+                            # if len(acc_x_buffer) == WRITE_FILE_BUFFER:
+                            #     append_list_to_file(acc_x_buffer, ACC_X_DATA_FILE)
+                            #     acc_x_buffer = []
+                            #
+                            # if len(time_diff_buffer) == WRITE_FILE_BUFFER:
+                            #     append_list_to_file(time_diff_buffer, DATA_RATE_FILE)
+                            #     time_diff_buffer = []
+                            #
+                            # if len(compass_buffer) == WRITE_FILE_BUFFER:
+                            #     append_list_to_file(compass_buffer, COMPASS_DATA_FILE)
+                            #     compass_buffer = []
+                            #
+                            # acc_x_buffer.append(x)
+                            # time_diff_buffer.append(diff)
+                            # compass_buffer.append(heading)
 
 
                     elif (strpkt[0] == b'2') :
