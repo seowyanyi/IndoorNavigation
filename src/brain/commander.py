@@ -72,11 +72,11 @@ def start(debug):
         route_manager_thread.daemon = True
         route_manager_thread.start()
 
-
+        """
         kp_thread = KeyPad.KeypadThread(threadName='keypad', keypressQueue=keypressQueue)
         kp_thread.daemon = True
         kp_thread.start()
-
+        """
 
     while True:
         time.sleep(2000)

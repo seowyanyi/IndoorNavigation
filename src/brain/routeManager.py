@@ -29,10 +29,10 @@ CURRENT_CHECKPOINT = 'Current checkpoint {}. {}'
 CM_PER_STEP = 60.5
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
-NUM_STEPS_BEFORE_CORRECTING = 2
+NUM_STEPS_BEFORE_CORRECTING = 3
 COUNTDOWN_FROM_X_STEPS = 10
 RADIANS_PER_DEGREE = 0.0174533
-SECS_BEFORE_GOOD_TO_GO_REPEAT = 15
+SECS_BEFORE_GOOD_TO_GO_REPEAT = 25
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     while True:
@@ -42,7 +42,7 @@ def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, th
         if abs(target_bearing - data['actual_bearing']) < threshold:
             break
         guide_user(data['actual_bearing'], target_bearing, audioQueue)
-        time.sleep(5)
+        time.sleep(8)
         pedometerQueue.queue.clear()
 
 def guide_user(actual_bearing, target_bearing, audioQueue):
@@ -165,7 +165,7 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 if 0 < distance_to_next <= COUNTDOWN_FROM_X_STEPS * CM_PER_STEP:
                     audioQueue.put(COUNTDOWN_X_LEFT.format(round(distance_to_next / CM_PER_STEP,1)))
 
-                if steps == NUM_STEPS_BEFORE_CORRECTING:
+                if steps == NUM_STEPS_BEFORE_CORRECTING and distance_to_next > 0:
                     steps = 0
                     if abs(bearing_error) > ACCEPTABLE_BEARING_ERROR_MOVING:
                         guide_user_while_walking(np.average(recent_bearings), bearing_to_next, audioQueue)
