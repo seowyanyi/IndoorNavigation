@@ -30,7 +30,9 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
-LIMIT_DATA_RATE = 5
+LIMIT_DATA_RATE_DEFAULT = 3
+LIMIT_DATA_RATE_LOW = 2
+
 PKT_READ_TIMEOUT_SECS = 3 # this should be <= recv timeout set in sprotcfg.py
 RESET_TIMEOUT_SECS = 15 # minimum time between resets
 #
@@ -51,7 +53,7 @@ class SensorManagerThread(threading.Thread):
 
     def run(self):
         print 'Starting {} thread'.format(self.threadName)
-        read_packet(LIMIT_DATA_RATE, self.imuQueue, self.audioQueue)
+        read_packet(LIMIT_DATA_RATE_DEFAULT, self.imuQueue, self.audioQueue)
         print 'Exited {} thread'.format(self.threadName)
 
 
@@ -83,7 +85,7 @@ def restart_arduino():
     GPIO.output(7, True)
 
 def read_packet(limit, imuQueue, audioQueue):
-    counter = 1
+    counter = 0
     prev_time = timeit.default_timer()
     # buffer for writing to files
     acc_x_buffer = []
@@ -131,9 +133,16 @@ def read_packet(limit, imuQueue, audioQueue):
                         xyz = data[1].split(",")
                         counter += 1
 
-                        if counter == limit:
+                        if counter >= limit:
                             counter = 0
                             continue
+
+                        if imuQueue.qsize() > 50:
+                            print 'imu queue size: {}'.format(imuQueue.qsize())
+                            limit = LIMIT_DATA_RATE_LOW
+
+                        if imuQueue.qsize() < 5:
+                            limit = LIMIT_DATA_RATE_DEFAULT
 
                         #print "c:" + xyz[0] + " x:" + xyz[1]
                         heading = int(xyz[0])
