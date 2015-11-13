@@ -19,13 +19,13 @@ test_queue = Queue.Queue()
 
 WINDOW_SIZE = 4
 HEADING_WINDOW_SIZE = 30
-AT_REST_LIMIT = 2
+AT_REST_LIMIT = 1
 AT_REST_HEADING_MARGIN = 6
 
 SWING_LIMIT = 1
 TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 8
-SECS_BETWEEN_STEPS = 1.9
+SECS_BETWEEN_STEPS = 1.2
 
 MAX_DATA_RATE = 0.08
 MIN_DATA_RATE = 0.01
@@ -53,11 +53,11 @@ class PedometerThread(threading.Thread):
 def init_test_queue():
     mock_acc_x = []
     mocK_data_rate = []
-    with open('THUS_acc_x.txt') as f:
+    with open('acc.txt') as f:
         for line in f:
             mock_acc_x.append(int(line))
 
-    with open('THUS_data_rate.txt') as f:
+    with open('data.txt') as f:
         for line in f:
             mocK_data_rate.append(float(line))
 
@@ -196,7 +196,7 @@ def get_equation_of_line(data):
 def is_downward_swing(data):
     line = get_equation_of_line(data)
     gradient = line[0]
-    return gradient < -0.30
+    return gradient < -0.2
 
 def is_at_rest(data):
     line = get_equation_of_line(data)
