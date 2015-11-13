@@ -1,7 +1,9 @@
 import unittest
 import networkx as nx
-
+import pprint
 import src.mapper.planner as planner
+
+pp = pprint.PrettyPrinter(indent=4)
 
 class ParseNodeNames(unittest.TestCase):
     def test_is_link_to_other_maps(self):
@@ -61,8 +63,8 @@ class PathPlanning(unittest.TestCase):
 
 
     def test_get_shortest_path(self):
-        path = planner.get_shortest_path('2', 2, 6, '2', 2, 19)
-        print path
+        dist_bearing = planner.get_shortest_path('1', 2, 32, '1', 2, 24)
+        pp.pprint(dist_bearing)
 
     def test_add_additional_information(self):
         # no staircases here
