@@ -34,9 +34,9 @@ NUM_STEPS_BEFORE_CORRECTING = 5
 COUNTDOWN_FROM_X_STEPS = 4
 RADIANS_PER_DEGREE = 0.0174533
 SECS_BEFORE_GOOD_TO_GO_REPEAT = 25
-SLEEP_FOR_STAIRS = 6
-SLEEP_FOR_DOORWAY = 6
-SLEEP_FOR_SUPERSHORT = 1.5
+SLEEP_FOR_STAIRS = 8
+SLEEP_FOR_DOORWAY = 10
+SLEEP_FOR_SUPERSHORT = 3
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     prev_angle = 0
@@ -149,7 +149,10 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                     reached_checkpoint = True
                     continue
                 else :
-                    guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
+                    if curr_node['type'] != 'corridor':
+                        guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
+                    else:
+                        time.sleep(3)
                     audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
                     pedometerQueue.queue.clear()
                     good_to_go_time = int(time.time())

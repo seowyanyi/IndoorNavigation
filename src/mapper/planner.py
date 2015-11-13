@@ -316,6 +316,22 @@ def is_supershort_next(currNodeName, nextNodeName):
            (currNodeName == 'Halfway' and nextNodeName == 'TO COM2-3-11') or \
            (currNodeName == 'TO COM2-3-11' and nextNodeName == 'Halfway')
 
+def is_corridor(currNodeName, nextNodeName):
+    return  currNodeName == 'P18' or \
+            currNodeName == 'P22' or \
+            currNodeName == 'P34' or \
+            currNodeName == 'P32' or \
+            currNodeName == 'P39' or \
+            currNodeName == 'P17' or \
+            currNodeName == 'P21' or \
+            currNodeName == 'Mysterious Pt' or \
+           (currNodeName == 'P2' and nextNodeName == 'P5') or \
+           (currNodeName == 'P2' and nextNodeName == 'P17') or \
+           (currNodeName == 'P5' and nextNodeName == 'P2') or \
+           (currNodeName == 'P5' and nextNodeName == 'P19') or \
+           (currNodeName == 'P14' and nextNodeName == 'Mysterious Pt') or \
+           (currNodeName == 'P14' and nextNodeName == 'P2')
+
 
 
 def add_additional_information(distBearingList):
@@ -331,6 +347,8 @@ def add_additional_information(distBearingList):
             distBearingList[i]['type'] = 'staircase'
         elif is_doorway_next(curr_node_name, next_node_name):
             distBearingList[i]['type'] = 'doorway'
+        elif is_corridor(curr_node_name, next_node_name):
+            distBearingList[i]['type'] = 'corridor'
         else:
             distBearingList[i]['type'] = 'default'
 
