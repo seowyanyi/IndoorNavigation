@@ -83,13 +83,13 @@ def download_map(buildingName, levelNum):
         #/home/seowyanyi/school/cg3002/IndoorNavigation/src/mapper/PreLoadedMaps/
         #/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/
     #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
-        with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
+        with open('/home/seowyanyi/school/cg3002/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
     elif buildingName == 2 and levelNum == 2:
-        with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
+        with open('/home/seowyanyi/school/cg3002/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
     elif buildingName == 2 and levelNum == 3:
-        with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl3.json') as json_file:
+        with open('/home/seowyanyi/school/cg3002/IndoorNavigation/src/mapper/PreLoadedMaps/COM2Lvl3.json') as json_file:
             mapJsonData = json.load(json_file)
     else:
         print 'cannot find this map: {}-{}'.format(buildingName, levelNum)
@@ -320,10 +320,6 @@ def is_corridor(currNodeName, nextNodeName):
     return  currNodeName == 'P18' or \
             currNodeName == 'P22' or \
             currNodeName == 'P34' or \
-            currNodeName == 'P32' or \
-            currNodeName == 'P39' or \
-            currNodeName == 'P17' or \
-            currNodeName == 'P21' or \
             currNodeName == 'Mysterious Pt' or \
            (currNodeName == 'P2' and nextNodeName == 'P5') or \
            (currNodeName == 'P2' and nextNodeName == 'P17') or \
