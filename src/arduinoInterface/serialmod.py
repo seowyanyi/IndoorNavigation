@@ -154,7 +154,7 @@ def read_packet(limit, imuQueue, audioQueue):
                             low_mode = False
                             limit = LIMIT_DATA_RATE_DEFAULT
 
-                        if diff > SLOW_DATA_RATE:
+                        if diff > SLOW_DATA_RATE and imuQueue.qsize() < 50:
                             limit = LIMIT_DATA_RATE_HIGH
 
                         if not low_mode and counter >= limit:
