@@ -64,30 +64,21 @@ class PathPlanning(unittest.TestCase):
         path = planner.get_shortest_path('2', 2, 6, '2', 2, 19)
         print path
 
-    def test_add_staircase_information(self):
+    def test_add_additional_information(self):
         # no staircases here
-        distBearingList = [{'curr_node_name': 'Another Door'}, {'curr_node_name': 'Stairwell'}, {'curr_node_name': 'Stairwell'}]
-        planner.add_staircase_information(distBearingList)
-        expected = [{'curr_node_name': 'Another Door', 'is_staircase': False}, {'curr_node_name': 'Stairwell', 'is_staircase': False},
-                    {'curr_node_name': 'Stairwell', 'is_staircase': False}]
+        distBearingList = [{'curr_node_name': 'Another Door'}, {'curr_node_name': 'Stairwell'},
+                           {'curr_node_name': 'Wooden Door'}, {'curr_node_name': 'Glass Door'}]
+        planner.add_additional_information(distBearingList)
+        expected = [{'curr_node_name': 'Another Door', 'type': 'supershort'}, {'curr_node_name': 'Stairwell', 'type': 'default'},
+                    {'curr_node_name': 'Wooden Door', 'type': 'doorway'},{'curr_node_name': 'Glass Door', 'type': 'default'}]
         self.assertEquals(distBearingList, expected)
 
         # one flight of stairs
         distBearingList = [{'curr_node_name': 'Another Door'}, {'curr_node_name': 'Stairwell'},
                            {'curr_node_name': 'Halfway'}, {'curr_node_name': 'TO 2-3-11'}]
-        planner.add_staircase_information(distBearingList)
-        expected = [{'curr_node_name': 'Another Door', 'is_staircase': False}, {'curr_node_name': 'Stairwell', 'is_staircase': True},
-                    {'curr_node_name': 'Halfway', 'is_staircase': False}, {'curr_node_name': 'TO 2-3-11', 'is_staircase': False}]
-        self.assertEquals(distBearingList, expected)
-
-        # Two flights of stairs
-        distBearingList = [{'curr_node_name': 'Another Door'}, {'curr_node_name': 'Stairwell'},
-                           {'curr_node_name': 'Halfway'}, {'curr_node_name': 'TO 2-3-11'},
-                           {'curr_node_name':'TO 2-2-16'},{'curr_node_name': 'Stairwell'}]
-        planner.add_staircase_information(distBearingList)
-        expected = [{'curr_node_name': 'Another Door', 'is_staircase': False}, {'curr_node_name': 'Stairwell', 'is_staircase': True},
-                    {'curr_node_name': 'Halfway', 'is_staircase': False}, {'curr_node_name': 'TO 2-3-11', 'is_staircase': False},
-                    {'curr_node_name': 'TO 2-2-16', 'is_staircase': True}, {'curr_node_name': 'Stairwell', 'is_staircase': False}]
+        planner.add_additional_information(distBearingList)
+        expected = [{'curr_node_name': 'Another Door', 'type': 'supershort'}, {'curr_node_name': 'Stairwell', 'type': 'staircase'},
+                    {'curr_node_name': 'Halfway', 'type': 'supershort'}, {'curr_node_name': 'TO 2-3-11', 'type': 'default'}]
         self.assertEquals(distBearingList, expected)
 
 

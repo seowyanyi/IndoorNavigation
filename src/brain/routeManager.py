@@ -26,13 +26,16 @@ WALK_X_DEG_RIGHT = 'Walk {} degrees right'
 CURRENT_CHECKPOINT = 'Current checkpoint {}. {}'
 
 # Constants
-CM_PER_STEP = 60.5
+CM_PER_STEP = 70
 ACCEPTABLE_BEARING_ERROR_STAIONARY = 20 # degrees
 ACCEPTABLE_BEARING_ERROR_MOVING = 15 # degrees
 NUM_STEPS_BEFORE_CORRECTING = 5
 COUNTDOWN_FROM_X_STEPS = 4
 RADIANS_PER_DEGREE = 0.0174533
 SECS_BEFORE_GOOD_TO_GO_REPEAT = 25
+SLEEP_FOR_STAIRS = 6
+SLEEP_FOR_DOORWAY = 3
+SLEEP_FOR_SUPERSHORT = 0.5
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     prev_angle = 0
@@ -129,9 +132,18 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 bearing_to_next = curr_node['bearing_to_next']
                 checkpoint = curr_node['next_checkpoint']
 
-                if curr_node['is_staircase']:
-                    distance_to_next = 6 * CM_PER_STEP # 6 steps per flight of stairs
-                    audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
+                if curr_node['type'] == 'staircase':
+                    audioQueue.put('go go go.')
+                    time.sleep(SLEEP_FOR_STAIRS)
+                    reached_checkpoint = True
+                if curr_node['type'] == 'supershort':
+                    audioQueue.put('go go go.')
+                    time.sleep(SLEEP_FOR_SUPERSHORT)
+                    reached_checkpoint = True
+                if curr_node['type'] == 'doorway':
+                    audioQueue.put('go go go.')
+                    time.sleep(SLEEP_FOR_DOORWAY)
+                    reached_checkpoint = True
                 else :
                     guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                     audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))

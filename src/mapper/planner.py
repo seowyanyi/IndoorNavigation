@@ -302,20 +302,40 @@ def is_staircase_next(currNodeName, nextNodeName):
            (currNodeName == 'TO COM2-2-16' and nextNodeName == 'Stairwell') or \
            (currNodeName == 'Stairwell' and nextNodeName == 'TO COM2-2-16')
 
-def add_staircase_information(distBearingList):
+def is_doorway_next(currNodeName, nextNodeName):
+    return (currNodeName == 'Glass Door' and nextNodeName == 'Wooden Door') or \
+           (currNodeName == 'Wooden Door' and nextNodeName == 'Glass Door') or \
+           (currNodeName == 'Wooden Door' and nextNodeName == 'Another Door') or \
+           (currNodeName == 'Another Door' and nextNodeName == 'Wooden Door')
+
+def is_supershort_next(currNodeName, nextNodeName):
+    return (currNodeName == 'Another Door' and nextNodeName == 'Stairwell') or \
+           (currNodeName == 'Stairwell' and nextNodeName == 'Another Door') or \
+           (currNodeName == 'Halfway' and nextNodeName == 'TO 2-3-11') or \
+           (currNodeName == 'TO 2-3-11' and nextNodeName == 'Halfway') or \
+           (currNodeName == 'Halfway' and nextNodeName == 'TO COM2-3-11') or \
+           (currNodeName == 'TO COM2-3-11' and nextNodeName == 'Halfway')
+
+
+
+def add_additional_information(distBearingList):
     if len(distBearingList) <= 1:
         return distBearingList
 
     for i in range(0, len(distBearingList) - 1):
         curr_node_name = distBearingList[i]['curr_node_name']
         next_node_name = distBearingList[i+1]['curr_node_name']
-        if is_staircase_next(curr_node_name, next_node_name):
-            distBearingList[i]['is_staircase'] = True
+        if is_supershort_next(curr_node_name, next_node_name):
+            distBearingList[i]['type'] = 'supershort'
+        elif is_staircase_next(curr_node_name, next_node_name):
+            distBearingList[i]['type'] = 'staircase'
+        elif is_doorway_next(curr_node_name, next_node_name):
+            distBearingList[i]['type'] = 'doorway'
         else:
-            distBearingList[i]['is_staircase'] = False
+            distBearingList[i]['type'] = 'default'
 
     # last node does not have staircase
-    distBearingList[len(distBearingList)-1]['is_staircase'] = False
+    distBearingList[len(distBearingList)-1]['type'] = 'default'
 
 def find_dist_bearing_to_next_node(global_path, graph): # todo: test across different maps
     """
@@ -343,7 +363,7 @@ def find_dist_bearing_to_next_node(global_path, graph): # todo: test across diff
     dest = checkpointList[len(checkpointList) -1]
     dist_bearing_list.append({'is_linkage': False, 'curr_node_name': dest.nodeName, 'curr_checkpoint': dest.localNodeId})
 
-    add_staircase_information(dist_bearing_list)
+    add_additional_information(dist_bearing_list)
     return dist_bearing_list
 
 # -------------------------------------------------------------------------------------------------------------------
