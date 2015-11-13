@@ -154,6 +154,7 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                     else:
                         time.sleep(3)
                     audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
+                    time.sleep(2)
                     pedometerQueue.queue.clear()
                     good_to_go_time = int(time.time())
                     print 'Distance to node {}: {} cm Bearing to {}: {} deg'.format(checkpoint, distance_to_next, checkpoint, bearing_to_next)
