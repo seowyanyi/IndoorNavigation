@@ -134,16 +134,14 @@ def start_pedometer_processing(dataQueue, pedometerQueue, windowSize, atRestLimi
         if checkTwoSecs['status']:
             prev_two_seconds = checkTwoSecs['curr']
             actual_rate = np.mean(dataRateList)
-            if not MIN_DATA_RATE <= actual_rate <= MAX_DATA_RATE:
-                print 'Data rate is off. Actual: {} s'.format(actual_rate)
+            #if not MIN_DATA_RATE <= actual_rate <= MAX_DATA_RATE:
+            print 'Data rate: {} s.     IMU Queue size: {}.    Acc x: {}'.format(actual_rate, dataQueue.qsize(), x)
             if np.amax(headingData) - np.amin(headingData) < AT_REST_HEADING_MARGIN:
                 long_rest_counter += 1
                 if long_rest_counter == LONG_REST_COUNTER_LIMIT:
                     long_rest_counter = 0
                     print 'User currently at rest. Heading: {} deg'.format(medianHeading)
                     pedometerQueue.put({'type': Step.AT_REST, 'actual_bearing': medianHeading})
-            if np.amax(data) == np.amin(data):
-                print 'acc x constant value {}'.format(np.amax(data))
 
         # Check whether a step is taken
         if is_downward_swing(data):

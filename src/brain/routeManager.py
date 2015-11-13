@@ -175,7 +175,7 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 steps_between_checkpoints += 1
                 distance_to_next -= CM_PER_STEP
 
-                print 'Step taken. Heading: {} deg.'.format(data['actual_bearing'])
+                print '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Step taken. Heading: {} deg.'.format(data['actual_bearing'])
                 # start counting down a few steps before reaching next checkpoint
                 if 0 < distance_to_next <= COUNTDOWN_FROM_X_STEPS * CM_PER_STEP:
                     audioQueue.put(COUNTDOWN_X_LEFT.format(round(distance_to_next / CM_PER_STEP,1)))
