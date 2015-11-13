@@ -30,9 +30,12 @@ sonar2Data = 0      # Right Sonar
 sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
+
 LIMIT_DATA_RATE_DEFAULT = 3 # 67%
 LIMIT_DATA_RATE_LOW = 2 # 50%
 LIMIT_DATA_RATE_LOWEST = 4 # 25%
+
+SLOW_DATA_RATE = 0.07
 
 PKT_READ_TIMEOUT_SECS = 3 # this should be <= recv timeout set in sprotcfg.py
 RESET_TIMEOUT_SECS = 15 # minimum time between resets
@@ -98,6 +101,7 @@ def read_packet(limit, imuQueue, audioQueue):
     # restarting arduino when data stops
     prev_reset = timeit.default_timer()
     is_arduino_dead = False
+    diff = 0
 
     while True :
 
@@ -140,13 +144,16 @@ def read_packet(limit, imuQueue, audioQueue):
                         if imuQueue.qsize() > 25:
                             #print '33% DR. imu queue size: {}'.format(imuQueue.qsize())
                             low_mode = True
-                        elif imuQueue.qsize() > 10:
+                        elif imuQueue.qsize() > 15:
                             low_mode = False
                             #print '50% DR. imu queue size: {}'.format(imuQueue.qsize())
                             limit = LIMIT_DATA_RATE_LOW
-                        elif imuQueue.qsize() <= 10:
+                        else:
                             #print '67% DR. imu queue size: {}'.format(imuQueue.qsize())
                             low_mode = False
+                            limit = LIMIT_DATA_RATE_DEFAULT
+
+                        if diff > SLOW_DATA_RATE:
                             limit = LIMIT_DATA_RATE_DEFAULT
 
                         if not low_mode and counter >= limit:
