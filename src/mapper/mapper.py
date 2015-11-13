@@ -36,12 +36,10 @@ def get_start_and_end_locations(audioQueue):
 
 def get_destination(audioQueue):
     audioQueue.put(ASK_FOR_DESTINATION)
-    print "ASK_FOR_DESTINATION"
     return get_input_and_request_confirmation(audioQueue)
 
 def get_starting(audioQueue):
     audioQueue.put(ASK_FOR_STARTING)
-    print "ASK_FOR_STARTING"
     return get_input_and_request_confirmation(audioQueue)
 
 def is_confirm(keypadInput):
