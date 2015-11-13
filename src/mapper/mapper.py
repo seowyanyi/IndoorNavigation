@@ -48,19 +48,8 @@ def is_confirm(keypadInput):
     return int(keypadInput) == int(KEYPAD_CONFIRM)
 
 def get_input_and_request_confirmation(audioQueue):
-    building_level = keypad.get_user_input()
-    # COM 1 Level 2 by default
-    building = 1
-    level = 2
-    if building_level == 2:
-        # COM 2 Level 2
-        building = 2
-        level = 2
-    elif building_level == 3:
-        # COM 2 Level 3
-        building = 2
-        level = 3
-
+    building = keypad.get_user_input()
+    level = keypad.get_user_input()
     node = keypad.get_user_input()
     userInput = [building, level, node]
     audioQueue.put(CONFIRM_INPUT.format(building, level, node))
