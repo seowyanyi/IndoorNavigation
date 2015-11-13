@@ -13,6 +13,7 @@ import pedometer
 import time
 import numpy as np
 import Queue
+import sys
 
 # Audio commands
 TURN_X_DEG_CW = 'Turn {} degrees clockwise' 
@@ -34,8 +35,8 @@ COUNTDOWN_FROM_X_STEPS = 4
 RADIANS_PER_DEGREE = 0.0174533
 SECS_BEFORE_GOOD_TO_GO_REPEAT = 25
 SLEEP_FOR_STAIRS = 6
-SLEEP_FOR_DOORWAY = 3
-SLEEP_FOR_SUPERSHORT = 0.5
+SLEEP_FOR_DOORWAY = 6
+SLEEP_FOR_SUPERSHORT = 1.5
 
 def guide_user_to_next_checkpoint(target_bearing, pedometerQueue, audioQueue, threshold):
     prev_angle = 0
@@ -121,7 +122,7 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 #reached destination
                 audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
                 audioQueue.put(DESTINATION_REACHED)
-                break
+                sys.exit()
             else:
                 audioQueue.put(CURRENT_CHECKPOINT.format(currNodeId, curr_node_name))
                 if curr_node['is_linkage']:
@@ -136,14 +137,17 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                     audioQueue.put('go go go.')
                     time.sleep(SLEEP_FOR_STAIRS)
                     reached_checkpoint = True
+                    continue
                 if curr_node['type'] == 'supershort':
                     audioQueue.put('go go go.')
                     time.sleep(SLEEP_FOR_SUPERSHORT)
                     reached_checkpoint = True
+                    continue
                 if curr_node['type'] == 'doorway':
                     audioQueue.put('go go go.')
                     time.sleep(SLEEP_FOR_DOORWAY)
                     reached_checkpoint = True
+                    continue
                 else :
                     guide_user_to_next_checkpoint(bearing_to_next, pedometerQueue, audioQueue, ACCEPTABLE_BEARING_ERROR_STAIONARY)
                     audioQueue.put(GOOD_TO_GO.format(round(distance_to_next/CM_PER_STEP,1)))
@@ -195,7 +199,4 @@ def start_managing_routes(pedometerQueue, audioQueue, keypressQueue, precomputed
                 checkpoint = precomputedCheckpointData[curr_index]['next_checkpoint']
                 reached_checkpoint = True
                 audioQueue.put(CHECKPOINT_REACHED.format(checkpoint))
-
-            if pedometerQueue.qsize() > 1:
-                print 'pedo queue size: {}'.format(pedometerQueue.qsize())
 
