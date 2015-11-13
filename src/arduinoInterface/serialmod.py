@@ -31,11 +31,12 @@ sonar3Data = 0      # Middle Sonar
 compassData = 0
 footsensData = 0
 
+LIMIT_DATA_RATE_HIGH = 4 # 80%
 LIMIT_DATA_RATE_DEFAULT = 3 # 67%
 LIMIT_DATA_RATE_LOW = 2 # 50%
 LIMIT_DATA_RATE_LOWEST = 4 # 25%
 
-SLOW_DATA_RATE = 0.07
+SLOW_DATA_RATE = 0.08
 
 PKT_READ_TIMEOUT_SECS = 3 # this should be <= recv timeout set in sprotcfg.py
 RESET_TIMEOUT_SECS = 15 # minimum time between resets
@@ -154,7 +155,7 @@ def read_packet(limit, imuQueue, audioQueue):
                             limit = LIMIT_DATA_RATE_DEFAULT
 
                         if diff > SLOW_DATA_RATE:
-                            limit = LIMIT_DATA_RATE_DEFAULT
+                            limit = LIMIT_DATA_RATE_HIGH
 
                         if not low_mode and counter >= limit:
                             counter = 0
