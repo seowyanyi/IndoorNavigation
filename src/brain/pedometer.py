@@ -25,7 +25,7 @@ AT_REST_HEADING_MARGIN = 6
 SWING_LIMIT = 1
 TURNING_THRESHOLD = 40
 FOOT_OFFSET_ANGLE = 8
-SECS_BETWEEN_STEPS = 1.2
+SECS_BETWEEN_STEPS = 1.3
 
 MAX_DATA_RATE = 0.08
 MIN_DATA_RATE = 0.01
@@ -196,7 +196,7 @@ def get_equation_of_line(data):
 def is_downward_swing(data):
     line = get_equation_of_line(data)
     gradient = line[0]
-    return gradient < -0.2
+    return gradient < -0.25
 
 def is_at_rest(data):
     line = get_equation_of_line(data)
