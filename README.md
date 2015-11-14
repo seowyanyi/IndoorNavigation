@@ -13,5 +13,4 @@ Installation
 
 Running
 -------
-In the IndoorNavigation directory (top most level), run
-`python -m src.main`
+`python main.py`
