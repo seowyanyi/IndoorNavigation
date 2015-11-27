@@ -80,9 +80,6 @@ def download_map(buildingName, levelNum):
 
 
     if buildingName == 1 and levelNum == 2:
-        #/home/seowyanyi/school/cg3002/IndoorNavigation/src/mapper/PreLoadedMaps/
-        #/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/
-    #            /Users/malavikamenon/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json
         with open('/home/pi/IndoorNavigation/src/mapper/PreLoadedMaps/COM1Lvl2.json') as json_file:
             mapJsonData = json.load(json_file)
     elif buildingName == 2 and levelNum == 2:
@@ -206,49 +203,6 @@ def find_shortest_path_given_graph(graph, sourceBuilding, sourceLevel, sourceNod
     nodeIdSrc = '{}-{}-{}'.format(sourceBuilding, sourceLevel, sourceNodeId)
     nodeIdDest = '{}-{}-{}'.format(destBuilding, destLevel, destNodeId)
     return nx.dijkstra_path(graph, nodeIdSrc, nodeIdDest, 'weight')
-
-# -------------------------------------------------------------------------------------------------------------------
-def convert_to_API(path):
-    p=0
-    r=0
-    stage=1
-    path_nodes = len(path)
-    arrayNodes = []
-    arrayStages = []
-    startingBuild = path[p].split('-')[0]
-    startingLevel = path[p].split('-')[1]
-    p += 1
-    while True:
-        if p == path_nodes:
-            break
-        else:
-            while True:
-                if r == path_nodes:
-                    break
-                elif (path[r].split('-')[0] == startingBuild) and (path[r].split('-')[1] == startingLevel):
-                    arrayNodes.append(path[r].split('-')[2])
-                    r=r+1
-                else:
-                    stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
-                    building = startingBuild
-                    level = startingLevel
-                    apiNode = '{"stage":%d,"building":"%s","level":%s,"path":%s}' %(stage, building, level, stringNodes)
-                    arrayStages.append(apiNode)
-                    arrayNodes = []
-                    stage += 1
-                    startingBuild = path[r].split('-')[0]
-                    startingLevel = path[r].split('-')[1]
-
-        p += 1
-
-    stringNodes = ("[{0}]".format(", ".join(str(i) for i in arrayNodes))).replace(" ", "")
-    building = startingBuild
-    level = startingLevel
-    apiNode = '{"stage":%d,"building":"%s","level":%s,"path":%s}' %(stage, building, level, stringNodes)
-    arrayStages.append(apiNode)
-    
-    return "[{0}]".format(", ".join(str(i) for i in arrayStages))
-
 
 def convert_global_path_to_checkpoints(global_path, graph):
     listOfCheckpoints = []
